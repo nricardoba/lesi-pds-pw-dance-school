@@ -76,12 +76,17 @@ Table Item_Condition {
   item_condition_name varchar [not null, unique]
 }
 
-Table Item {
-  item_id int [primary key]
-  item_name varchar [not null]
+Table Item_Characteristics {
+  item_characteristics_id int [primary key]
+  item_characteristics_name varchar [not null]
   color_id int [not null]
   size_id int [null]
   category_id int [not null]
+}
+
+Table Item {
+  item_id int [primary key]
+  item_characteristics_id int [not null]
   item_condition_id int [not null]
 }
 
@@ -188,24 +193,6 @@ Ref: "Class"."class_status_type_id" > "Class_Status_Type"."class_status_type_id"
 
 Ref: "User"."user_id" < "Schedule_Vacancy"."user_id"
 
-Ref: "Color"."color_id" < "Item"."color_id"
-
-Ref: "Size"."size_id" < "Item"."size_id"
-
-Ref: "Category"."category_id" < "Item"."category_id"
-
-Ref: "School_Item"."item_id" - "Item"."item_id"
-
-Ref: "User_Item"."item_id" - "Item"."item_id"
-
-Ref: "School_Item"."item_id" < "Rent_Item"."item_id"
-
-Ref: "User"."user_id" < "Rent_Item"."user_id"
-
-Ref: "User"."user_id" < "User_Item"."user_id"
-
 Ref: "User"."user_id" - "Student_Number"."user_id"
 
 Ref: "User_Class_Role"."user_class_role_id" < "User_Class"."user_class_role_id"
-
-Ref: "Item_Condition"."item_condition_id" < "Item"."item_condition_id"
