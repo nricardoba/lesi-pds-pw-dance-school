@@ -196,3 +196,21 @@ Ref: "User"."user_id" < "Schedule_Vacancy"."user_id"
 Ref: "User"."user_id" - "Student_Number"."user_id"
 
 Ref: "User_Class_Role"."user_class_role_id" < "User_Class"."user_class_role_id"
+
+Ref: "Color"."color_id" < "Item_Characteristics"."color_id"
+
+Ref: "Size"."size_id" < "Item_Characteristics"."size_id"
+
+Ref: "Category"."category_id" < "Item_Characteristics"."category_id"
+
+Ref: "Item_Characteristics"."item_characteristics_id" < "Item"."item_characteristics_id"
+
+Ref: "Item_Condition"."item_condition_id" < "Item"."item_condition_id"
+
+Ref: "Item"."item_id" - "School_Item"."item_id"
+
+Ref: "Item"."item_id" - "User_Item"."item_id"
+
+Ref: "School_Item"."item_id" < "Rent_Item"."item_id"
+
+Ref: "User"."user_id" < "Rent_Item"."user_id"
