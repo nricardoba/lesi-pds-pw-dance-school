@@ -66,6 +66,16 @@ Table Category {
   category_name varchar [not null, unique]
 }
 
+Table Dance_Type {
+  dance_type_id int [primary key]
+  dance_type_name varchar [not null, unique]
+}
+
+Table Item_Characteristics_Dance_Type {
+  item_characteristics_id int [primary key]
+  dance_type_id int [primary key]
+}
+
 Table Size {
   size_id int [primary key]
   size_name varchar [not null, unique]
@@ -214,3 +224,7 @@ Ref: "Item"."item_id" - "User_Item"."item_id"
 Ref: "School_Item"."item_id" < "Rent_Item"."item_id"
 
 Ref: "User"."user_id" < "Rent_Item"."user_id"
+
+Ref: "Dance_Type"."dance_type_id" < "Item_Characteristics_Dance_Type"."dance_type_id"
+
+Ref: "Item_Characteristics"."item_characteristics_id" < "Item_Characteristics_Dance_Type"."item_characteristics_id"
