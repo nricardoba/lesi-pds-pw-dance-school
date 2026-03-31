@@ -123,9 +123,11 @@ Table Studio {
 
 Table Class {
   class_id int [primary key]
+  school_year_id int [not null]
   class_day date [not null]
   class_date_start time [not null]
   class_date_end time [not null]
+  class_recurrence bool [null]
   modality_id int [not null]
   studio_id int [not null]
   class_fee decimal(10, 2) [not null]
@@ -167,10 +169,18 @@ Table Rent_Item {
 Table Schedule_Vacancy {
   schedule_vacancy_id int [primary key]
   user_id int [not null]
+  school_year_id int [not null]
   schedule_vacancy_day date [not null]
   schedule_vacancy_start time [not null]
   schedule_vacancy_end time [not null]
   schedule_vacancy_recurrence bool [null]
+}
+
+Table School_Year {
+  school_year_id int [primary key]
+  school_year_name varchar [not null, unique]
+  school_year_start date [not null]
+  school_year_end date [not null]
 }
 
 Ref: "Locality"."locality_id" < "Postal_Code"."locality_id"
@@ -228,3 +238,7 @@ Ref: "User"."user_id" < "Rent_Item"."user_id"
 Ref: "Dance_Type"."dance_type_id" < "Item_Characteristics_Dance_Type"."dance_type_id"
 
 Ref: "Item_Characteristics"."item_characteristics_id" < "Item_Characteristics_Dance_Type"."item_characteristics_id"
+
+Ref: "School_Year"."school_year_id" < "Class"."school_year_id"
+
+Ref: "School_Year"."school_year_id" < "Schedule_Vacancy"."school_year_id"
