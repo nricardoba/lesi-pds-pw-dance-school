@@ -1,11 +1,51 @@
-# macOS
-.DS_Store
+# Rule: sorted alphabetically
 
-# Zed
-.zed
+# ================================
+# Cache and temp files
+# ================================
+
+.cache/
+.temp/
+.tmp/
+
+# ================================
+# Dependencies
+# ================================
+
+node_modules/
+
+# ================================
+# Editors and IDEs
+# ================================
+
+# JetBrains
+.idea
 
 # Visual Studio Code
 .vscode
 
-# JetBrains
-.idea
+# Zed
+.zed
+
+# ================================
+# Environment variables
+# ================================
+
+.env
+.env.development
+.env.local
+.env.production
+
+# ================================
+# Logs
+# ================================
+
+*.log
+logs/
+
+# ================================
+# Operating system
+# ================================
+
+# macOS
+.DS_Store
