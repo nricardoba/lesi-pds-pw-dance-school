@@ -1,7 +1,7 @@
 # Project 50+10 - Dance School
 
 ## Frontend
-To start working on the frontend, follow these steps to install all the dependencies listed in the `package.json` file:
+To start working on the frontend, follow these steps to install all the dependencies listed in the `frontend/package.json` file:
 
 1. Go to the frontend folder:
 ```
