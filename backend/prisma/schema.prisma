@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// MODELS
+// -----------------------------------------------------------------------------
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String   // A password hasheada
+  role      Role     @default(STUDENT)
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  enrollments Enrollment[]
+  classes     Class[]      @relation("TeacherClasses")
+}
+
+model Class {
+  id          String   @id @default(uuid())
+  name        String   // ex: "Ballet Clássico - Grau 1"
+  description String?
+  capacity    Int      // Máximo de alunos permitidos
+
+  // Relação com o Professor (User)
+  teacherId   String
+  teacher     User     @relation("TeacherClasses", fields: [teacherId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relações
+  schedules   Schedule[]
+  enrollments Enrollment[]
+}
+
+model Schedule {
+  id        String   @id @default(uuid())
+  dayOfWeek Int      // 0 (Domingo) a 6 (Sábado)
+  startTime String   // Formato "HH:MM", ex: "18:30"
+  endTime   String   // Formato "HH:MM", ex: "19:30"
+  room      String?  // Sala onde decorre a aula
+
+  // Relação com a Turma
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  status    String   @default("ACTIVE") // ACTIVE, CANCELLED, PENDING
+
+  // Relação com o Aluno (User)
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id])
+
+  // Relação com a Turma (Class)
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Garante que um aluno não se inscreve duas vezes na mesma turma
+  @@unique([studentId, classId])
+}
