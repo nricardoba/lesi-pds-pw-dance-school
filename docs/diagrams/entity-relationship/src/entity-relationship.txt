@@ -121,6 +121,17 @@ Table Studio {
   studio_max_capacity int [not null]
 }
 
+Table Studio_Modality {
+  studio_modality_id int [primary key]
+  studio_id int [not null]
+  modality_id int [not null]
+
+  // Impede que o mesmo par seja inserido duas vezes
+  indexes {
+    (studio_id, modality_id) [unique]
+  }
+}
+
 Table Class {
   class_id int [primary key]
   school_year_id int [not null]
@@ -128,8 +139,7 @@ Table Class {
   class_date_start time [not null]
   class_date_end time [not null]
   class_recurrence bool [null]
-  modality_id int [not null]
-  studio_id int [not null]
+  studio_modality_id int [not null]
   class_fee decimal(10, 2) [not null]
   class_status_type_id int [not null]
 }
@@ -199,10 +209,6 @@ Ref: "Contact_Type"."contact_type_id" < "Contact"."contact_type_id"
 
 Ref: "Contact"."contact_id" < "User_Contact"."contact_id"
 
-Ref: "Modality"."modality_id" < "Class"."modality_id"
-
-Ref: "Studio"."studio_id" < "Class"."studio_id"
-
 Ref: "Class"."class_id" < "User_Class"."class_id"
 
 Ref: "User"."user_id" < "User_Class"."user_id"
@@ -242,3 +248,9 @@ Ref: "Item_Characteristics"."item_characteristics_id" < "Item_Characteristics_Da
 Ref: "School_Year"."school_year_id" < "Class"."school_year_id"
 
 Ref: "School_Year"."school_year_id" < "Schedule_Vacancy"."school_year_id"
+
+Ref: "Studio"."studio_id" < "Studio_Modality"."studio_id"
+
+Ref: "Modality"."modality_id" < "Studio_Modality"."modality_id"
+
+Ref: "Studio_Modality"."studio_modality_id" < "Class"."studio_modality_id"
