@@ -126,7 +126,7 @@ Table Studio_Modality {
   studio_id int [not null]
   modality_id int [not null]
 
-  // Impede que o mesmo par seja inserido duas vezes
+  // impede que o mesmo par seja inserido duas vezes
   indexes {
     (studio_id, modality_id) [unique]
   }
@@ -141,12 +141,26 @@ Table Class {
   class_recurrence bool [null]
   studio_modality_id int [not null]
   class_fee decimal(10, 2) [not null]
-  class_status_type_id int [not null]
+  // redundância proposital (para ser mais rápido a ler a informação)
+  // o backend tem de certificar que o valor desta
+  // tabela e da tabela Class_Status_History estão em sintonia
+  class_status_id int [not null]
 }
 
-Table Class_Status_Type {
-  class_status_type_id int [primary key]
-  class_status_type_desc varchar [not null, unique]
+Table Class_Status {
+  class_status_id int [primary key]
+  class_status_desc varchar [not null, unique]
+}
+
+// implementar no backend solução que verifica se passaram as 48 horas
+Table Class_Status_History {
+  class_status_history_id int [primary key]
+  class_id int [not null]
+  class_status_id int [not null]
+  // utilizador que alterou o estado
+  user_id int [not null]
+  // data da alteração
+  class_status_history_date datetime [not null]
 }
 
 Table User_Class {
@@ -215,7 +229,7 @@ Ref: "User"."user_id" < "User_Class"."user_id"
 
 Ref: "User"."user_id" - "User_NIF"."user_id"
 
-Ref: "Class"."class_status_type_id" > "Class_Status_Type"."class_status_type_id"
+Ref: "Class"."class_status_id" > "Class_Status"."class_status_id"
 
 Ref: "User"."user_id" < "Schedule_Vacancy"."user_id"
 
@@ -254,3 +268,9 @@ Ref: "Studio"."studio_id" < "Studio_Modality"."studio_id"
 Ref: "Modality"."modality_id" < "Studio_Modality"."modality_id"
 
 Ref: "Studio_Modality"."studio_modality_id" < "Class"."studio_modality_id"
+
+Ref: "Class"."class_id" < "Class_Status_History"."class_id"
+
+Ref: "Class_Status"."class_status_id" < "Class_Status_History"."class_status_id"
+
+Ref: "User"."user_id" < "Class_Status_History"."user_id"
