@@ -15,8 +15,15 @@ Table Student_Number {
 }
 
 Table User_Address {
-  user_id int [primary key]
-  street_id int [primary key]
+  user_address_id int [primary key]
+  user_id int [not null]
+  street_id int [not null]
+  is_main_address bool [not null]
+
+  // impede que o mesmo par seja inserido duas vezes
+  indexes {
+    (user_id, street_id) [unique]
+  }
 }
 
 Table Address {
@@ -47,8 +54,17 @@ Table Contact {
 }
 
 Table User_Contact {
-  user_id int [primary key]
-  contact_id int [primary key]
+  user_contact_id int [primary key]
+  user_id int [not null]
+  contact_id int [not null]
+  // o backend deve certificar que não há dois
+  // utilizadores com o mesmo main contact
+  is_main_contact bool [not null]
+
+  // impede que o mesmo par seja inserido duas vezes
+  indexes {
+    (user_id, contact_id) [unique]
+  }
 }
 
 Table User_Type {
@@ -152,7 +168,10 @@ Table Class_Status {
   class_status_desc varchar [not null, unique]
 }
 
-// implementar no backend solução que verifica se passaram as 48 horas
+// implementar no backend:
+// 1. solução que verifica se passaram as 48 horas
+// 2. solução que não permite ao utilizador
+// mudar duas vezes para o mesmo estado
 Table Class_Status_History {
   class_status_history_id int [primary key]
   class_id int [not null]
@@ -205,6 +224,12 @@ Table School_Year {
   school_year_name varchar [not null, unique]
   school_year_start date [not null]
   school_year_end date [not null]
+}
+
+Table User_Credential {
+  user_id int [primary key]
+  user_contact_id int [not null, unique]
+  user_credential_password_hash varchar [not null]
 }
 
 Ref: "Locality"."locality_id" < "Postal_Code"."locality_id"
@@ -274,3 +299,7 @@ Ref: "Class"."class_id" < "Class_Status_History"."class_id"
 Ref: "Class_Status"."class_status_id" < "Class_Status_History"."class_status_id"
 
 Ref: "User"."user_id" < "Class_Status_History"."user_id"
+
+Ref: "User_Contact"."user_contact_id" - "User_Credential"."user_contact_id"
+
+Ref: "User"."user_id" - "User_Credential"."user_id"
