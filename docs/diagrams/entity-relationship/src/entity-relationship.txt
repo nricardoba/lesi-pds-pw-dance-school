@@ -150,9 +150,10 @@ Table User_Item {
 }
 
 Table Class_Extra_Fee {
-  class_id int [primary key]
-  class_extra_fee decimal(10, 2) [not null]
+  class_extra_fee_id int [primary key]
+  class_extra_fee_value decimal(10, 2) [not null]
   class_extra_fee_reason_id int [not null]
+  class_id int [not null]
 }
 
 // aqui vão ser criados os registos: fim de semana, feriados e etc
@@ -341,6 +342,6 @@ Ref: "User"."user_id" - "User_Credential"."user_id"
 
 Ref: "Item_Characteristics"."item_characteristics_id" < "Item_Image"."item_characteristics_id"
 
-Ref: "Class"."class_id" - "Class_Extra_Fee"."class_id"
+Ref: "Class"."class_id" < "Class_Extra_Fee"."class_id"
 
 Ref: "Class_Extra_Fee_Reason"."class_extra_fee_reason_id" < "Class_Extra_Fee"."class_extra_fee_reason_id"
