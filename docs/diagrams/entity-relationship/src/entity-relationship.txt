@@ -17,6 +17,11 @@ Table User_Credential {
   user_id int [primary key]
   user_contact_id int [not null, unique]
   user_credential_password_hash varchar [not null]
+  // se a conta de um professor for criada pela direção,
+  // este atributo deve começar por ser null
+  // (quando o utilizador fizer login pela primeira vez,
+  // passa a guardar essa data)
+  user_credential_last_login datetime [null]
 }
 
 Table Student_Number {
@@ -144,9 +149,22 @@ Table User_Item {
   user_id int [not null]
 }
 
+Table Class_Extra_Fee {
+  class_id int [primary key]
+  class_extra_fee decimal(10, 2) [not null]
+  class_extra_fee_reason_id int [not null]
+}
+
+// aqui vão ser criados os registos: fim de semana, feriados e etc
+Table Class_Extra_Fee_Reason {
+  class_extra_fee_reason_id int [primary key]
+  class_extra_fee_reason_desc varchar [not null, unique]
+}
+
 Table Modality {
   modality_id int [primary key]
   modality_name varchar [not null, unique]
+  modality_hourly_fee decimal(10, 2) [not null]
 }
 
 Table Studio {
@@ -176,7 +194,10 @@ Table Class {
   // o backend deve certificar que duas aulas não
   // são marcadas no mesmo estudio à mesma hora
   studio_modality_id int [not null]
-  class_fee decimal(10, 2) [not null]
+  // deve ser guardado o valor da aula efetuada,
+  // porque no futuro, se o valor default de uma aula for
+  // alterado, o valor da aula efetuada fica registado
+  class_final_fee decimal(10, 2) [not null]
   // redundância proposital (para ser mais rápido a ler a informação)
   // o backend tem de certificar que o valor desta
   // tabela e da tabela Class_Status_History estão em sintonia
@@ -319,3 +340,7 @@ Ref: "User_Contact"."user_contact_id" - "User_Credential"."user_contact_id"
 Ref: "User"."user_id" - "User_Credential"."user_id"
 
 Ref: "Item_Characteristics"."item_characteristics_id" < "Item_Image"."item_characteristics_id"
+
+Ref: "Class"."class_id" - "Class_Extra_Fee"."class_id"
+
+Ref: "Class_Extra_Fee_Reason"."class_extra_fee_reason_id" < "Class_Extra_Fee"."class_extra_fee_reason_id"
