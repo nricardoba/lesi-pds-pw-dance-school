@@ -32,6 +32,7 @@ node_modules/
 # ================================
 
 .env
+.env*
 .env.development
 .env.local
 .env.production
