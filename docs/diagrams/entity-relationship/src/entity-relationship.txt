@@ -7,6 +7,16 @@ Table User {
   user_birth_date date [null]
   user_start_date date [null]
   user_type_id int [not null]
+  // verifica se um utilizador ainda está ativo na plataforma,
+  // não queremos apagar os dados de um professor,
+  // pois iria corromper os dados das aulas
+  user_is_active bool [not null]
+}
+
+Table User_Credential {
+  user_id int [primary key]
+  user_contact_id int [not null, unique]
+  user_credential_password_hash varchar [not null]
 }
 
 Table Student_Number {
@@ -110,6 +120,14 @@ Table Item_Characteristics {
   category_id int [not null]
 }
 
+Table Item_Image {
+  item_image_id int [primary key]
+  item_characteristics_id int [not null]
+  item_image_url varchar [not null]
+  // colocar valor default no backend
+  item_image_is_main bool [not null]
+}
+
 Table Item {
   item_id int [primary key]
   item_characteristics_id int [not null]
@@ -155,6 +173,8 @@ Table Class {
   class_date_start time [not null]
   class_date_end time [not null]
   class_recurrence bool [null]
+  // o backend deve certificar que duas aulas não
+  // são marcadas no mesmo estudio à mesma hora
   studio_modality_id int [not null]
   class_fee decimal(10, 2) [not null]
   // redundância proposital (para ser mais rápido a ler a informação)
@@ -224,12 +244,6 @@ Table School_Year {
   school_year_name varchar [not null, unique]
   school_year_start date [not null]
   school_year_end date [not null]
-}
-
-Table User_Credential {
-  user_id int [primary key]
-  user_contact_id int [not null, unique]
-  user_credential_password_hash varchar [not null]
 }
 
 Ref: "Locality"."locality_id" < "Postal_Code"."locality_id"
@@ -303,3 +317,5 @@ Ref: "User"."user_id" < "Class_Status_History"."user_id"
 Ref: "User_Contact"."user_contact_id" - "User_Credential"."user_contact_id"
 
 Ref: "User"."user_id" - "User_Credential"."user_id"
+
+Ref: "Item_Characteristics"."item_characteristics_id" < "Item_Image"."item_characteristics_id"
