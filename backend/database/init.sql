@@ -11,7 +11,7 @@ CREATE TABLE "User_Credential" (
   "user_id" int PRIMARY KEY,
   "user_contact_id" int UNIQUE NOT NULL,
   "user_credential_password_hash" varchar NOT NULL,
-  "user_credential_last_login" datetime
+  "user_credential_last_login" timestamptz
 );
 
 CREATE TABLE "Student_Number" (
@@ -179,7 +179,7 @@ CREATE TABLE "Class_Status_History" (
   "class_id" int NOT NULL,
   "class_status_id" int NOT NULL,
   "user_id" int NOT NULL,
-  "class_status_history_date" datetime NOT NULL
+  "class_status_history_date" timestamptz NOT NULL
 );
 
 CREATE TABLE "User_Class" (
@@ -204,9 +204,9 @@ CREATE TABLE "Rent_Item" (
   "rent_id" int PRIMARY KEY,
   "item_id" int NOT NULL,
   "user_id" int NOT NULL,
-  "rent_date_start" datetime NOT NULL,
-  "rent_date_end" datetime NOT NULL,
-  "actual_rent_date_end" datetime,
+  "rent_date_start" timestamptz NOT NULL,
+  "rent_date_end" timestamptz NOT NULL,
+  "actual_rent_date_end" timestamptz,
   "item_damaged" bool
 );
 
