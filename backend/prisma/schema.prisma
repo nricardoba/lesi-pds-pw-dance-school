@@ -27,8 +27,8 @@ model Class {
   class_id             Int                    @id
   school_year_id       Int
   class_day            DateTime               @db.Date
-  class_date_start     DateTime               @db.Time(6)
-  class_date_end       DateTime               @db.Time(6)
+  class_time_start     DateTime               @db.Time(6)
+  class_time_end       DateTime               @db.Time(6)
   class_recurrence     Boolean?
   studio_modality_id   Int
   class_final_fee      Decimal                @db.Decimal(10, 2)
@@ -267,6 +267,7 @@ model User {
   User_Class           User_Class[]
   User_Contact         User_Contact[]
   User_Credential      User_Credential?
+  User_Item            User_Item[]
   User_NIF             User_NIF?
 }
 
@@ -329,6 +330,7 @@ model User_Item {
   item_id Int  @id
   user_id Int
   Item    Item @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction)
+  User    User @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
