@@ -9,339 +9,384 @@ datasource db {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Address {
-  street_id    Int            @id
-  street_name  String         @db.VarChar
-  postal_code  String         @db.VarChar
-  Postal_Code  Postal_Code    @relation(fields: [postal_code], references: [postal_code], onDelete: NoAction, onUpdate: NoAction)
-  User_Address User_Address[]
+  streetId      Int           @id @map("street_id")
+  streetName    String        @map("street_name") @db.VarChar
+  postalCode    String        @map("postal_code") @db.VarChar
+  postalCodeRel PostalCode    @relation(fields: [postalCode], references: [postalCode], onDelete: NoAction, onUpdate: NoAction)
+  userAddress   UserAddress[]
 }
 
 model Category {
-  category_id          Int                    @id
-  category_name        String                 @unique @db.VarChar
-  Item_Characteristics Item_Characteristics[]
+  categoryId          Int                   @id @map("category_id")
+  categoryName        String                @unique @map("category_name") @db.VarChar
+  itemCharacteristics ItemCharacteristics[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Class {
-  class_id             Int                    @id
-  school_year_id       Int
-  class_day            DateTime               @db.Date
-  class_time_start     DateTime               @db.Time(6)
-  class_time_end       DateTime               @db.Time(6)
-  class_recurrence     Boolean?
-  studio_modality_id   Int
-  class_final_fee      Decimal                @db.Decimal(10, 2)
-  class_status_id      Int
-  Class_Status         Class_Status           @relation(fields: [class_status_id], references: [class_status_id], onDelete: NoAction, onUpdate: NoAction)
-  School_Year          School_Year            @relation(fields: [school_year_id], references: [school_year_id], onDelete: NoAction, onUpdate: NoAction)
-  Studio_Modality      Studio_Modality        @relation(fields: [studio_modality_id], references: [studio_modality_id], onDelete: NoAction, onUpdate: NoAction)
-  Class_Extra_Fee      Class_Extra_Fee[]
-  Class_Status_History Class_Status_History[]
-  User_Class           User_Class[]
+  classId            Int                  @id @map("class_id")
+  schoolYearId       Int                  @map("school_year_id")
+  classDay           DateTime             @map("class_day") @db.Date
+  classTimeStart     DateTime             @map("class_time_start") @db.Time(6)
+  classTimeEnd       DateTime             @map("class_time_end") @db.Time(6)
+  classRecurrence    Boolean?             @map("class_recurrence")
+  studioModalityId   Int                  @map("studio_modality_id")
+  classFinalFee      Decimal              @map("class_final_fee") @db.Decimal(10, 2)
+  classStatusId      Int                  @map("class_status_id")
+  classStatus        ClassStatus          @relation(fields: [classStatusId], references: [classStatusId], onDelete: NoAction, onUpdate: NoAction)
+  schoolYear         SchoolYear           @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: NoAction, onUpdate: NoAction)
+  studioModality     StudioModality       @relation(fields: [studioModalityId], references: [studioModalityId], onDelete: NoAction, onUpdate: NoAction)
+  classExtraFee      ClassExtraFee[]
+  classStatusHistory ClassStatusHistory[]
+  userClass          UserClass[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Class_Extra_Fee {
-  class_extra_fee_id        Int                    @id
-  class_extra_fee_value     Decimal                @db.Decimal(10, 2)
-  class_extra_fee_reason_id Int
-  class_id                  Int
-  Class_Extra_Fee_Reason    Class_Extra_Fee_Reason @relation(fields: [class_extra_fee_reason_id], references: [class_extra_fee_reason_id], onDelete: NoAction, onUpdate: NoAction)
-  Class                     Class                  @relation(fields: [class_id], references: [class_id], onDelete: NoAction, onUpdate: NoAction)
+model ClassExtraFee {
+  classExtraFeeId       Int                 @id @map("class_extra_fee_id")
+  classExtraFeeValue    Decimal             @map("class_extra_fee_value") @db.Decimal(10, 2)
+  classExtraFeeReasonId Int                 @map("class_extra_fee_reason_id")
+  classId               Int                 @map("class_id")
+  classExtraFeeReason   ClassExtraFeeReason @relation(fields: [classExtraFeeReasonId], references: [classExtraFeeReasonId], onDelete: NoAction, onUpdate: NoAction)
+  class                 Class               @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Class_Extra_Fee")
 }
 
-model Class_Extra_Fee_Reason {
-  class_extra_fee_reason_id   Int               @id
-  class_extra_fee_reason_desc String            @unique @db.VarChar
-  Class_Extra_Fee             Class_Extra_Fee[]
+model ClassExtraFeeReason {
+  classExtraFeeReasonId   Int             @id @map("class_extra_fee_reason_id")
+  classExtraFeeReasonDesc String          @unique @map("class_extra_fee_reason_desc") @db.VarChar
+  classExtraFee           ClassExtraFee[]
+
+  @@map("Class_Extra_Fee_Reason")
 }
 
-model Class_Status {
-  class_status_id      Int                    @id
-  class_status_desc    String                 @unique @db.VarChar
-  Class                Class[]
-  Class_Status_History Class_Status_History[]
+model ClassStatus {
+  classStatusId      Int                  @id @map("class_status_id")
+  classStatusDesc    String               @unique @map("class_status_desc") @db.VarChar
+  class              Class[]
+  classStatusHistory ClassStatusHistory[]
+
+  @@map("Class_Status")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Class_Status_History {
-  class_status_history_id   Int          @id
-  class_id                  Int
-  class_status_id           Int
-  user_id                   Int
-  class_status_history_date DateTime     @db.Timestamptz(6)
-  Class                     Class        @relation(fields: [class_id], references: [class_id], onDelete: NoAction, onUpdate: NoAction)
-  Class_Status              Class_Status @relation(fields: [class_status_id], references: [class_status_id], onDelete: NoAction, onUpdate: NoAction)
-  User                      User         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model ClassStatusHistory {
+  classStatusHistoryId   Int         @id @map("class_status_history_id")
+  classId                Int         @map("class_id")
+  classStatusId          Int         @map("class_status_id")
+  userId                 Int         @map("user_id")
+  classStatusHistoryDate DateTime    @map("class_status_history_date") @db.Timestamptz(6)
+  class                  Class       @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
+  classStatus            ClassStatus @relation(fields: [classStatusId], references: [classStatusId], onDelete: NoAction, onUpdate: NoAction)
+  user                   User        @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Class_Status_History")
 }
 
 model Color {
-  color_id             Int                    @id
-  color_name           String                 @unique @db.VarChar
-  Item_Characteristics Item_Characteristics[]
+  colorId             Int                   @id @map("color_id")
+  colorName           String                @unique @map("color_name") @db.VarChar
+  itemCharacteristics ItemCharacteristics[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Contact {
-  contact_id      Int            @id
-  contact_value   String         @db.VarChar
-  contact_type_id Int
-  Contact_Type    Contact_Type   @relation(fields: [contact_type_id], references: [contact_type_id], onDelete: NoAction, onUpdate: NoAction)
-  User_Contact    User_Contact[]
+  contactId     Int           @id @map("contact_id")
+  contactValue  String        @map("contact_value") @db.VarChar
+  contactTypeId Int           @map("contact_type_id")
+  contactType   ContactType   @relation(fields: [contactTypeId], references: [contactTypeId], onDelete: NoAction, onUpdate: NoAction)
+  userContact   UserContact[]
 }
 
-model Contact_Type {
-  contact_type_id   Int       @id
-  contact_type_desc String    @unique @db.VarChar
-  Contact           Contact[]
+model ContactType {
+  contactTypeId   Int       @id @map("contact_type_id")
+  contactTypeDesc String    @unique @map("contact_type_desc") @db.VarChar
+  contact         Contact[]
+
+  @@map("Contact_Type")
 }
 
-model Dance_Type {
-  dance_type_id                   Int                               @id
-  dance_type_name                 String                            @unique @db.VarChar
-  Item_Characteristics_Dance_Type Item_Characteristics_Dance_Type[]
+model DanceType {
+  danceTypeId                  Int                            @id @map("dance_type_id")
+  danceTypeName                String                         @unique @map("dance_type_name") @db.VarChar
+  itemCharacteristicsDanceType ItemCharacteristicsDanceType[]
+
+  @@map("Dance_Type")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Item {
-  item_id                 Int                  @id
-  item_characteristics_id Int
-  item_condition_id       Int
-  Item_Characteristics    Item_Characteristics @relation(fields: [item_characteristics_id], references: [item_characteristics_id], onDelete: NoAction, onUpdate: NoAction)
-  Item_Condition          Item_Condition       @relation(fields: [item_condition_id], references: [item_condition_id], onDelete: NoAction, onUpdate: NoAction)
-  School_Item             School_Item?
-  User_Item               User_Item?
+  itemId                Int                 @id @map("item_id")
+  itemCharacteristicsId Int                 @map("item_characteristics_id")
+  itemConditionId       Int                 @map("item_condition_id")
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
+  itemCondition         ItemCondition       @relation(fields: [itemConditionId], references: [itemConditionId], onDelete: NoAction, onUpdate: NoAction)
+  schoolItem            SchoolItem?
+  userItem              UserItem?
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Item_Characteristics {
-  item_characteristics_id         Int                               @id
-  item_characteristics_name       String                            @db.VarChar
-  color_id                        Int
-  size_id                         Int?
-  category_id                     Int
-  Item                            Item[]
-  Category                        Category                          @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
-  Color                           Color                             @relation(fields: [color_id], references: [color_id], onDelete: NoAction, onUpdate: NoAction)
-  Size                            Size?                             @relation(fields: [size_id], references: [size_id], onDelete: NoAction, onUpdate: NoAction)
-  Item_Characteristics_Dance_Type Item_Characteristics_Dance_Type[]
-  Item_Image                      Item_Image[]
+model ItemCharacteristics {
+  itemCharacteristicsId        Int                            @id @map("item_characteristics_id")
+  itemCharacteristicsName      String                         @map("item_characteristics_name") @db.VarChar
+  colorId                      Int                            @map("color_id")
+  sizeId                       Int?                           @map("size_id")
+  categoryId                   Int                            @map("category_id")
+  item                         Item[]
+  category                     Category                       @relation(fields: [categoryId], references: [categoryId], onDelete: NoAction, onUpdate: NoAction)
+  color                        Color                          @relation(fields: [colorId], references: [colorId], onDelete: NoAction, onUpdate: NoAction)
+  size                         Size?                          @relation(fields: [sizeId], references: [sizeId], onDelete: NoAction, onUpdate: NoAction)
+  itemCharacteristicsDanceType ItemCharacteristicsDanceType[]
+  itemImage                    ItemImage[]
+
+  @@map("Item_Characteristics")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Item_Characteristics_Dance_Type {
-  item_characteristics_id Int
-  dance_type_id           Int
-  Dance_Type              Dance_Type           @relation(fields: [dance_type_id], references: [dance_type_id], onDelete: NoAction, onUpdate: NoAction)
-  Item_Characteristics    Item_Characteristics @relation(fields: [item_characteristics_id], references: [item_characteristics_id], onDelete: NoAction, onUpdate: NoAction)
+model ItemCharacteristicsDanceType {
+  itemCharacteristicsId Int                 @map("item_characteristics_id")
+  danceTypeId           Int                 @map("dance_type_id")
+  danceType             DanceType           @relation(fields: [danceTypeId], references: [danceTypeId], onDelete: NoAction, onUpdate: NoAction)
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([item_characteristics_id, dance_type_id])
+  @@id([itemCharacteristicsId, danceTypeId])
+  @@map("Item_Characteristics_Dance_Type")
 }
 
-model Item_Condition {
-  item_condition_id   Int    @id
-  item_condition_name String @unique @db.VarChar
-  Item                Item[]
+model ItemCondition {
+  itemConditionId   Int    @id @map("item_condition_id")
+  itemConditionName String @unique @map("item_condition_name") @db.VarChar
+  item              Item[]
+
+  @@map("Item_Condition")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Item_Image {
-  item_image_id           Int                  @id
-  item_characteristics_id Int
-  item_image_url          String               @db.VarChar
-  item_image_is_main      Boolean
-  Item_Characteristics    Item_Characteristics @relation(fields: [item_characteristics_id], references: [item_characteristics_id], onDelete: NoAction, onUpdate: NoAction)
+model ItemImage {
+  itemImageId           Int                 @id @map("item_image_id")
+  itemCharacteristicsId Int                 @map("item_characteristics_id")
+  itemImageUrl          String              @map("item_image_url") @db.VarChar
+  itemImageIsMain       Boolean             @map("item_image_is_main")
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Item_Image")
 }
 
 model Locality {
-  locality_id   Int           @id
-  locality_name String        @db.VarChar
-  Postal_Code   Postal_Code[]
+  localityId   Int          @id @map("locality_id")
+  localityName String       @map("locality_name") @db.VarChar
+  postalCode   PostalCode[]
 }
 
 model Modality {
-  modality_id         Int               @id
-  modality_name       String            @unique @db.VarChar
-  modality_hourly_fee Decimal           @db.Decimal(10, 2)
-  Studio_Modality     Studio_Modality[]
+  modalityId        Int              @id @map("modality_id")
+  modalityName      String           @unique @map("modality_name") @db.VarChar
+  modalityHourlyFee Decimal          @map("modality_hourly_fee") @db.Decimal(10, 2)
+  studioModality    StudioModality[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Postal_Code {
-  postal_code String    @id @db.VarChar
-  locality_id Int
-  Address     Address[]
-  Locality    Locality  @relation(fields: [locality_id], references: [locality_id], onDelete: NoAction, onUpdate: NoAction)
+model PostalCode {
+  postalCode String    @id @map("postal_code") @db.VarChar
+  localityId Int       @map("locality_id")
+  address    Address[]
+  locality   Locality  @relation(fields: [localityId], references: [localityId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Postal_Code")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Rent_Item {
-  rent_id              Int         @id
-  item_id              Int
-  user_id              Int
-  rent_date_start      DateTime    @db.Timestamptz(6)
-  rent_date_end        DateTime    @db.Timestamptz(6)
-  actual_rent_date_end DateTime?   @db.Timestamptz(6)
-  item_damaged         Boolean?
-  School_Item          School_Item @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction)
-  User                 User        @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model RentItem {
+  rentId            Int        @id @map("rent_id")
+  itemId            Int        @map("item_id")
+  userId            Int        @map("user_id")
+  rentDateStart     DateTime   @map("rent_date_start") @db.Timestamptz(6)
+  rentDateEnd       DateTime   @map("rent_date_end") @db.Timestamptz(6)
+  actualRentDateEnd DateTime?  @map("actual_rent_date_end") @db.Timestamptz(6)
+  itemDamaged       Boolean?   @map("item_damaged")
+  schoolItem        SchoolItem @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
+  user              User       @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Rent_Item")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Schedule_Vacancy {
-  schedule_vacancy_id         Int         @id
-  user_id                     Int
-  school_year_id              Int
-  schedule_vacancy_day        DateTime    @db.Date
-  schedule_vacancy_start      DateTime    @db.Time(6)
-  schedule_vacancy_end        DateTime    @db.Time(6)
-  schedule_vacancy_recurrence Boolean?
-  School_Year                 School_Year @relation(fields: [school_year_id], references: [school_year_id], onDelete: NoAction, onUpdate: NoAction)
-  User                        User        @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model ScheduleVacancy {
+  scheduleVacancyId         Int        @id @map("schedule_vacancy_id")
+  userId                    Int        @map("user_id")
+  schoolYearId              Int        @map("school_year_id")
+  scheduleVacancyDay        DateTime   @map("schedule_vacancy_day") @db.Date
+  scheduleVacancyStart      DateTime   @map("schedule_vacancy_start") @db.Time(6)
+  scheduleVacancyEnd        DateTime   @map("schedule_vacancy_end") @db.Time(6)
+  scheduleVacancyRecurrence Boolean?   @map("schedule_vacancy_recurrence")
+  schoolYear                SchoolYear @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: NoAction, onUpdate: NoAction)
+  user                      User       @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Schedule_Vacancy")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model School_Item {
-  item_id   Int         @id
-  rent_fee  Decimal     @db.Decimal(10, 2)
-  Rent_Item Rent_Item[]
-  Item      Item        @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction)
+model SchoolItem {
+  itemId   Int        @id @map("item_id")
+  rentFee  Decimal    @map("rent_fee") @db.Decimal(10, 2)
+  rentItem RentItem[]
+  item     Item       @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("School_Item")
 }
 
-model School_Year {
-  school_year_id    Int                @id
-  school_year_name  String             @unique @db.VarChar
-  school_year_start DateTime           @db.Date
-  school_year_end   DateTime           @db.Date
-  Class             Class[]
-  Schedule_Vacancy  Schedule_Vacancy[]
+model SchoolYear {
+  schoolYearId    Int               @id @map("school_year_id")
+  schoolYearName  String            @unique @map("school_year_name") @db.VarChar
+  schoolYearStart DateTime          @map("school_year_start") @db.Date
+  schoolYearEnd   DateTime          @map("school_year_end") @db.Date
+  class           Class[]
+  scheduleVacancy ScheduleVacancy[]
+
+  @@map("School_Year")
 }
 
 model Size {
-  size_id              Int                    @id
-  size_name            String                 @unique @db.VarChar
-  Item_Characteristics Item_Characteristics[]
+  sizeId              Int                   @id @map("size_id")
+  sizeName            String                @unique @map("size_name") @db.VarChar
+  itemCharacteristics ItemCharacteristics[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Student_Number {
-  user_id        Int    @id
-  student_number String @unique @db.VarChar
-  User           User   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model StudentNumber {
+  userId        Int    @id @map("user_id")
+  studentNumber String @unique @map("student_number") @db.VarChar
+  user          User   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("Student_Number")
 }
 
 model Studio {
-  studio_id           Int               @id
-  studio_name         String            @unique @db.VarChar
-  studio_max_capacity Int
-  Studio_Modality     Studio_Modality[]
+  studioId          Int              @id @map("studio_id")
+  studioName        String           @unique @map("studio_name") @db.VarChar
+  studioMaxCapacity Int              @map("studio_max_capacity")
+  studioModality    StudioModality[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model Studio_Modality {
-  studio_modality_id Int      @id
-  studio_id          Int
-  modality_id        Int
-  Class              Class[]
-  Modality           Modality @relation(fields: [modality_id], references: [modality_id], onDelete: NoAction, onUpdate: NoAction)
-  Studio             Studio   @relation(fields: [studio_id], references: [studio_id], onDelete: NoAction, onUpdate: NoAction)
+model StudioModality {
+  studioModalityId Int      @id @map("studio_modality_id")
+  studioId         Int      @map("studio_id")
+  modalityId       Int      @map("modality_id")
+  class            Class[]
+  modality         Modality @relation(fields: [modalityId], references: [modalityId], onDelete: NoAction, onUpdate: NoAction)
+  studio           Studio   @relation(fields: [studioId], references: [studioId], onDelete: NoAction, onUpdate: NoAction)
 
-  @@unique([studio_id, modality_id], map: "Studio_Modality_studio_id_modality_id_idx")
+  @@unique([studioId, modalityId], map: "Studio_Modality_studio_id_modality_id_idx")
+  @@map("Studio_Modality")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model User {
-  user_id              Int                    @id
-  user_name            String                 @db.VarChar
-  user_birth_date      DateTime?              @db.Date
-  user_start_date      DateTime?              @db.Date
-  user_type_id         Int
-  user_is_active       Boolean
-  Class_Status_History Class_Status_History[]
-  Rent_Item            Rent_Item[]
-  Schedule_Vacancy     Schedule_Vacancy[]
-  Student_Number       Student_Number?
-  User_Type            User_Type              @relation(fields: [user_type_id], references: [user_type_id], onDelete: NoAction, onUpdate: NoAction)
-  User_Address         User_Address[]
-  User_Class           User_Class[]
-  User_Contact         User_Contact[]
-  User_Credential      User_Credential?
-  User_Item            User_Item[]
-  User_NIF             User_NIF?
+  userId             Int                  @id @map("user_id")
+  userName           String               @map("user_name") @db.VarChar
+  userBirthDate      DateTime?            @map("user_birth_date") @db.Date
+  userStartDate      DateTime?            @map("user_start_date") @db.Date
+  userTypeId         Int                  @map("user_type_id")
+  userIsActive       Boolean              @map("user_is_active")
+  classStatusHistory ClassStatusHistory[]
+  rentItem           RentItem[]
+  scheduleVacancy    ScheduleVacancy[]
+  studentNumber      StudentNumber?
+  userType           UserType             @relation(fields: [userTypeId], references: [userTypeId], onDelete: NoAction, onUpdate: NoAction)
+  userAddress        UserAddress[]
+  userClass          UserClass[]
+  userContact        UserContact[]
+  userCredential     UserCredential?
+  userItem           UserItem[]
+  userNIF            UserNIF?
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model User_Address {
-  user_address_id Int     @id
-  user_id         Int
-  street_id       Int
-  is_main_address Boolean
-  Address         Address @relation(fields: [street_id], references: [street_id], onDelete: NoAction, onUpdate: NoAction)
-  User            User    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model UserAddress {
+  userAddressId Int     @id @map("user_address_id")
+  userId        Int     @map("user_id")
+  streetId      Int     @map("street_id")
+  isMainAddress Boolean @map("is_main_address")
+  address       Address @relation(fields: [streetId], references: [streetId], onDelete: NoAction, onUpdate: NoAction)
+  user          User    @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
 
-  @@unique([user_id, street_id], map: "User_Address_user_id_street_id_idx")
+  @@unique([userId, streetId], map: "User_Address_user_id_street_id_idx")
+  @@map("User_Address")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model User_Class {
-  class_id           Int
-  user_id            Int
-  user_class_role_id Int?
-  user_validation    Boolean
-  Class              Class            @relation(fields: [class_id], references: [class_id], onDelete: NoAction, onUpdate: NoAction)
-  User_Class_Role    User_Class_Role? @relation(fields: [user_class_role_id], references: [user_class_role_id], onDelete: NoAction, onUpdate: NoAction)
-  User               User             @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model UserClass {
+  classId         Int            @map("class_id")
+  userId          Int            @map("user_id")
+  userClassRoleId Int?           @map("user_class_role_id")
+  userValidation  Boolean        @map("user_validation")
+  class           Class          @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
+  userClassRole   UserClassRole? @relation(fields: [userClassRoleId], references: [userClassRoleId], onDelete: NoAction, onUpdate: NoAction)
+  user            User           @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([class_id, user_id])
+  @@id([classId, userId])
+  @@map("User_Class")
 }
 
-model User_Class_Role {
-  user_class_role_id   Int          @id
-  user_class_role_desc String       @unique @db.VarChar
-  User_Class           User_Class[]
-}
+model UserClassRole {
+  userClassRoleId   Int         @id @map("user_class_role_id")
+  userClassRoleDesc String      @unique @map("user_class_role_desc") @db.VarChar
+  userClass         UserClass[]
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model User_Contact {
-  user_contact_id Int              @id
-  user_id         Int
-  contact_id      Int
-  is_main_contact Boolean
-  Contact         Contact          @relation(fields: [contact_id], references: [contact_id], onDelete: NoAction, onUpdate: NoAction)
-  User            User             @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-  User_Credential User_Credential?
-
-  @@unique([user_id, contact_id], map: "User_Contact_user_id_contact_id_idx")
+  @@map("User_Class_Role")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model User_Credential {
-  user_id                       Int          @id
-  user_contact_id               Int          @unique
-  user_credential_password_hash String       @db.VarChar
-  user_credential_last_login    DateTime?    @db.Timestamptz(6)
-  User_Contact                  User_Contact @relation(fields: [user_contact_id], references: [user_contact_id], onDelete: NoAction, onUpdate: NoAction)
-  User                          User         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model UserContact {
+  userContactId  Int             @id @map("user_contact_id")
+  userId         Int             @map("user_id")
+  contactId      Int             @map("contact_id")
+  isMainContact  Boolean         @map("is_main_contact")
+  contact        Contact         @relation(fields: [contactId], references: [contactId], onDelete: NoAction, onUpdate: NoAction)
+  user           User            @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  userCredential UserCredential?
+
+  @@unique([userId, contactId], map: "User_Contact_user_id_contact_id_idx")
+  @@map("User_Contact")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model User_Item {
-  item_id Int  @id
-  user_id Int
-  Item    Item @relation(fields: [item_id], references: [item_id], onDelete: NoAction, onUpdate: NoAction)
-  User    User @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model UserCredential {
+  userId                     Int         @id @map("user_id")
+  userContactId              Int         @unique @map("user_contact_id")
+  userCredentialPasswordHash String      @map("user_credential_password_hash") @db.VarChar
+  userCredentialLastLogin    DateTime?   @map("user_credential_last_login") @db.Timestamptz(6)
+  userContact                UserContact @relation(fields: [userContactId], references: [userContactId], onDelete: NoAction, onUpdate: NoAction)
+  user                       User        @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("User_Credential")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model User_NIF {
-  user_id  Int    @id
-  user_nif String @unique @db.VarChar
-  User     User   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+model UserItem {
+  itemId Int  @id @map("item_id")
+  userId Int  @map("user_id")
+  item   Item @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
+  user   User @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("User_Item")
 }
 
-model User_Type {
-  user_type_id   Int    @id
-  user_type_desc String @unique @db.VarChar
-  User           User[]
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model UserNIF {
+  userId  Int    @id @map("user_id")
+  userNif String @unique @map("user_nif") @db.VarChar
+  user    User   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("User_NIF")
+}
+
+model UserType {
+  userTypeId   Int    @id @map("user_type_id")
+  userTypeDesc String @unique @map("user_type_desc") @db.VarChar
+  user         User[]
+
+  @@map("User_Type")
 }
