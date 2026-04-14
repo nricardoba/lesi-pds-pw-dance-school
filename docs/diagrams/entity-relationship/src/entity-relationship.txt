@@ -189,8 +189,8 @@ Table Class {
   class_id int [primary key]
   school_year_id int [not null]
   class_day date [not null]
-  class_date_start time [not null]
-  class_date_end time [not null]
+  class_time_start time [not null]
+  class_time_end time [not null]
   class_recurrence bool [null]
   // o backend deve certificar que duas aulas não
   // são marcadas no mesmo estudio à mesma hora
@@ -345,3 +345,5 @@ Ref: "Item_Characteristics"."item_characteristics_id" < "Item_Image"."item_chara
 Ref: "Class"."class_id" < "Class_Extra_Fee"."class_id"
 
 Ref: "Class_Extra_Fee_Reason"."class_extra_fee_reason_id" < "Class_Extra_Fee"."class_extra_fee_reason_id"
+
+Ref: "User"."user_id" < "User_Item"."user_id"
