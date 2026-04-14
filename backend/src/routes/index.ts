@@ -1,5 +1,5 @@
 import { Router } from "express";
-import usersRoutes from "./users.routes";
+import userRoutes from "./user.routes";
 
 const router = Router();
 
@@ -8,6 +8,6 @@ router.get('/', (req, res) => {
   res.json({ message: "Bem-vindo à API da Plataforma Ent'Artes! 💃🕺" });
 });
 
-router.use("/users", usersRoutes);
+router.use("/user", userRoutes);
 
 export default router;
