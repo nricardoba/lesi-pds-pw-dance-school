@@ -1,5 +1,9 @@
 # Criar base de dados no docker
 
+***Este ficheiro tem de ser melhorado, passar para inglês e fazer uma revisão.***
+
+---
+
 Para começar, o docker desktop deve estar a correr.
 
 ## 1. Devem ter esta configuração no ficheiro `backend/.env`
@@ -72,24 +76,15 @@ docker ps
 
 ---
 
-## 6. Injetar o novo `init.sql` na base de dados
+## 6. Aplicar as migrações à nova base de dados
 ```
-docker exec -i postgres-dance-school psql -U meu_username -d dance-school-database < database/init.sql
+npx prisma migrate dev
 ```
-
-#### 6.1. Confirmar tabelas (opcional)
-```
-docker exec -it postgres-dance-school psql -U meu_username -d dance-school-database -c "\dt"
-```
+*(Não precisas do `--name init` desta vez porque não estás a criar uma nova migração, estás apenas a dizer ao Prisma para aplicar as que já existem na pasta).*
 
 ---
 
-## 7. Gerar o `schema.prisma` a partir da base de dados
-```
-npx prisma db pull
-```
-
-#### 7.1. Verificar se o prisma está a funcionar (opcional)
+## 7. Verificar se o prisma está a funcionar (opcional)
 ```
 npx prisma validate
 ```
