@@ -161,8 +161,8 @@ CREATE TABLE "Class" (
   "class_id" int PRIMARY KEY,
   "school_year_id" int NOT NULL,
   "class_day" date NOT NULL,
-  "class_date_start" time NOT NULL,
-  "class_date_end" time NOT NULL,
+  "class_time_start" time NOT NULL,
+  "class_time_end" time NOT NULL,
   "class_recurrence" bool,
   "studio_modality_id" int NOT NULL,
   "class_final_fee" decimal(10,2) NOT NULL,
@@ -310,3 +310,5 @@ ALTER TABLE "Item_Image" ADD FOREIGN KEY ("item_characteristics_id") REFERENCES 
 ALTER TABLE "Class_Extra_Fee" ADD FOREIGN KEY ("class_id") REFERENCES "Class" ("class_id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "Class_Extra_Fee" ADD FOREIGN KEY ("class_extra_fee_reason_id") REFERENCES "Class_Extra_Fee_Reason" ("class_extra_fee_reason_id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "User_Item" ADD FOREIGN KEY ("user_id") REFERENCES "User" ("user_id") DEFERRABLE INITIALLY IMMEDIATE;
