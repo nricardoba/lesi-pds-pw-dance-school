@@ -1,13 +1,32 @@
-import { Router } from "express";
-import userRoutes from "./user.routes";
+// src/routes/index.ts
+import { Router } from 'express';
+import { prisma } from '../config/db';
+import usersRoutes from './users';
+import classesRoutes from './classes';
+import referenceRoutes from './references';
 
 const router = Router();
 
-// Rota de teste para garantir que a API está a responder
 router.get('/', (req, res) => {
-  res.json({ message: "Bem-vindo à API da Plataforma Ent'Artes! 💃🕺" });
+  res.json({
+    status: 'ok',
+    message: "API Ent'Artes a funcionar",
+    timestamp: new Date(),
+  });
 });
 
-router.use("/user", userRoutes);
+router.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'connected' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'error', database: 'disconnected' });
+  }
+});
+
+router.use('/users', usersRoutes);
+router.use('/classes', classesRoutes);
+router.use('/reference', referenceRoutes);
 
 export default router;
