@@ -1,10 +1,10 @@
-import express, { Express, Request, Response } from 'express';
+// src/index.ts
+import express, { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { prisma } from './config/db';
 import routes from './routes';
 
-// Carregar variáveis de ambiente do ficheiro .env
 dotenv.config();
 
 const app: Express = express();
@@ -16,24 +16,8 @@ app.use(express.json()); // Permite receber dados no formato JSON
 app.use(express.urlencoded({ extended: true })); // Permite receber dados de formulários
 app.use(routes);
 
-// Rota de teste básica
-app.get('/', (req: Request, res: Response) => {
-  res.json({ message: 'Bem-vindo à API da Plataforma Ent\'Artes! 🕺' });
-});
+app.use('/', routes);
 
-// Exemplo de rota de health check (para verificar se a BD está ligada)
-app.get('/health', async (req: Request, res: Response) => {
-  try {
-    // Tenta fazer uma query simples à BD para testar a ligação
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'ok', database: 'connected' });
-  } catch (error) {
-    console.error('Database connection error:', error);
-    res.status(500).json({ status: 'error', database: 'disconnected' });
-  }
-});
-
-// Iniciar o servidor
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
