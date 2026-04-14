@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { prisma } from './config/db';
+import routes from './routes';
 
 // Carregar variáveis de ambiente do ficheiro .env
 dotenv.config();
@@ -13,6 +14,7 @@ const port = process.env.PORT || 3333;
 app.use(cors()); // Permite pedidos do teu frontend
 app.use(express.json()); // Permite receber dados no formato JSON
 app.use(express.urlencoded({ extended: true })); // Permite receber dados de formulários
+app.use(routes);
 
 // Rota de teste básica
 app.get('/', (req: Request, res: Response) => {
