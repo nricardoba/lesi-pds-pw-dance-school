@@ -1,5 +1,9 @@
 # Criar base de dados no docker
 
+***Este ficheiro tem de ser melhorado, passar para inglês e fazer uma revisão.***
+
+---
+
 Para começar, o docker desktop deve estar a correr.
 
 ## 1. Devem ter esta configuração no ficheiro `backend/.env`
@@ -80,7 +84,7 @@ npx prisma migrate dev
 
 ---
 
-#### 7. Verificar se o prisma está a funcionar (opcional)
+## 7. Verificar se o prisma está a funcionar (opcional)
 ```
 npx prisma validate
 ```
