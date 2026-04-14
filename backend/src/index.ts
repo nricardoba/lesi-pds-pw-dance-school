@@ -2,6 +2,7 @@
 import express, { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { prisma } from './config/db';
 import routes from './routes';
 
 dotenv.config();
@@ -9,9 +10,11 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 3333;
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middlewares
+app.use(cors()); // Permite pedidos do teu frontend
+app.use(express.json()); // Permite receber dados no formato JSON
+app.use(express.urlencoded({ extended: true })); // Permite receber dados de formulários
+app.use(routes);
 
 app.use('/', routes);
 
