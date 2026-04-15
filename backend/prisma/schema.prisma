@@ -29,7 +29,7 @@ model Class {
   classDay           DateTime             @map("class_day") @db.Date
   classTimeStart     DateTime             @map("class_time_start") @db.Time(6)
   classTimeEnd       DateTime             @map("class_time_end") @db.Time(6)
-  classRecurrence    Boolean?             @map("class_recurrence")
+  classRecurrence    Boolean?             @default(false) @map("class_recurrence")
   studioModalityId   Int                  @map("studio_modality_id")
   classFinalFee      Decimal              @map("class_final_fee") @db.Decimal(10, 2)
   classStatusId      Int                  @map("class_status_id")
@@ -167,7 +167,7 @@ model ItemImage {
   itemImageId           Int                 @id @default(autoincrement()) @map("item_image_id")
   itemCharacteristicsId Int                 @map("item_characteristics_id")
   itemImageUrl          String              @map("item_image_url") @db.VarChar
-  itemImageIsMain       Boolean             @map("item_image_is_main")
+  itemImageIsMain       Boolean             @default(false) @map("item_image_is_main")
   itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Item_Image")
@@ -204,7 +204,7 @@ model RentItem {
   rentDateStart     DateTime   @map("rent_date_start") @db.Timestamptz(6)
   rentDateEnd       DateTime   @map("rent_date_end") @db.Timestamptz(6)
   actualRentDateEnd DateTime?  @map("actual_rent_date_end") @db.Timestamptz(6)
-  itemDamaged       Boolean?   @map("item_damaged")
+  itemDamaged       Boolean?   @default(false) @map("item_damaged")
   schoolItem        SchoolItem @relation(fields: [itemId], references: [itemId], onDelete: Cascade, onUpdate: Cascade)
   user              User       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
@@ -219,7 +219,7 @@ model ScheduleVacancy {
   scheduleVacancyDay        DateTime   @map("schedule_vacancy_day") @db.Date
   scheduleVacancyStart      DateTime   @map("schedule_vacancy_start") @db.Time(6)
   scheduleVacancyEnd        DateTime   @map("schedule_vacancy_end") @db.Time(6)
-  scheduleVacancyRecurrence Boolean?   @map("schedule_vacancy_recurrence")
+  scheduleVacancyRecurrence Boolean?   @default(false) @map("schedule_vacancy_recurrence")
   schoolYear                SchoolYear @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: Cascade, onUpdate: Cascade)
   user                      User       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
@@ -289,7 +289,7 @@ model User {
   userBirthDate      DateTime?            @map("user_birth_date") @db.Date
   userStartDate      DateTime?            @map("user_start_date") @db.Date
   userTypeId         Int                  @map("user_type_id")
-  userIsActive       Boolean              @map("user_is_active")
+  userIsActive       Boolean              @default(true) @map("user_is_active")
   classStatusHistory ClassStatusHistory[]
   rentItem           RentItem[]
   scheduleVacancy    ScheduleVacancy[]
@@ -308,7 +308,7 @@ model UserAddress {
   userAddressId Int     @id @default(autoincrement()) @map("user_address_id")
   userId        Int     @map("user_id")
   streetId      Int     @map("street_id")
-  isMainAddress Boolean @map("is_main_address")
+  isMainAddress Boolean @default(false) @map("is_main_address")
   address       Address @relation(fields: [streetId], references: [streetId], onDelete: Cascade, onUpdate: Cascade)
   user          User    @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
@@ -321,7 +321,7 @@ model UserClass {
   classId         Int            @map("class_id")
   userId          Int            @map("user_id")
   userClassRoleId Int?           @map("user_class_role_id")
-  userValidation  Boolean        @map("user_validation")
+  userValidation  Boolean        @default(false) @map("user_validation")
   class           Class          @relation(fields: [classId], references: [classId], onDelete: Cascade, onUpdate: Cascade)
   userClassRole   UserClassRole? @relation(fields: [userClassRoleId], references: [userClassRoleId], onDelete: Cascade, onUpdate: Cascade)
   user            User           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
@@ -343,7 +343,7 @@ model UserContact {
   userContactId  Int             @id @default(autoincrement()) @map("user_contact_id")
   userId         Int             @map("user_id")
   contactId      Int             @map("contact_id")
-  isMainContact  Boolean         @map("is_main_contact")
+  isMainContact  Boolean         @default(false) @map("is_main_contact")
   contact        Contact         @relation(fields: [contactId], references: [contactId], onDelete: Cascade, onUpdate: Cascade)
   user           User            @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
   userCredential UserCredential?
