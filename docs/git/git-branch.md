@@ -84,14 +84,14 @@ git checkout main
 git pull origin main
 ```
 
-#### 6.3. Apagar a nova branch (ou antiga, depende do ponto de vista)
-```
-git branch -D new-branch-name
-```
-
-#### 6.4. Apagar a branch do GitHub pelo terminal
+#### 6.3. Apagar a branch do GitHub pelo terminal
 ```
 git push origin --delete new-branch-name
+```
+
+#### 6.4. Apagar a branch local
+```
+git branch -D new-branch-name
 ```
 
 #### 6.5. Limpa historico de branch
