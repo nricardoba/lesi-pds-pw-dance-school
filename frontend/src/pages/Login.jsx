@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
+import { loginRequest } from "../services/api";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -9,15 +10,27 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    login("token_falso_para_teste");
-    navigate("/dashboard");
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const data = await loginRequest(email, password);
+
+    if (data.erro) {
+      setErro(data.erro);
+      return;
+    }
+
+    login(data.token);
+    navigate('/dashboard');
+  } catch {
+    setErro('Erro de ligação ao servidor');
+  }
+};
 
   return (
     <div className="min-h-screen flex justify-center focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <div className="p-8 w-full max-w-md">
+      <div className="p-8 w-full max-w-lg">
         <div className="flex flex-col items-center inset-x-0 top-0 outline-2 outline-gray-300">
           <div className="bg-[#1C6E8C] rounded-xl w-16 h-16 mb-4 items-center justify-center flex">
             <h2 className="text-[26px] font-bold text-center text-gray-800 text-white">
@@ -70,9 +83,12 @@ const Login = () => {
                 />
                 <span className="ml-2 text-sm text-gray-700">Lembrar-me</span>
               </label>
-              <a href="#" className="text-sm text-blue-500 hover:underline">
-                Esqueceu a sua senha?
-              </a>
+              <span
+                onClick={() => navigate('/forgot-password')}
+                className="text-sm text-blue-500 cursor-pointer hover:underline"
+              >
+                Esqueceste a password?
+              </span>
             </div>
             <button
               type="submit"

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlus } from "lucide-react";
+import { registerRequest } from "../services/api";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -19,29 +20,23 @@ const Register = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await registerRequest(email, password);
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (data.erro) {
         setErro(data.erro);
         return;
       }
 
       // Redireciona para o login após registo
       navigate("/login");
-    } catch (error) {
+    } catch {
       setErro("Erro de ligação ao servidor");
     }
   };
 
   return (
     <div className="min-h-screen flex justify-center focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <div className="p-8 w-full max-w-md">
+      <div className="p-8 w-full max-w-lg">
         <div className=" flex flex-col items-center inset-x-0 top-0 outline-2 outline-gray-300">
           <div className="bg-[#1C6E8C] rounded-xl w-16 h-16 mb-4 items-center justify-center flex">
             <h2 className="text-[26px] font-bold text-center text-gray-800 text-white">
