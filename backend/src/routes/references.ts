@@ -6,8 +6,8 @@ const router = Router();
 
 router.get('/user-types', async (req, res) => {
   try {
-    const data = await prisma.user_Type.findMany({
-      orderBy: { user_type_id: 'asc' },
+    const data = await prisma.userType.findMany({
+      orderBy: { userTypeId: 'asc' },
     });
     res.json(data);
   } catch (error) {
@@ -18,8 +18,8 @@ router.get('/user-types', async (req, res) => {
 
 router.get('/class-statuses', async (req, res) => {
   try {
-    const data = await prisma.class_Status.findMany({
-      orderBy: { class_status_id: 'asc' },
+    const data = await prisma.classStatus.findMany({
+      orderBy: { classStatusId: 'asc' },
     });
     res.json(data);
   } catch (error) {
@@ -30,8 +30,8 @@ router.get('/class-statuses', async (req, res) => {
 
 router.get('/user-class-roles', async (req, res) => {
   try {
-    const data = await prisma.user_Class_Role.findMany({
-      orderBy: { user_class_role_id: 'asc' },
+    const data = await prisma.userClassRole.findMany({
+      orderBy: { userClassRoleId: 'asc' },
     });
     res.json(data);
   } catch (error) {
@@ -43,7 +43,7 @@ router.get('/user-class-roles', async (req, res) => {
 router.get('/modalities', async (req, res) => {
   try {
     const data = await prisma.modality.findMany({
-      orderBy: { modality_id: 'asc' },
+      orderBy: { modalityId: 'asc' },
     });
     res.json(data);
   } catch (error) {
@@ -55,7 +55,7 @@ router.get('/modalities', async (req, res) => {
 router.get('/studios', async (req, res) => {
   try {
     const data = await prisma.studio.findMany({
-      orderBy: { studio_id: 'asc' },
+      orderBy: { studioId: 'asc' },
     });
     res.json(data);
   } catch (error) {
@@ -66,8 +66,8 @@ router.get('/studios', async (req, res) => {
 
 router.get('/school-years', async (req, res) => {
   try {
-    const data = await prisma.school_Year.findMany({
-      orderBy: { school_year_id: 'asc' },
+    const data = await prisma.schoolYear.findMany({
+      orderBy: { schoolYearId: 'asc' },
     });
     res.json(data);
   } catch (error) {
@@ -78,12 +78,12 @@ router.get('/school-years', async (req, res) => {
 
 router.get('/studio-modalities', async (req, res) => {
   try {
-    const data = await prisma.studio_Modality.findMany({
+    const data = await prisma.studioModality.findMany({
       include: {
-        Studio: true,
-        Modality: true,
+        studio: true,
+        modality: true,
       },
-      orderBy: { studio_modality_id: 'asc' },
+      orderBy: { studioModalityId: 'asc' },
     });
     res.json(data);
   } catch (error) {
