@@ -1,3 +1,5 @@
+-- This file was only needed to generate the schema.prisma file. It's obsolete now.
+
 CREATE TABLE "User" (
   "user_id" int PRIMARY KEY,
   "user_name" varchar NOT NULL,
