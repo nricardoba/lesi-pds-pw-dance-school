@@ -10,23 +10,19 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErro("");
 
-  try {
-    const data = await loginRequest(email, password);
+    try {
+      const data = await loginRequest(email, password);
 
-    if (data.erro) {
-      setErro(data.erro);
-      return;
+      login(data);
+      navigate("/dashboard");
+    } catch (error) {
+      setErro(error.message || "Erro de ligação ao servidor");
     }
-
-    login(data.token);
-    navigate('/dashboard');
-  } catch {
-    setErro('Erro de ligação ao servidor');
-  }
-};
+  };
 
   return (
     <div className="min-h-screen flex justify-center focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -83,12 +79,12 @@ const handleSubmit = async (e) => {
                 />
                 <span className="ml-2 text-sm text-gray-700">Lembrar-me</span>
               </label>
-              <span
+              {/* <span
                 onClick={() => navigate('/forgot-password')}
                 className="text-sm text-blue-500 cursor-pointer hover:underline"
               >
                 Esqueceste a password?
-              </span>
+              </span> */} {/* Futuramente implementar esta funcionalidade */}
             </div>
             <button
               type="submit"
