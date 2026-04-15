@@ -28,13 +28,6 @@ npm install
 npm run dev
 ```
 
-### Scripts
-
-- `npm run dev`: Starts the Vite development server.
-- `npm run build`: Builds the app for production.
-- `npm run lint`: Runs ESLint to check for code issues.
-- `npm run preview`: Locally previews the production build.
-
 ---
 
 ## Backend
@@ -60,29 +53,10 @@ Create a `.env` file in the `backend` directory based on the environment variabl
 
 4. Setup the Database:
 Generate the Prisma Client and run the migrations to create the database schema:
-```bash
-npm run prisma:generate
-npm run prisma:migrate
-```
+[use this cheat sheet to get this task done](docs/database/database.md)
 
 5. Start the development server:
 ```bash
 npm run dev
 ```
 This will start the server using `nodemon`, which automatically restarts the server when file changes are detected.
-
-### Scripts
-
-- `npm run dev`: Starts the development server with auto-reloading (`nodemon src/index.ts`).
-- `npm run start`: Runs the compiled production code (`node dist/index.js`).
-- `npm run build`: Compiles TypeScript files to JavaScript (`tsc`).
-- `npm run prisma:generate`: Generates the Prisma Client.
-- `npm run prisma:migrate`: Applies migrations and updates the database schema (`prisma migrate dev`).
-
-### Prisma Database Schema (Temp)
-
-The application uses PostgreSQL with the following core entities:
-- **User**: Represents Students, Teachers, and Admins.
-- **Class**: Represents dance classes (e.g., "Ballet Clássico"), assigned to a Teacher.
-- **Schedule**: Defines the days and times when classes happen.
-- **Enrollment**: Manages the enrollment of Students in Classes.
