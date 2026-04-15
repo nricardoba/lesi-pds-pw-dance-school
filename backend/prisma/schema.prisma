@@ -12,7 +12,7 @@ model Address {
   streetId      Int           @id @default(autoincrement()) @map("street_id")
   streetName    String        @map("street_name") @db.VarChar
   postalCode    String        @map("postal_code") @db.VarChar
-  postalCodeRel PostalCode    @relation(fields: [postalCode], references: [postalCode], onDelete: NoAction, onUpdate: NoAction)
+  postalCodeRel PostalCode    @relation(fields: [postalCode], references: [postalCode], onDelete: Cascade, onUpdate: Cascade)
   userAddress   UserAddress[]
 }
 
@@ -33,9 +33,9 @@ model Class {
   studioModalityId   Int                  @map("studio_modality_id")
   classFinalFee      Decimal              @map("class_final_fee") @db.Decimal(10, 2)
   classStatusId      Int                  @map("class_status_id")
-  classStatus        ClassStatus          @relation(fields: [classStatusId], references: [classStatusId], onDelete: NoAction, onUpdate: NoAction)
-  schoolYear         SchoolYear           @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: NoAction, onUpdate: NoAction)
-  studioModality     StudioModality       @relation(fields: [studioModalityId], references: [studioModalityId], onDelete: NoAction, onUpdate: NoAction)
+  classStatus        ClassStatus          @relation(fields: [classStatusId], references: [classStatusId], onDelete: Cascade, onUpdate: Cascade)
+  schoolYear         SchoolYear           @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: Cascade, onUpdate: Cascade)
+  studioModality     StudioModality       @relation(fields: [studioModalityId], references: [studioModalityId], onDelete: Cascade, onUpdate: Cascade)
   classExtraFee      ClassExtraFee[]
   classStatusHistory ClassStatusHistory[]
   userClass          UserClass[]
@@ -47,8 +47,8 @@ model ClassExtraFee {
   classExtraFeeValue    Decimal             @map("class_extra_fee_value") @db.Decimal(10, 2)
   classExtraFeeReasonId Int                 @map("class_extra_fee_reason_id")
   classId               Int                 @map("class_id")
-  classExtraFeeReason   ClassExtraFeeReason @relation(fields: [classExtraFeeReasonId], references: [classExtraFeeReasonId], onDelete: NoAction, onUpdate: NoAction)
-  class                 Class               @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
+  classExtraFeeReason   ClassExtraFeeReason @relation(fields: [classExtraFeeReasonId], references: [classExtraFeeReasonId], onDelete: Cascade, onUpdate: Cascade)
+  class                 Class               @relation(fields: [classId], references: [classId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Class_Extra_Fee")
 }
@@ -77,9 +77,9 @@ model ClassStatusHistory {
   classStatusId          Int         @map("class_status_id")
   userId                 Int         @map("user_id")
   classStatusHistoryDate DateTime    @map("class_status_history_date") @db.Timestamptz(6)
-  class                  Class       @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
-  classStatus            ClassStatus @relation(fields: [classStatusId], references: [classStatusId], onDelete: NoAction, onUpdate: NoAction)
-  user                   User        @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  class                  Class       @relation(fields: [classId], references: [classId], onDelete: Cascade, onUpdate: Cascade)
+  classStatus            ClassStatus @relation(fields: [classStatusId], references: [classStatusId], onDelete: Cascade, onUpdate: Cascade)
+  user                   User        @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Class_Status_History")
 }
@@ -95,7 +95,7 @@ model Contact {
   contactId     Int           @id @default(autoincrement()) @map("contact_id")
   contactValue  String        @map("contact_value") @db.VarChar
   contactTypeId Int           @map("contact_type_id")
-  contactType   ContactType   @relation(fields: [contactTypeId], references: [contactTypeId], onDelete: NoAction, onUpdate: NoAction)
+  contactType   ContactType   @relation(fields: [contactTypeId], references: [contactTypeId], onDelete: Cascade, onUpdate: Cascade)
   userContact   UserContact[]
 }
 
@@ -120,8 +120,8 @@ model Item {
   itemId                Int                 @id @default(autoincrement()) @map("item_id")
   itemCharacteristicsId Int                 @map("item_characteristics_id")
   itemConditionId       Int                 @map("item_condition_id")
-  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
-  itemCondition         ItemCondition       @relation(fields: [itemConditionId], references: [itemConditionId], onDelete: NoAction, onUpdate: NoAction)
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: Cascade, onUpdate: Cascade)
+  itemCondition         ItemCondition       @relation(fields: [itemConditionId], references: [itemConditionId], onDelete: Cascade, onUpdate: Cascade)
   schoolItem            SchoolItem?
   userItem              UserItem?
 }
@@ -134,9 +134,9 @@ model ItemCharacteristics {
   sizeId                       Int?                           @map("size_id")
   categoryId                   Int                            @map("category_id")
   item                         Item[]
-  category                     Category                       @relation(fields: [categoryId], references: [categoryId], onDelete: NoAction, onUpdate: NoAction)
-  color                        Color                          @relation(fields: [colorId], references: [colorId], onDelete: NoAction, onUpdate: NoAction)
-  size                         Size?                          @relation(fields: [sizeId], references: [sizeId], onDelete: NoAction, onUpdate: NoAction)
+  category                     Category                       @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade, onUpdate: Cascade)
+  color                        Color                          @relation(fields: [colorId], references: [colorId], onDelete: Cascade, onUpdate: Cascade)
+  size                         Size?                          @relation(fields: [sizeId], references: [sizeId], onDelete: Cascade, onUpdate: Cascade)
   itemCharacteristicsDanceType ItemCharacteristicsDanceType[]
   itemImage                    ItemImage[]
 
@@ -147,8 +147,8 @@ model ItemCharacteristics {
 model ItemCharacteristicsDanceType {
   itemCharacteristicsId Int                 @map("item_characteristics_id")
   danceTypeId           Int                 @map("dance_type_id")
-  danceType             DanceType           @relation(fields: [danceTypeId], references: [danceTypeId], onDelete: NoAction, onUpdate: NoAction)
-  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
+  danceType             DanceType           @relation(fields: [danceTypeId], references: [danceTypeId], onDelete: Cascade, onUpdate: Cascade)
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([itemCharacteristicsId, danceTypeId])
   @@map("Item_Characteristics_Dance_Type")
@@ -168,7 +168,7 @@ model ItemImage {
   itemCharacteristicsId Int                 @map("item_characteristics_id")
   itemImageUrl          String              @map("item_image_url") @db.VarChar
   itemImageIsMain       Boolean             @map("item_image_is_main")
-  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Item_Image")
 }
@@ -191,7 +191,7 @@ model PostalCode {
   postalCode String    @id @map("postal_code") @db.VarChar
   localityId Int       @map("locality_id")
   address    Address[]
-  locality   Locality  @relation(fields: [localityId], references: [localityId], onDelete: NoAction, onUpdate: NoAction)
+  locality   Locality  @relation(fields: [localityId], references: [localityId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Postal_Code")
 }
@@ -205,8 +205,8 @@ model RentItem {
   rentDateEnd       DateTime   @map("rent_date_end") @db.Timestamptz(6)
   actualRentDateEnd DateTime?  @map("actual_rent_date_end") @db.Timestamptz(6)
   itemDamaged       Boolean?   @map("item_damaged")
-  schoolItem        SchoolItem @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
-  user              User       @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  schoolItem        SchoolItem @relation(fields: [itemId], references: [itemId], onDelete: Cascade, onUpdate: Cascade)
+  user              User       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Rent_Item")
 }
@@ -220,8 +220,8 @@ model ScheduleVacancy {
   scheduleVacancyStart      DateTime   @map("schedule_vacancy_start") @db.Time(6)
   scheduleVacancyEnd        DateTime   @map("schedule_vacancy_end") @db.Time(6)
   scheduleVacancyRecurrence Boolean?   @map("schedule_vacancy_recurrence")
-  schoolYear                SchoolYear @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: NoAction, onUpdate: NoAction)
-  user                      User       @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  schoolYear                SchoolYear @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: Cascade, onUpdate: Cascade)
+  user                      User       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Schedule_Vacancy")
 }
@@ -231,7 +231,7 @@ model SchoolItem {
   itemId   Int        @id @map("item_id")
   rentFee  Decimal    @map("rent_fee") @db.Decimal(10, 2)
   rentItem RentItem[]
-  item     Item       @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
+  item     Item       @relation(fields: [itemId], references: [itemId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("School_Item")
 }
@@ -257,7 +257,7 @@ model Size {
 model StudentNumber {
   userId        Int    @id @map("user_id")
   studentNumber String @unique @map("student_number") @db.VarChar
-  user          User   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  user          User   @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Student_Number")
 }
@@ -275,8 +275,8 @@ model StudioModality {
   studioId         Int      @map("studio_id")
   modalityId       Int      @map("modality_id")
   class            Class[]
-  modality         Modality @relation(fields: [modalityId], references: [modalityId], onDelete: NoAction, onUpdate: NoAction)
-  studio           Studio   @relation(fields: [studioId], references: [studioId], onDelete: NoAction, onUpdate: NoAction)
+  modality         Modality @relation(fields: [modalityId], references: [modalityId], onDelete: Cascade, onUpdate: Cascade)
+  studio           Studio   @relation(fields: [studioId], references: [studioId], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([studioId, modalityId], map: "Studio_Modality_studio_id_modality_id_idx")
   @@map("Studio_Modality")
@@ -294,7 +294,7 @@ model User {
   rentItem           RentItem[]
   scheduleVacancy    ScheduleVacancy[]
   studentNumber      StudentNumber?
-  userType           UserType             @relation(fields: [userTypeId], references: [userTypeId], onDelete: NoAction, onUpdate: NoAction)
+  userType           UserType             @relation(fields: [userTypeId], references: [userTypeId], onDelete: Cascade, onUpdate: Cascade)
   userAddress        UserAddress[]
   userClass          UserClass[]
   userContact        UserContact[]
@@ -309,8 +309,8 @@ model UserAddress {
   userId        Int     @map("user_id")
   streetId      Int     @map("street_id")
   isMainAddress Boolean @map("is_main_address")
-  address       Address @relation(fields: [streetId], references: [streetId], onDelete: NoAction, onUpdate: NoAction)
-  user          User    @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  address       Address @relation(fields: [streetId], references: [streetId], onDelete: Cascade, onUpdate: Cascade)
+  user          User    @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([userId, streetId], map: "User_Address_user_id_street_id_idx")
   @@map("User_Address")
@@ -322,9 +322,9 @@ model UserClass {
   userId          Int            @map("user_id")
   userClassRoleId Int?           @map("user_class_role_id")
   userValidation  Boolean        @map("user_validation")
-  class           Class          @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
-  userClassRole   UserClassRole? @relation(fields: [userClassRoleId], references: [userClassRoleId], onDelete: NoAction, onUpdate: NoAction)
-  user            User           @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  class           Class          @relation(fields: [classId], references: [classId], onDelete: Cascade, onUpdate: Cascade)
+  userClassRole   UserClassRole? @relation(fields: [userClassRoleId], references: [userClassRoleId], onDelete: Cascade, onUpdate: Cascade)
+  user            User           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([classId, userId])
   @@map("User_Class")
@@ -344,8 +344,8 @@ model UserContact {
   userId         Int             @map("user_id")
   contactId      Int             @map("contact_id")
   isMainContact  Boolean         @map("is_main_contact")
-  contact        Contact         @relation(fields: [contactId], references: [contactId], onDelete: NoAction, onUpdate: NoAction)
-  user           User            @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  contact        Contact         @relation(fields: [contactId], references: [contactId], onDelete: Cascade, onUpdate: Cascade)
+  user           User            @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
   userCredential UserCredential?
 
   @@unique([userId, contactId], map: "User_Contact_user_id_contact_id_idx")
@@ -358,8 +358,8 @@ model UserCredential {
   userContactId              Int         @unique @map("user_contact_id")
   userCredentialPasswordHash String      @map("user_credential_password_hash") @db.VarChar
   userCredentialLastLogin    DateTime?   @map("user_credential_last_login") @db.Timestamptz(6)
-  userContact                UserContact @relation(fields: [userContactId], references: [userContactId], onDelete: NoAction, onUpdate: NoAction)
-  user                       User        @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  userContact                UserContact @relation(fields: [userContactId], references: [userContactId], onDelete: Cascade, onUpdate: Cascade)
+  user                       User        @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("User_Credential")
 }
@@ -368,8 +368,8 @@ model UserCredential {
 model UserItem {
   itemId Int  @id @map("item_id")
   userId Int  @map("user_id")
-  item   Item @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
-  user   User @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  item   Item @relation(fields: [itemId], references: [itemId], onDelete: Cascade, onUpdate: Cascade)
+  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("User_Item")
 }
@@ -378,7 +378,7 @@ model UserItem {
 model UserNIF {
   userId  Int    @id @map("user_id")
   userNif String @unique @map("user_nif") @db.VarChar
-  user    User   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  user    User   @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("User_NIF")
 }
