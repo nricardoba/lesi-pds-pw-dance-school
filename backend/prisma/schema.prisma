@@ -9,33 +9,33 @@ datasource db {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Address {
-  streetId      Int           @id @map("street_id")
+  streetId      Int           @id @default(autoincrement()) @map("street_id")
   streetName    String        @map("street_name") @db.VarChar
   postalCode    String        @map("postal_code") @db.VarChar
-  postalCodeRel PostalCode    @relation(fields: [postalCode], references: [postalCode], onDelete: NoAction, onUpdate: NoAction)
+  postalCodeRel PostalCode    @relation(fields: [postalCode], references: [postalCode], onDelete: Cascade, onUpdate: Cascade)
   userAddress   UserAddress[]
 }
 
 model Category {
-  categoryId          Int                   @id @map("category_id")
+  categoryId          Int                   @id @default(autoincrement()) @map("category_id")
   categoryName        String                @unique @map("category_name") @db.VarChar
   itemCharacteristics ItemCharacteristics[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Class {
-  classId            Int                  @id @map("class_id")
+  classId            Int                  @id @default(autoincrement()) @map("class_id")
   schoolYearId       Int                  @map("school_year_id")
   classDay           DateTime             @map("class_day") @db.Date
   classTimeStart     DateTime             @map("class_time_start") @db.Time(6)
   classTimeEnd       DateTime             @map("class_time_end") @db.Time(6)
-  classRecurrence    Boolean?             @map("class_recurrence")
+  classRecurrence    Boolean?             @default(false) @map("class_recurrence")
   studioModalityId   Int                  @map("studio_modality_id")
   classFinalFee      Decimal              @map("class_final_fee") @db.Decimal(10, 2)
   classStatusId      Int                  @map("class_status_id")
-  classStatus        ClassStatus          @relation(fields: [classStatusId], references: [classStatusId], onDelete: NoAction, onUpdate: NoAction)
-  schoolYear         SchoolYear           @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: NoAction, onUpdate: NoAction)
-  studioModality     StudioModality       @relation(fields: [studioModalityId], references: [studioModalityId], onDelete: NoAction, onUpdate: NoAction)
+  classStatus        ClassStatus          @relation(fields: [classStatusId], references: [classStatusId], onDelete: Cascade, onUpdate: Cascade)
+  schoolYear         SchoolYear           @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: Cascade, onUpdate: Cascade)
+  studioModality     StudioModality       @relation(fields: [studioModalityId], references: [studioModalityId], onDelete: Cascade, onUpdate: Cascade)
   classExtraFee      ClassExtraFee[]
   classStatusHistory ClassStatusHistory[]
   userClass          UserClass[]
@@ -43,18 +43,18 @@ model Class {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ClassExtraFee {
-  classExtraFeeId       Int                 @id @map("class_extra_fee_id")
+  classExtraFeeId       Int                 @id @default(autoincrement()) @map("class_extra_fee_id")
   classExtraFeeValue    Decimal             @map("class_extra_fee_value") @db.Decimal(10, 2)
   classExtraFeeReasonId Int                 @map("class_extra_fee_reason_id")
   classId               Int                 @map("class_id")
-  classExtraFeeReason   ClassExtraFeeReason @relation(fields: [classExtraFeeReasonId], references: [classExtraFeeReasonId], onDelete: NoAction, onUpdate: NoAction)
-  class                 Class               @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
+  classExtraFeeReason   ClassExtraFeeReason @relation(fields: [classExtraFeeReasonId], references: [classExtraFeeReasonId], onDelete: Cascade, onUpdate: Cascade)
+  class                 Class               @relation(fields: [classId], references: [classId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Class_Extra_Fee")
 }
 
 model ClassExtraFeeReason {
-  classExtraFeeReasonId   Int             @id @map("class_extra_fee_reason_id")
+  classExtraFeeReasonId   Int             @id @default(autoincrement()) @map("class_extra_fee_reason_id")
   classExtraFeeReasonDesc String          @unique @map("class_extra_fee_reason_desc") @db.VarChar
   classExtraFee           ClassExtraFee[]
 
@@ -62,7 +62,7 @@ model ClassExtraFeeReason {
 }
 
 model ClassStatus {
-  classStatusId      Int                  @id @map("class_status_id")
+  classStatusId      Int                  @id @default(autoincrement()) @map("class_status_id")
   classStatusDesc    String               @unique @map("class_status_desc") @db.VarChar
   class              Class[]
   classStatusHistory ClassStatusHistory[]
@@ -72,35 +72,35 @@ model ClassStatus {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ClassStatusHistory {
-  classStatusHistoryId   Int         @id @map("class_status_history_id")
+  classStatusHistoryId   Int         @id @default(autoincrement()) @map("class_status_history_id")
   classId                Int         @map("class_id")
   classStatusId          Int         @map("class_status_id")
   userId                 Int         @map("user_id")
   classStatusHistoryDate DateTime    @map("class_status_history_date") @db.Timestamptz(6)
-  class                  Class       @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
-  classStatus            ClassStatus @relation(fields: [classStatusId], references: [classStatusId], onDelete: NoAction, onUpdate: NoAction)
-  user                   User        @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  class                  Class       @relation(fields: [classId], references: [classId], onDelete: Cascade, onUpdate: Cascade)
+  classStatus            ClassStatus @relation(fields: [classStatusId], references: [classStatusId], onDelete: Cascade, onUpdate: Cascade)
+  user                   User        @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Class_Status_History")
 }
 
 model Color {
-  colorId             Int                   @id @map("color_id")
+  colorId             Int                   @id @default(autoincrement()) @map("color_id")
   colorName           String                @unique @map("color_name") @db.VarChar
   itemCharacteristics ItemCharacteristics[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Contact {
-  contactId     Int           @id @map("contact_id")
+  contactId     Int           @id @default(autoincrement()) @map("contact_id")
   contactValue  String        @map("contact_value") @db.VarChar
   contactTypeId Int           @map("contact_type_id")
-  contactType   ContactType   @relation(fields: [contactTypeId], references: [contactTypeId], onDelete: NoAction, onUpdate: NoAction)
+  contactType   ContactType   @relation(fields: [contactTypeId], references: [contactTypeId], onDelete: Cascade, onUpdate: Cascade)
   userContact   UserContact[]
 }
 
 model ContactType {
-  contactTypeId   Int       @id @map("contact_type_id")
+  contactTypeId   Int       @id @default(autoincrement()) @map("contact_type_id")
   contactTypeDesc String    @unique @map("contact_type_desc") @db.VarChar
   contact         Contact[]
 
@@ -108,7 +108,7 @@ model ContactType {
 }
 
 model DanceType {
-  danceTypeId                  Int                            @id @map("dance_type_id")
+  danceTypeId                  Int                            @id @default(autoincrement()) @map("dance_type_id")
   danceTypeName                String                         @unique @map("dance_type_name") @db.VarChar
   itemCharacteristicsDanceType ItemCharacteristicsDanceType[]
 
@@ -117,26 +117,26 @@ model DanceType {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Item {
-  itemId                Int                 @id @map("item_id")
+  itemId                Int                 @id @default(autoincrement()) @map("item_id")
   itemCharacteristicsId Int                 @map("item_characteristics_id")
   itemConditionId       Int                 @map("item_condition_id")
-  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
-  itemCondition         ItemCondition       @relation(fields: [itemConditionId], references: [itemConditionId], onDelete: NoAction, onUpdate: NoAction)
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: Cascade, onUpdate: Cascade)
+  itemCondition         ItemCondition       @relation(fields: [itemConditionId], references: [itemConditionId], onDelete: Cascade, onUpdate: Cascade)
   schoolItem            SchoolItem?
   userItem              UserItem?
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ItemCharacteristics {
-  itemCharacteristicsId        Int                            @id @map("item_characteristics_id")
+  itemCharacteristicsId        Int                            @id @default(autoincrement()) @map("item_characteristics_id")
   itemCharacteristicsName      String                         @map("item_characteristics_name") @db.VarChar
   colorId                      Int                            @map("color_id")
   sizeId                       Int?                           @map("size_id")
   categoryId                   Int                            @map("category_id")
   item                         Item[]
-  category                     Category                       @relation(fields: [categoryId], references: [categoryId], onDelete: NoAction, onUpdate: NoAction)
-  color                        Color                          @relation(fields: [colorId], references: [colorId], onDelete: NoAction, onUpdate: NoAction)
-  size                         Size?                          @relation(fields: [sizeId], references: [sizeId], onDelete: NoAction, onUpdate: NoAction)
+  category                     Category                       @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade, onUpdate: Cascade)
+  color                        Color                          @relation(fields: [colorId], references: [colorId], onDelete: Cascade, onUpdate: Cascade)
+  size                         Size?                          @relation(fields: [sizeId], references: [sizeId], onDelete: Cascade, onUpdate: Cascade)
   itemCharacteristicsDanceType ItemCharacteristicsDanceType[]
   itemImage                    ItemImage[]
 
@@ -147,15 +147,15 @@ model ItemCharacteristics {
 model ItemCharacteristicsDanceType {
   itemCharacteristicsId Int                 @map("item_characteristics_id")
   danceTypeId           Int                 @map("dance_type_id")
-  danceType             DanceType           @relation(fields: [danceTypeId], references: [danceTypeId], onDelete: NoAction, onUpdate: NoAction)
-  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
+  danceType             DanceType           @relation(fields: [danceTypeId], references: [danceTypeId], onDelete: Cascade, onUpdate: Cascade)
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([itemCharacteristicsId, danceTypeId])
   @@map("Item_Characteristics_Dance_Type")
 }
 
 model ItemCondition {
-  itemConditionId   Int    @id @map("item_condition_id")
+  itemConditionId   Int    @id @default(autoincrement()) @map("item_condition_id")
   itemConditionName String @unique @map("item_condition_name") @db.VarChar
   item              Item[]
 
@@ -164,23 +164,23 @@ model ItemCondition {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ItemImage {
-  itemImageId           Int                 @id @map("item_image_id")
+  itemImageId           Int                 @id @default(autoincrement()) @map("item_image_id")
   itemCharacteristicsId Int                 @map("item_characteristics_id")
   itemImageUrl          String              @map("item_image_url") @db.VarChar
-  itemImageIsMain       Boolean             @map("item_image_is_main")
-  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: NoAction, onUpdate: NoAction)
+  itemImageIsMain       Boolean             @default(false) @map("item_image_is_main")
+  itemCharacteristics   ItemCharacteristics @relation(fields: [itemCharacteristicsId], references: [itemCharacteristicsId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Item_Image")
 }
 
 model Locality {
-  localityId   Int          @id @map("locality_id")
+  localityId   Int          @id @default(autoincrement()) @map("locality_id")
   localityName String       @map("locality_name") @db.VarChar
   postalCode   PostalCode[]
 }
 
 model Modality {
-  modalityId        Int              @id @map("modality_id")
+  modalityId        Int              @id @default(autoincrement()) @map("modality_id")
   modalityName      String           @unique @map("modality_name") @db.VarChar
   modalityHourlyFee Decimal          @map("modality_hourly_fee") @db.Decimal(10, 2)
   studioModality    StudioModality[]
@@ -191,37 +191,37 @@ model PostalCode {
   postalCode String    @id @map("postal_code") @db.VarChar
   localityId Int       @map("locality_id")
   address    Address[]
-  locality   Locality  @relation(fields: [localityId], references: [localityId], onDelete: NoAction, onUpdate: NoAction)
+  locality   Locality  @relation(fields: [localityId], references: [localityId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Postal_Code")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model RentItem {
-  rentId            Int        @id @map("rent_id")
+  rentId            Int        @id @default(autoincrement()) @map("rent_id")
   itemId            Int        @map("item_id")
   userId            Int        @map("user_id")
   rentDateStart     DateTime   @map("rent_date_start") @db.Timestamptz(6)
   rentDateEnd       DateTime   @map("rent_date_end") @db.Timestamptz(6)
   actualRentDateEnd DateTime?  @map("actual_rent_date_end") @db.Timestamptz(6)
-  itemDamaged       Boolean?   @map("item_damaged")
-  schoolItem        SchoolItem @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
-  user              User       @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  itemDamaged       Boolean?   @default(false) @map("item_damaged")
+  schoolItem        SchoolItem @relation(fields: [itemId], references: [itemId], onDelete: Cascade, onUpdate: Cascade)
+  user              User       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Rent_Item")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ScheduleVacancy {
-  scheduleVacancyId         Int        @id @map("schedule_vacancy_id")
+  scheduleVacancyId         Int        @id @default(autoincrement()) @map("schedule_vacancy_id")
   userId                    Int        @map("user_id")
   schoolYearId              Int        @map("school_year_id")
   scheduleVacancyDay        DateTime   @map("schedule_vacancy_day") @db.Date
   scheduleVacancyStart      DateTime   @map("schedule_vacancy_start") @db.Time(6)
   scheduleVacancyEnd        DateTime   @map("schedule_vacancy_end") @db.Time(6)
-  scheduleVacancyRecurrence Boolean?   @map("schedule_vacancy_recurrence")
-  schoolYear                SchoolYear @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: NoAction, onUpdate: NoAction)
-  user                      User       @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  scheduleVacancyRecurrence Boolean?   @default(false) @map("schedule_vacancy_recurrence")
+  schoolYear                SchoolYear @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: Cascade, onUpdate: Cascade)
+  user                      User       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Schedule_Vacancy")
 }
@@ -231,13 +231,13 @@ model SchoolItem {
   itemId   Int        @id @map("item_id")
   rentFee  Decimal    @map("rent_fee") @db.Decimal(10, 2)
   rentItem RentItem[]
-  item     Item       @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
+  item     Item       @relation(fields: [itemId], references: [itemId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("School_Item")
 }
 
 model SchoolYear {
-  schoolYearId    Int               @id @map("school_year_id")
+  schoolYearId    Int               @id @default(autoincrement()) @map("school_year_id")
   schoolYearName  String            @unique @map("school_year_name") @db.VarChar
   schoolYearStart DateTime          @map("school_year_start") @db.Date
   schoolYearEnd   DateTime          @map("school_year_end") @db.Date
@@ -248,7 +248,7 @@ model SchoolYear {
 }
 
 model Size {
-  sizeId              Int                   @id @map("size_id")
+  sizeId              Int                   @id @default(autoincrement()) @map("size_id")
   sizeName            String                @unique @map("size_name") @db.VarChar
   itemCharacteristics ItemCharacteristics[]
 }
@@ -257,13 +257,13 @@ model Size {
 model StudentNumber {
   userId        Int    @id @map("user_id")
   studentNumber String @unique @map("student_number") @db.VarChar
-  user          User   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  user          User   @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("Student_Number")
 }
 
 model Studio {
-  studioId          Int              @id @map("studio_id")
+  studioId          Int              @id @default(autoincrement()) @map("studio_id")
   studioName        String           @unique @map("studio_name") @db.VarChar
   studioMaxCapacity Int              @map("studio_max_capacity")
   studioModality    StudioModality[]
@@ -271,12 +271,12 @@ model Studio {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model StudioModality {
-  studioModalityId Int      @id @map("studio_modality_id")
+  studioModalityId Int      @id @default(autoincrement()) @map("studio_modality_id")
   studioId         Int      @map("studio_id")
   modalityId       Int      @map("modality_id")
   class            Class[]
-  modality         Modality @relation(fields: [modalityId], references: [modalityId], onDelete: NoAction, onUpdate: NoAction)
-  studio           Studio   @relation(fields: [studioId], references: [studioId], onDelete: NoAction, onUpdate: NoAction)
+  modality         Modality @relation(fields: [modalityId], references: [modalityId], onDelete: Cascade, onUpdate: Cascade)
+  studio           Studio   @relation(fields: [studioId], references: [studioId], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([studioId, modalityId], map: "Studio_Modality_studio_id_modality_id_idx")
   @@map("Studio_Modality")
@@ -284,17 +284,17 @@ model StudioModality {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model User {
-  userId             Int                  @id @map("user_id")
+  userId             Int                  @id @default(autoincrement()) @map("user_id")
   userName           String               @map("user_name") @db.VarChar
   userBirthDate      DateTime?            @map("user_birth_date") @db.Date
   userStartDate      DateTime?            @map("user_start_date") @db.Date
   userTypeId         Int                  @map("user_type_id")
-  userIsActive       Boolean              @map("user_is_active")
+  userIsActive       Boolean              @default(true) @map("user_is_active")
   classStatusHistory ClassStatusHistory[]
   rentItem           RentItem[]
   scheduleVacancy    ScheduleVacancy[]
   studentNumber      StudentNumber?
-  userType           UserType             @relation(fields: [userTypeId], references: [userTypeId], onDelete: NoAction, onUpdate: NoAction)
+  userType           UserType             @relation(fields: [userTypeId], references: [userTypeId], onDelete: Cascade, onUpdate: Cascade)
   userAddress        UserAddress[]
   userClass          UserClass[]
   userContact        UserContact[]
@@ -305,12 +305,12 @@ model User {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model UserAddress {
-  userAddressId Int     @id @map("user_address_id")
+  userAddressId Int     @id @default(autoincrement()) @map("user_address_id")
   userId        Int     @map("user_id")
   streetId      Int     @map("street_id")
-  isMainAddress Boolean @map("is_main_address")
-  address       Address @relation(fields: [streetId], references: [streetId], onDelete: NoAction, onUpdate: NoAction)
-  user          User    @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  isMainAddress Boolean @default(false) @map("is_main_address")
+  address       Address @relation(fields: [streetId], references: [streetId], onDelete: Cascade, onUpdate: Cascade)
+  user          User    @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([userId, streetId], map: "User_Address_user_id_street_id_idx")
   @@map("User_Address")
@@ -321,17 +321,17 @@ model UserClass {
   classId         Int            @map("class_id")
   userId          Int            @map("user_id")
   userClassRoleId Int?           @map("user_class_role_id")
-  userValidation  Boolean        @map("user_validation")
-  class           Class          @relation(fields: [classId], references: [classId], onDelete: NoAction, onUpdate: NoAction)
-  userClassRole   UserClassRole? @relation(fields: [userClassRoleId], references: [userClassRoleId], onDelete: NoAction, onUpdate: NoAction)
-  user            User           @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  userValidation  Boolean        @default(false) @map("user_validation")
+  class           Class          @relation(fields: [classId], references: [classId], onDelete: Cascade, onUpdate: Cascade)
+  userClassRole   UserClassRole? @relation(fields: [userClassRoleId], references: [userClassRoleId], onDelete: Cascade, onUpdate: Cascade)
+  user            User           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([classId, userId])
   @@map("User_Class")
 }
 
 model UserClassRole {
-  userClassRoleId   Int         @id @map("user_class_role_id")
+  userClassRoleId   Int         @id @default(autoincrement()) @map("user_class_role_id")
   userClassRoleDesc String      @unique @map("user_class_role_desc") @db.VarChar
   userClass         UserClass[]
 
@@ -340,12 +340,12 @@ model UserClassRole {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model UserContact {
-  userContactId  Int             @id @map("user_contact_id")
+  userContactId  Int             @id @default(autoincrement()) @map("user_contact_id")
   userId         Int             @map("user_id")
   contactId      Int             @map("contact_id")
-  isMainContact  Boolean         @map("is_main_contact")
-  contact        Contact         @relation(fields: [contactId], references: [contactId], onDelete: NoAction, onUpdate: NoAction)
-  user           User            @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  isMainContact  Boolean         @default(false) @map("is_main_contact")
+  contact        Contact         @relation(fields: [contactId], references: [contactId], onDelete: Cascade, onUpdate: Cascade)
+  user           User            @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
   userCredential UserCredential?
 
   @@unique([userId, contactId], map: "User_Contact_user_id_contact_id_idx")
@@ -358,8 +358,8 @@ model UserCredential {
   userContactId              Int         @unique @map("user_contact_id")
   userCredentialPasswordHash String      @map("user_credential_password_hash") @db.VarChar
   userCredentialLastLogin    DateTime?   @map("user_credential_last_login") @db.Timestamptz(6)
-  userContact                UserContact @relation(fields: [userContactId], references: [userContactId], onDelete: NoAction, onUpdate: NoAction)
-  user                       User        @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  userContact                UserContact @relation(fields: [userContactId], references: [userContactId], onDelete: Cascade, onUpdate: Cascade)
+  user                       User        @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("User_Credential")
 }
@@ -368,8 +368,8 @@ model UserCredential {
 model UserItem {
   itemId Int  @id @map("item_id")
   userId Int  @map("user_id")
-  item   Item @relation(fields: [itemId], references: [itemId], onDelete: NoAction, onUpdate: NoAction)
-  user   User @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  item   Item @relation(fields: [itemId], references: [itemId], onDelete: Cascade, onUpdate: Cascade)
+  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("User_Item")
 }
@@ -378,13 +378,13 @@ model UserItem {
 model UserNIF {
   userId  Int    @id @map("user_id")
   userNif String @unique @map("user_nif") @db.VarChar
-  user    User   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  user    User   @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("User_NIF")
 }
 
 model UserType {
-  userTypeId   Int    @id @map("user_type_id")
+  userTypeId   Int    @id @default(autoincrement()) @map("user_type_id")
   userTypeDesc String @unique @map("user_type_desc") @db.VarChar
   user         User[]
 
