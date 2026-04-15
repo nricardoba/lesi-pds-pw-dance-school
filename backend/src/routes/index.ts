@@ -1,6 +1,7 @@
 // src/routes/index.ts
 import { Router } from 'express';
 import { prisma } from '../config/db';
+import authRoutes from './auth';
 import usersRoutes from './users';
 import classesRoutes from './classes';
 import referenceRoutes from './references';
@@ -25,6 +26,7 @@ router.get('/health', async (req, res) => {
   }
 });
 
+router.use('/auth', authRoutes);
 router.use('/users', usersRoutes);
 router.use('/classes', classesRoutes);
 router.use('/reference', referenceRoutes);
