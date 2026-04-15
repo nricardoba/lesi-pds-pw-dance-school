@@ -109,3 +109,12 @@ npx prisma studio
 ```
 npx prisma db seed
 ```
+
+---
+
+## 11. Aplicar as alterações efetuadas no ficheiro schema.prisma (apenas vai utilizar este commando o gestor da dase de dados)
+
+Sempre que quiseres adicionar uma coluna ou tabela nova, mudas **apenas** no `schema.prisma` e corres no terminal:
+```
+npx prisma migrate dev --name add_new_table
+```

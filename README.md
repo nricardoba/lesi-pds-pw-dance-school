@@ -53,7 +53,7 @@ Create a `.env` file in the `backend` directory based on the environment variabl
 
 4. Setup the Database:
 Generate the Prisma Client and run the migrations to create the database schema:
-[use this cheat sheet to get this task done](docs/database/database.md)
+[use this cheat-sheet to get this task done](docs/database/database.md)
 
 5. Start the development server:
 ```bash
