@@ -12,27 +12,21 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  setErro("");
 
-    if (password !== confirmPassword) {
-      setErro("As passwords não coincidem");
-      return;
-    }
+  if (password !== confirmPassword) {
+    setErro("As passwords não coincidem");
+    return;
+  }
 
-    try {
-      const data = await registerRequest(email, password);
-
-      if (data.erro) {
-        setErro(data.erro);
-        return;
-      }
-
-      // Redireciona para o login após registo
-      navigate("/login");
-    } catch {
-      setErro("Erro de ligação ao servidor");
-    }
-  };
+  try {
+    await registerRequest(name, email, password);
+    navigate("/login");
+  } catch (error) {
+    setErro(error.message || "Erro de ligação ao servidor");
+  }
+};
 
   return (
     <div className="min-h-screen flex justify-center focus:outline-none focus:ring-2 focus:ring-blue-500">
