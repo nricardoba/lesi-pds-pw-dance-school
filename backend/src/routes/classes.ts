@@ -173,4 +173,111 @@ router.post('/:id/users', async (req, res) => {
   }
 });
 
+// atualizar aula
+router.put('/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const {
+      school_year_id,
+      class_day,
+      class_date_start,
+      class_date_end,
+      class_recurrence,
+      studio_modality_id,
+      class_final_fee,
+      class_status_id,
+    } = req.body;
+
+    const dataToUpdate: any = {};
+    if (school_year_id) dataToUpdate.schoolYearId = Number(school_year_id);
+    if (class_day) dataToUpdate.classDay = new Date(class_day);
+    if (class_date_start) dataToUpdate.classTimeStart = new Date(`1970-01-01T${class_date_start}`);
+    if (class_date_end) dataToUpdate.classTimeEnd = new Date(`1970-01-01T${class_date_end}`);
+    if (class_recurrence !== undefined) dataToUpdate.classRecurrence = Boolean(class_recurrence);
+    if (studio_modality_id) dataToUpdate.studioModalityId = Number(studio_modality_id);
+    if (class_final_fee !== undefined) dataToUpdate.classFinalFee = Number(class_final_fee);
+    if (class_status_id) dataToUpdate.classStatusId = Number(class_status_id);
+
+    const updated = await prisma.class.update({
+      where: { classId: id },
+      data: dataToUpdate,
+      include: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
+          include: { studio: true, modality: true },
+        },
+      },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao atualizar aula.' });
+  }
+});
+
+// apagar/cancelar aula
+router.delete('/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    await prisma.class.delete({
+      where: { classId: id },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao apagar aula. A aula já pode estar associada a utilizadores.' });
+  }
+});
+
+// atualizar inscrição do utilizador à aula (estado/validação e papel)
+router.put('/:id/users/:userId', async (req, res) => {
+  try {
+    const classId = Number(req.params.id);
+    const userId = Number(req.params.userId);
+    const { user_class_role_id, user_validation } = req.body;
+
+    const dataToUpdate: any = {};
+    if (user_class_role_id !== undefined) dataToUpdate.userClassRoleId = Number(user_class_role_id);
+    if (user_validation !== undefined) dataToUpdate.userValidation = Boolean(user_validation);
+
+    const updated = await prisma.userClass.update({
+      where: {
+        classId_userId: { classId, userId },
+      },
+      data: dataToUpdate,
+      include: {
+        userClassRole: true,
+      },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao atualizar inscrição.' });
+  }
+});
+
+// desinscrever utilizador
+router.delete('/:id/users/:userId', async (req, res) => {
+  try {
+    const classId = Number(req.params.id);
+    const userId = Number(req.params.userId);
+
+    await prisma.userClass.delete({
+      where: {
+        classId_userId: { classId, userId },
+      },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao remover utilizador da aula.' });
+  }
+});
+
 export default router;
