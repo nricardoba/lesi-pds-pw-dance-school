@@ -9,23 +9,23 @@ router.get('/', async (req, res) => {
   try {
     const classes = await prisma.class.findMany({
       include: {
-        Class_Status: true,
-        School_Year: true,
-        Studio_Modality: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
           include: {
-            Studio: true,
-            Modality: true,
+            studio: true,
+            modality: true,
           },
         },
-        User_Class: {
+        userClass: {
           include: {
-            User: true,
-            User_Class_Role: true,
+            user: true,
+            userClassRole: true,
           },
         },
       },
       orderBy: {
-        class_id: 'asc',
+        classId: 'asc',
       },
     });
 
@@ -42,20 +42,20 @@ router.get('/:id', async (req, res) => {
     const id = Number(req.params.id);
 
     const classItem = await prisma.class.findUnique({
-      where: { class_id: id },
+      where: { classId: id },
       include: {
-        Class_Status: true,
-        School_Year: true,
-        Studio_Modality: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
           include: {
-            Studio: true,
-            Modality: true,
+            studio: true,
+            modality: true,
           },
         },
-        User_Class: {
+        userClass: {
           include: {
-            User: true,
-            User_Class_Role: true,
+            user: true,
+            userClassRole: true,
           },
         },
       },
@@ -102,32 +102,32 @@ router.post('/', async (req, res) => {
     }
 
     const lastClass = await prisma.class.findFirst({
-      orderBy: { class_id: 'desc' },
-      select: { class_id: true },
+      orderBy: { classId: 'desc' },
+      select: { classId: true },
     });
 
-    const nextId = (lastClass?.class_id ?? 0) + 1;
+    const nextId = (lastClass?.classId ?? 0) + 1;
 
     const created = await prisma.class.create({
       data: {
-        class_id: nextId,
-        school_year_id: Number(school_year_id),
-        class_day: new Date(class_day),
-        class_date_start: new Date(`1970-01-01T${class_date_start}`),
-        class_date_end: new Date(`1970-01-01T${class_date_end}`),
-        class_recurrence:
+        classId: nextId,
+        schoolYearId: Number(school_year_id),
+        classDay: new Date(class_day),
+        classTimeStart: new Date(`1970-01-01T${class_date_start}`),
+        classTimeEnd: new Date(`1970-01-01T${class_date_end}`),
+        classRecurrence:
           class_recurrence !== undefined ? Boolean(class_recurrence) : null,
-        studio_modality_id: Number(studio_modality_id),
-        class_final_fee: Number(class_final_fee),
-        class_status_id: Number(class_status_id),
+        studioModalityId: Number(studio_modality_id),
+        classFinalFee: Number(class_final_fee),
+        classStatusId: Number(class_status_id),
       },
       include: {
-        Class_Status: true,
-        School_Year: true,
-        Studio_Modality: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
           include: {
-            Studio: true,
-            Modality: true,
+            studio: true,
+            modality: true,
           },
         },
       },
@@ -150,19 +150,19 @@ router.post('/:id/users', async (req, res) => {
       return res.status(400).json({ error: 'user_id é obrigatório.' });
     }
 
-    const created = await prisma.user_Class.create({
+    const created = await prisma.userClass.create({
       data: {
-        class_id: classId,
-        user_id: Number(user_id),
-        user_class_role_id:
+        classId: classId,
+        userId: Number(user_id),
+        userClassRoleId:
           user_class_role_id !== undefined ? Number(user_class_role_id) : null,
-        user_validation:
+        userValidation:
           user_validation !== undefined ? Boolean(user_validation) : false,
       },
       include: {
-        User: true,
-        Class: true,
-        User_Class_Role: true,
+        user: true,
+        class: true,
+        userClassRole: true,
       },
     });
 
