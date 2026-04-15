@@ -7,16 +7,16 @@ async function main() {
 
   // 1. Tipos de Utilizador (UserType)
   const userTypes = [
-    { userTypeId: 1, userTypeDesc: "Admin" },
-    { userTypeId: 2, userTypeDesc: "Professor" },
-    { userTypeId: 3, userTypeDesc: "Aluno" },
-    { userTypeId: 4, userTypeDesc: "Encarregado de Educação" },
+    { userTypeDesc: "Admin" },
+    { userTypeDesc: "Professor" },
+    { userTypeDesc: "Aluno" },
+    { userTypeDesc: "Encarregado de Educação" },
   ];
 
   for (const ut of userTypes) {
     await prisma.userType.upsert({
-      where: { userTypeId: ut.userTypeId },
-      update: { userTypeDesc: ut.userTypeDesc },
+      where: { userTypeDesc: ut.userTypeDesc },
+      update: {},
       create: ut,
     });
   }
@@ -24,16 +24,16 @@ async function main() {
 
   // 2. Estados das Aulas (ClassStatus)
   const classStatuses = [
-    { classStatusId: 1, classStatusDesc: "Agendada" },
-    { classStatusId: 2, classStatusDesc: "A Decorrer" },
-    { classStatusId: 3, classStatusDesc: "Concluída" },
-    { classStatusId: 4, classStatusDesc: "Cancelada" },
+    { classStatusDesc: "Agendada" },
+    { classStatusDesc: "A Decorrer" },
+    { classStatusDesc: "Concluída" },
+    { classStatusDesc: "Cancelada" },
   ];
 
   for (const cs of classStatuses) {
     await prisma.classStatus.upsert({
-      where: { classStatusId: cs.classStatusId },
-      update: { classStatusDesc: cs.classStatusDesc },
+      where: { classStatusDesc: cs.classStatusDesc },
+      update: {},
       create: cs,
     });
   }
@@ -41,15 +41,15 @@ async function main() {
 
   // 3. Tipos de Contacto (ContactType)
   const contactTypes = [
-    { contactTypeId: 1, contactTypeDesc: "Telemóvel" },
-    { contactTypeId: 2, contactTypeDesc: "Email" },
-    { contactTypeId: 3, contactTypeDesc: "Telefone Fixo" },
+    { contactTypeDesc: "Telemóvel" },
+    { contactTypeDesc: "Email" },
+    { contactTypeDesc: "Telefone Fixo" },
   ];
 
   for (const ct of contactTypes) {
     await prisma.contactType.upsert({
-      where: { contactTypeId: ct.contactTypeId },
-      update: { contactTypeDesc: ct.contactTypeDesc },
+      where: { contactTypeDesc: ct.contactTypeDesc },
+      update: {},
       create: ct,
     });
   }
@@ -57,15 +57,15 @@ async function main() {
 
   // 4. Papéis na Aula (UserClassRole)
   const userClassRoles = [
-    { userClassRoleId: 1, userClassRoleDesc: "Professor Responsável" },
-    { userClassRoleId: 2, userClassRoleDesc: "Professor Assistente" },
-    { userClassRoleId: 3, userClassRoleDesc: "Aluno" },
+    { userClassRoleDesc: "Professor Responsável" },
+    { userClassRoleDesc: "Professor Assistente" },
+    { userClassRoleDesc: "Aluno" },
   ];
 
   for (const role of userClassRoles) {
     await prisma.userClassRole.upsert({
-      where: { userClassRoleId: role.userClassRoleId },
-      update: { userClassRoleDesc: role.userClassRoleDesc },
+      where: { userClassRoleDesc: role.userClassRoleDesc },
+      update: {},
       create: role,
     });
   }
