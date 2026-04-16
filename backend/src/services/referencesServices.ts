@@ -114,13 +114,8 @@ export const createSchoolYearService = async (body: unknown) => {
   const { school_year_name, school_year_start, school_year_end } =
     createSchoolYearSchema.parse(body);
 
-  const last = await prisma.schoolYear.findFirst({
-    orderBy: { schoolYearId: 'desc' },
-  });
-
   return prisma.schoolYear.create({
     data: {
-      schoolYearId: (last?.schoolYearId ?? 0) + 1,
       schoolYearName: school_year_name,
       schoolYearStart: new Date(school_year_start),
       schoolYearEnd: new Date(school_year_end),
@@ -131,13 +126,8 @@ export const createSchoolYearService = async (body: unknown) => {
 export const createClassStatusService = async (body: unknown) => {
   const { class_status_desc } = createClassStatusSchema.parse(body);
 
-  const last = await prisma.classStatus.findFirst({
-    orderBy: { classStatusId: 'desc' },
-  });
-
   return prisma.classStatus.create({
     data: {
-      classStatusId: (last?.classStatusId ?? 0) + 1,
       classStatusDesc: class_status_desc,
     },
   });
@@ -146,13 +136,8 @@ export const createClassStatusService = async (body: unknown) => {
 export const createModalityService = async (body: unknown) => {
   const { modality_name, modality_hourly_fee } = createModalitySchema.parse(body);
 
-  const last = await prisma.modality.findFirst({
-    orderBy: { modalityId: 'desc' },
-  });
-
   return prisma.modality.create({
     data: {
-      modalityId: (last?.modalityId ?? 0) + 1,
       modalityName: modality_name,
       modalityHourlyFee: Number(modality_hourly_fee),
     },
@@ -162,13 +147,8 @@ export const createModalityService = async (body: unknown) => {
 export const createStudioService = async (body: unknown) => {
   const { studio_name, studio_max_capacity } = createStudioSchema.parse(body);
 
-  const last = await prisma.studio.findFirst({
-    orderBy: { studioId: 'desc' },
-  });
-
   return prisma.studio.create({
     data: {
-      studioId: (last?.studioId ?? 0) + 1,
       studioName: studio_name,
       studioMaxCapacity: Number(studio_max_capacity),
     },
@@ -178,13 +158,8 @@ export const createStudioService = async (body: unknown) => {
 export const createStudioModalityService = async (body: unknown) => {
   const { studio_id, modality_id } = createStudioModalitySchema.parse(body);
 
-  const last = await prisma.studioModality.findFirst({
-    orderBy: { studioModalityId: 'desc' },
-  });
-
   return prisma.studioModality.create({
     data: {
-      studioModalityId: (last?.studioModalityId ?? 0) + 1,
       studioId: Number(studio_id),
       modalityId: Number(modality_id),
     },
@@ -194,13 +169,8 @@ export const createStudioModalityService = async (body: unknown) => {
 export const createUserClassRoleService = async (body: unknown) => {
   const { user_class_role_desc } = createUserClassRoleSchema.parse(body);
 
-  const last = await prisma.userClassRole.findFirst({
-    orderBy: { userClassRoleId: 'desc' },
-  });
-
   return prisma.userClassRole.create({
     data: {
-      userClassRoleId: (last?.userClassRoleId ?? 0) + 1,
       userClassRoleDesc: user_class_role_desc,
     },
   });
