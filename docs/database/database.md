@@ -6,7 +6,9 @@
 
 Para começar, o docker desktop deve estar a correr.
 
-## 1. Devem ter esta configuração no ficheiro `backend/.env`
+## 1. Gerar base de dados a partir do ficheiro `prisma/schema.prisma`
+
+### 1.1. Devem ter esta configuração no ficheiro `backend/.env`
 ```
 # Server Configuration
 PORT=3333
@@ -21,7 +23,7 @@ DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/${DB_NAME}?s
 
 ---
 
-## 2. Devem ter esta configuração no ficheiro `backend/docker-compose.yml`
+### 1.2. Devem ter esta configuração no ficheiro `backend/docker-compose.yml`
 ```
 services:
   postgres:
@@ -44,7 +46,7 @@ volumes:
 
 ---
 
-## 3. Derrubar a base de dados e limpar o volume antigo
+### 1.3. Derrubar a base de dados e limpar o volume antigo
 Este comando é opcional, serve para limpar o volume do docker
 ```
 docker-compose down -v
@@ -53,30 +55,30 @@ docker-compose down -v
 
 ---
 
-## 4. Subir novamente a base de dados (agora vazia)
+### 1.4. Subir novamente a base de dados (agora vazia)
 ```
 docker-compose up -d
 ```
-*Nota 1: Esperar 10 segundos depois de correr este comando*
+*Nota 1: Esperar 10 segundos depois de correr este comando*  
 *Nota 2: podes ter de utilizar `docker compose` em vez de `docker-compose`*
 
 ---
 
-## 5. Iniciar o container e verificar se está a correr
+### 1.5. Iniciar o container e verificar se está a correr
 
-#### 5.1. Iniciar o contentor
+#### 1.5.1. Iniciar o contentor
 ```
 docker start postgres-dance-school
 ```
 
-#### 5.2. Verificar se está a correr
+#### 1.5.2. Verificar se está a correr
 ```
 docker ps
 ```
 
 ---
 
-## 6. Aplicar as migrações à nova base de dados
+### 1.6. Aplicar as migrações à nova base de dados
 ```
 npx prisma migrate dev
 ```
@@ -84,37 +86,55 @@ npx prisma migrate dev
 
 ---
 
-## 7. Verificar se o prisma está a funcionar (opcional)
+### 1.7. Verificar se o prisma está a funcionar (opcional)
 ```
 npx prisma validate
 ```
 
 ---
 
-## 8. Gerar o prisma client
+### 1.8. Gerar o prisma client
 ```
 npx prisma generate
 ```
 
 ---
 
-## 9. Abrir o prisma studio
+### 1.9. Abrir o prisma studio
 ```
 npx prisma studio
 ```
 
 ---
 
-## 10. Preencher as tabelas com o seed
+### 1.10. Preencher as tabelas com o seed
 ```
 npx prisma db seed
 ```
 
 ---
 
-## 11. Aplicar as alterações efetuadas no ficheiro schema.prisma (apenas vai utilizar este commando o gestor da dase de dados)
+## 2. Aplicar as alterações feitas no ficheiro `` à base de dados
 
+### 2.1. Subir a base de dados
+```
+docker-compose up -d
+```
+*Nota 1: Esperar 10 segundos depois de correr este comando*  
+*Nota 2: podes ter de utilizar `docker compose` em vez de `docker-compose`*
+
+### 2.2. Aplicar as alterações efetuadas no ficheiro schema.prisma
 Sempre que quiseres adicionar uma coluna ou tabela nova, mudas **apenas** no `schema.prisma` e corres no terminal:
 ```
 npx prisma migrate dev --name add_new_table
+```
+
+### 2.3. Dar reset à base de dados
+```
+npx prisma migrate reset
+```
+
+### 2.4. Gerar o prisma client
+```
+npx prisma generate
 ```
