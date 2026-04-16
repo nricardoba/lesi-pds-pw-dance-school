@@ -14,7 +14,30 @@ const port = process.env.PORT || 3333;
 app.use(cors()); // Permite pedidos do teu frontend
 app.use(express.json()); // Permite receber dados no formato JSON
 app.use(express.urlencoded({ extended: true })); // Permite receber dados de formulários
-app.use(routes);
+
+app.use((req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = ((body: unknown) => {
+    if (
+      body &&
+      typeof body === 'object' &&
+      'error' in body &&
+      typeof (body as { error?: unknown }).error === 'string'
+    ) {
+      const normalized = {
+        ...(body as Record<string, unknown>),
+        error: {
+          message: (body as { error: string }).error,
+        },
+      };
+      return originalJson(normalized);
+    }
+
+    return originalJson(body);
+  }) as typeof res.json;
+
+  next();
+});
 
 app.use('/', routes);
 
