@@ -114,7 +114,7 @@ npx prisma db seed
 
 ---
 
-## 2. Aplicar as alterações feitas no ficheiro `` à base de dados
+## 2. Aplicar as alterações feitas no ficheiro `prisma/schema.prisma` à base de dados
 
 ### 2.1. Subir a base de dados
 ```
@@ -124,7 +124,8 @@ docker-compose up -d
 *Nota 2: podes ter de utilizar `docker compose` em vez de `docker-compose`*
 
 ### 2.2. Aplicar as alterações efetuadas no ficheiro schema.prisma
-Sempre que quiseres adicionar uma coluna ou tabela nova, mudas **apenas** no `schema.prisma` e corres no terminal:
+Sempre que quiseres adicionar uma coluna ou tabela nova, mudas **apenas** no `schema.prisma` e corres no terminal:  
+***Este comando é só para quem ficar responsável por fazer alterações ao ficheiro `prisma/schema.prisma`***
 ```
 npx prisma migrate dev --name add_new_table
 ```
