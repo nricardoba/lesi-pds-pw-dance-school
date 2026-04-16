@@ -5,6 +5,7 @@ import authRoutes from './auth';
 import usersRoutes from './users';
 import classesRoutes from './classes';
 import referenceRoutes from './references';
+import { ensureAuth } from '../middlewares/ensureAuth';
 
 const router = Router();
 
@@ -27,8 +28,8 @@ router.get('/health', async (req, res) => {
 });
 
 router.use('/auth', authRoutes);
-router.use('/users', usersRoutes);
-router.use('/classes', classesRoutes);
-router.use('/reference', referenceRoutes);
+router.use('/users', /* ensureAuth ,*/ usersRoutes);
+router.use('/classes', /* ensureAuth ,*/ classesRoutes);
+router.use('/reference', /* ensureAuth ,*/ referenceRoutes);
 
 export default router;
