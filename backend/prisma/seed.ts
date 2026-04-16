@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -71,8 +72,44 @@ async function main() {
   }
   console.log("✔ UserClassRole seed complete.");
 
-  // Adiciona aqui mais inserts (Condições dos Itens, Modalidades base, etc) caso necessário.
+  // 5. Admin
+  const passwordHash = await bcrypt.hash("Admin123!", 10);
 
+  await prisma.user.create({
+    data: {
+      userId: 1,
+      userName: "Administrador",
+      userTypeId: 1,
+      userIsActive: true,
+    },
+  });
+
+  await prisma.contact.create({
+    data: {
+      contactId: 1,
+      contactValue: "admin@admin.com",
+      contactTypeId: 2,
+    },
+  });
+
+  await prisma.userContact.create({
+    data: {
+      userContactId: 1,
+      userId: 1,
+      contactId: 1,
+      isMainContact: true,
+    },
+  });
+
+  await prisma.userCredential.create({
+    data: {
+      userId: 1,
+      userContactId: 1,
+      userCredentialPasswordHash: passwordHash,
+    },
+  });
+
+  console.log("✔ Admin user seed complete.");
   console.log("Seeding finished successfully.");
 }
 
