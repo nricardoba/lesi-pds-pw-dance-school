@@ -1,9 +1,9 @@
-import * as jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { z } from 'zod';
-import { prisma } from '../config/db';
-import { env } from '../config/env';
-import { AppError } from '../utils/appError';
+import * as jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
+import { prisma } from "../config/db";
+import { env } from "../config/env";
+import { AppError } from "../utils/appError";
 
 const loginSchema = z.object({
   email: z.string().trim().email(),
@@ -11,18 +11,18 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  user_name: z.string().trim().min(2),
+  userName: z.string().trim().min(2),
   email: z.string().trim().email(),
   password: z.string().min(6),
-  user_type_id: z.number().int().positive(),
-  user_is_active: z.boolean(),
+  userTypeId: z.number().int().positive(),
+  userIsActive: z.boolean(),
 });
 
 export const loginService = async (body: unknown) => {
   const parsedBody = loginSchema.safeParse(body);
 
   if (!parsedBody.success) {
-    throw new AppError('Dados inválidos.', 400);
+    throw new AppError("Dados inválidos.", 400);
   }
 
   const { email, password } = parsedBody.data;
@@ -45,16 +45,16 @@ export const loginService = async (body: unknown) => {
   });
 
   if (!credential) {
-    throw new AppError('Credenciais inválidas.', 401);
+    throw new AppError("Credenciais inválidas.", 401);
   }
 
   const validPassword = await bcrypt.compare(
     password,
-    credential.userCredentialPasswordHash
+    credential.userCredentialPasswordHash,
   );
 
   if (!validPassword) {
-    throw new AppError('Credenciais inválidas.', 401);
+    throw new AppError("Credenciais inválidas.", 401);
   }
 
   const accessToken = jwt.sign(
@@ -64,8 +64,8 @@ export const loginService = async (body: unknown) => {
     env.JWT_SECRET,
     {
       subject: String(credential.userId),
-      expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'],
-    }
+      expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"],
+    },
   );
 
   await prisma.userCredential.update({
@@ -92,10 +92,10 @@ export const registerService = async (body: unknown) => {
   const parsedBody = registerSchema.safeParse(body);
 
   if (!parsedBody.success) {
-    throw new AppError('Dados inválidos.', 400);
+    throw new AppError("Dados inválidos.", 400);
   }
 
-  const { user_name, email, password, user_type_id, user_is_active } =
+  const { userName, email, password, userTypeId, userIsActive } =
     parsedBody.data;
 
   const existingEmail = await prisma.contact.findFirst({
@@ -105,7 +105,7 @@ export const registerService = async (body: unknown) => {
   });
 
   if (existingEmail) {
-    throw new AppError('Este email já está registado.', 409);
+    throw new AppError("Este email já está registado.", 409);
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -113,9 +113,9 @@ export const registerService = async (body: unknown) => {
   const result = await prisma.$transaction(async (tx) => {
     const createdUser = await tx.user.create({
       data: {
-        userName: user_name,
-        userTypeId: user_type_id,
-        userIsActive: user_is_active,
+        userName,
+        userTypeId,
+        userIsActive,
       },
       include: {
         userType: true,
@@ -149,7 +149,7 @@ export const registerService = async (body: unknown) => {
   });
 
   return {
-    message: 'Utilizador registado com sucesso.',
+    message: "Utilizador registado com sucesso.",
     user: {
       user_id: result?.userId,
       user_name: result?.userName,
