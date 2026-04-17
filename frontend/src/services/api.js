@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3333";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 const handleResponse = async (res) => {
   const data = await res.json();
@@ -22,18 +22,18 @@ export const loginRequest = async (email, password) => {
   return handleResponse(res);
 };
 
-export const registerRequest = async (user_name, email, password) => {
+export const registerRequest = async (userName, email, password) => {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      user_name,
+      userName,
       email,
       password,
-      user_type_id: 2, //TODO: futuramente implementar a possibilidade de escolher o tipo de utilizador
-      user_is_active: true,
+      userTypeId: 2, //TODO: futuramente implementar a possibilidade de escolher o tipo de utilizador
+      userIsActive: true,
     }),
   });
 
