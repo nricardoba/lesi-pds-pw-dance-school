@@ -1,5 +1,5 @@
 import { prisma } from "../config/db";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/appError";
 
 interface CreateRentItemInput {
   userId: number;

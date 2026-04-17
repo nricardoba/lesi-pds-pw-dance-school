@@ -7,7 +7,7 @@ import {
   getRentalByIdService,
   deleteRentalService,
 } from "../services/rentalsServices";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/appError";
 
 const createRentalSchema = z.object({
   userId: z.number().int().positive(),

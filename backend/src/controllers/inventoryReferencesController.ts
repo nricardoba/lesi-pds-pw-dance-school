@@ -22,7 +22,7 @@ import {
   updateDanceTypeService,
   deleteDanceTypeService,
 } from "../services/inventoryReferencesServices";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/appError";
 
 const nameSchema = z.object({
   name: z.string().min(1),
