@@ -27,12 +27,12 @@ git branch new-branch-name
 
 #### 2.2 Mover para a nova branch
 ```
-git checkout new-branch-name
+git switch new-branch-name
 ```
 
 #### Extra. Este comando cria e move para a nova branch de uma só vez
 ```
-git checkout -b new-branch-name
+git switch -c new-branch-name
 ```
 
 ---
