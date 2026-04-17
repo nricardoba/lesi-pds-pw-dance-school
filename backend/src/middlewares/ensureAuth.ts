@@ -24,7 +24,11 @@ export const ensureAuth = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    jwt.verify(token, env.JWT_SECRET);
+    const decoded = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload & { userTypeId: number };
+    res.locals.user = {
+      id: decoded.sub || '',
+      userTypeId: decoded.userTypeId,
+    };
     return next();
   } catch {
     return res.status(401).json({

@@ -10,7 +10,7 @@ import { ensureAuth } from '../middlewares/ensureAuth';
 
 const router = Router();
 
-router.get('/', (req, res) => {
+router.get('/', (_req, res) => {
   res.json({
     status: 'ok',
     message: "API Ent'Artes a funcionar",
@@ -18,7 +18,7 @@ router.get('/', (req, res) => {
   });
 });
 
-router.get('/health', async (req, res) => {
+router.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', database: 'connected' });
@@ -29,9 +29,9 @@ router.get('/health', async (req, res) => {
 });
 
 router.use('/auth', authRoutes);
-router.use('/users', /* ensureAuth ,*/ usersRoutes);
-router.use('/classes', /* ensureAuth ,*/ classesRoutes);
-router.use('/references', /* ensureAuth ,*/ referencesRoutes);
-router.use('/coaching', /* ensureAuth ,*/ coachingRoutes);
+router.use('/users', usersRoutes);
+router.use('/classes', classesRoutes);
+router.use('/references', referencesRoutes);
+router.use('/coaching', ensureAuth , coachingRoutes);
 
 export default router;
