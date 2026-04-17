@@ -6,6 +6,9 @@ import usersRoutes from "./users";
 import classesRoutes from "./classes";
 import referencesRoutes from "./references";
 import itemsRoutes from "./items";
+import rentalsRoutes from "./rentals";
+import characteristicsRoutes from "./characteristics";
+import inventoryReferencesRoutes from "./inventoryReferences";
 import { ensureAuth } from "../middlewares/ensureAuth";
 
 const router = Router();
@@ -33,5 +36,11 @@ router.use("/users", /* ensureAuth ,*/ usersRoutes);
 router.use("/classes", /* ensureAuth ,*/ classesRoutes);
 router.use("/references", /* ensureAuth ,*/ referencesRoutes);
 router.use("/items", /* ensureAuth ,*/ itemsRoutes);
+router.use("/rentals", /* ensureAuth ,*/ rentalsRoutes);
+router.use("/characteristics", /* ensureAuth ,*/ characteristicsRoutes);
+router.use(
+  "/inventory-references",
+  /* ensureAuth ,*/ inventoryReferencesRoutes,
+);
 
 export default router;
