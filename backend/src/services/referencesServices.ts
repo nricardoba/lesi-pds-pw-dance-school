@@ -1,102 +1,102 @@
-import { z } from 'zod';
-import { prisma } from '../config/db';
-import { AppError } from '../utils/appError';
+import { z } from "zod";
+import { prisma } from "../config/db";
+import { AppError } from "../utils/appError";
 
 const idSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
 const createSchoolYearSchema = z.object({
-  school_year_name: z.string().min(1),
-  school_year_start: z.string().min(1),
-  school_year_end: z.string().min(1),
+  schoolYearName: z.string().min(1),
+  schoolYearStart: z.string().min(1),
+  schoolYearEnd: z.string().min(1),
 });
 
 const createClassStatusSchema = z.object({
-  class_status_desc: z.string().min(1),
+  classStatusDesc: z.string().min(1),
 });
 
 const createModalitySchema = z.object({
-  modality_name: z.string().min(1),
-  modality_hourly_fee: z.coerce.number(),
+  modalityName: z.string().min(1),
+  modalityHourlyFee: z.coerce.number(),
 });
 
 const createStudioSchema = z.object({
-  studio_name: z.string().min(1),
-  studio_max_capacity: z.coerce.number().int(),
+  studioName: z.string().min(1),
+  studioMaxCapacity: z.coerce.number().int(),
 });
 
 const createStudioModalitySchema = z.object({
-  studio_id: z.coerce.number().int().positive(),
-  modality_id: z.coerce.number().int().positive(),
+  studioId: z.coerce.number().int().positive(),
+  modalityId: z.coerce.number().int().positive(),
 });
 
 const createUserClassRoleSchema = z.object({
-  user_class_role_desc: z.string().min(1),
+  userClassRoleDesc: z.string().min(1),
 });
 
 const updateSchoolYearSchema = z.object({
-  school_year_name: z.string().min(1).optional(),
-  school_year_start: z.string().min(1).optional(),
-  school_year_end: z.string().min(1).optional(),
+  schoolYearName: z.string().min(1).optional(),
+  schoolYearStart: z.string().min(1).optional(),
+  schoolYearEnd: z.string().min(1).optional(),
 });
 
 const updateClassStatusSchema = z.object({
-  class_status_desc: z.string().min(1),
+  classStatusDesc: z.string().min(1),
 });
 
 const updateModalitySchema = z.object({
-  modality_name: z.string().min(1).optional(),
-  modality_hourly_fee: z.coerce.number().optional(),
+  modalityName: z.string().min(1).optional(),
+  modalityHourlyFee: z.coerce.number().optional(),
 });
 
 const updateStudioSchema = z.object({
-  studio_name: z.string().min(1).optional(),
-  studio_max_capacity: z.coerce.number().int().optional(),
+  studioName: z.string().min(1).optional(),
+  studioMaxCapacity: z.coerce.number().int().optional(),
 });
 
 const updateStudioModalitySchema = z.object({
-  studio_id: z.coerce.number().int().positive().optional(),
-  modality_id: z.coerce.number().int().positive().optional(),
+  studioId: z.coerce.number().int().positive().optional(),
+  modalityId: z.coerce.number().int().positive().optional(),
 });
 
 const updateUserClassRoleSchema = z.object({
-  user_class_role_desc: z.string().min(1),
+  userClassRoleDesc: z.string().min(1),
 });
 
 export const listUserTypesService = async () => {
   return prisma.userType.findMany({
-    orderBy: { userTypeId: 'asc' },
+    orderBy: { userTypeId: "asc" },
   });
 };
 
 export const listClassStatusesService = async () => {
   return prisma.classStatus.findMany({
-    orderBy: { classStatusId: 'asc' },
+    orderBy: { classStatusId: "asc" },
   });
 };
 
 export const listUserClassRolesService = async () => {
   return prisma.userClassRole.findMany({
-    orderBy: { userClassRoleId: 'asc' },
+    orderBy: { userClassRoleId: "asc" },
   });
 };
 
 export const listModalitiesService = async () => {
   return prisma.modality.findMany({
-    orderBy: { modalityId: 'asc' },
+    orderBy: { modalityId: "asc" },
   });
 };
 
 export const listStudiosService = async () => {
   return prisma.studio.findMany({
-    orderBy: { studioId: 'asc' },
+    orderBy: { studioId: "asc" },
   });
 };
 
 export const listSchoolYearsService = async () => {
   return prisma.schoolYear.findMany({
-    orderBy: { schoolYearId: 'asc' },
+    orderBy: { schoolYearId: "asc" },
   });
 };
 
@@ -106,79 +106,79 @@ export const listStudioModalitiesService = async () => {
       studio: true,
       modality: true,
     },
-    orderBy: { studioModalityId: 'asc' },
+    orderBy: { studioModalityId: "asc" },
   });
 };
 
 export const createSchoolYearService = async (body: unknown) => {
-  const { school_year_name, school_year_start, school_year_end } =
+  const { schoolYearName, schoolYearStart, schoolYearEnd } =
     createSchoolYearSchema.parse(body);
 
   return prisma.schoolYear.create({
     data: {
-      schoolYearName: school_year_name,
-      schoolYearStart: new Date(school_year_start),
-      schoolYearEnd: new Date(school_year_end),
+      schoolYearName,
+      schoolYearStart: new Date(schoolYearStart),
+      schoolYearEnd: new Date(schoolYearEnd),
     },
   });
 };
 
 export const createClassStatusService = async (body: unknown) => {
-  const { class_status_desc } = createClassStatusSchema.parse(body);
+  const { classStatusDesc } = createClassStatusSchema.parse(body);
 
   return prisma.classStatus.create({
     data: {
-      classStatusDesc: class_status_desc,
+      classStatusDesc,
     },
   });
 };
 
 export const createModalityService = async (body: unknown) => {
-  const { modality_name, modality_hourly_fee } = createModalitySchema.parse(body);
+  const { modalityName, modalityHourlyFee } = createModalitySchema.parse(body);
 
   return prisma.modality.create({
     data: {
-      modalityName: modality_name,
-      modalityHourlyFee: Number(modality_hourly_fee),
+      modalityName,
+      modalityHourlyFee: Number(modalityHourlyFee),
     },
   });
 };
 
 export const createStudioService = async (body: unknown) => {
-  const { studio_name, studio_max_capacity } = createStudioSchema.parse(body);
+  const { studioName, studioMaxCapacity } = createStudioSchema.parse(body);
 
   return prisma.studio.create({
     data: {
-      studioName: studio_name,
-      studioMaxCapacity: Number(studio_max_capacity),
+      studioName,
+      studioMaxCapacity: Number(studioMaxCapacity),
     },
   });
 };
 
 export const createStudioModalityService = async (body: unknown) => {
-  const { studio_id, modality_id } = createStudioModalitySchema.parse(body);
+  const { studioId, modalityId } = createStudioModalitySchema.parse(body);
 
   return prisma.studioModality.create({
     data: {
-      studioId: Number(studio_id),
-      modalityId: Number(modality_id),
+      studioId: Number(studioId),
+      modalityId: Number(modalityId),
     },
   });
 };
 
 export const createUserClassRoleService = async (body: unknown) => {
-  const { user_class_role_desc } = createUserClassRoleSchema.parse(body);
+  const { userClassRoleDesc } = createUserClassRoleSchema.parse(body);
 
   return prisma.userClassRole.create({
     data: {
-      userClassRoleDesc: user_class_role_desc,
+      userClassRoleDesc,
     },
   });
 };
 
 export const updateSchoolYearService = async (params: unknown, body: unknown) => {
   const { id } = idSchema.parse(params);
-  const { school_year_name, school_year_start, school_year_end } =
+  const { schoolYearName, schoolYearStart, schoolYearEnd } =
     updateSchoolYearSchema.parse(body);
 
   const existingSchoolYear = await prisma.schoolYear.findUnique({
@@ -187,18 +187,18 @@ export const updateSchoolYearService = async (params: unknown, body: unknown) =>
   });
 
   if (!existingSchoolYear) {
-    throw new AppError('Ano letivo não encontrado.', 404);
+    throw new AppError("Ano letivo não encontrado.", 404);
   }
 
   return prisma.schoolYear.update({
     where: { schoolYearId: id },
     data: {
-      ...(school_year_name !== undefined ? { schoolYearName: school_year_name } : {}),
-      ...(school_year_start !== undefined
-        ? { schoolYearStart: new Date(school_year_start) }
+      ...(schoolYearName !== undefined ? { schoolYearName } : {}),
+      ...(schoolYearStart !== undefined
+        ? { schoolYearStart: new Date(schoolYearStart) }
         : {}),
-      ...(school_year_end !== undefined
-        ? { schoolYearEnd: new Date(school_year_end) }
+      ...(schoolYearEnd !== undefined
+        ? { schoolYearEnd: new Date(schoolYearEnd) }
         : {}),
     },
   });
@@ -206,7 +206,7 @@ export const updateSchoolYearService = async (params: unknown, body: unknown) =>
 
 export const updateClassStatusService = async (params: unknown, body: unknown) => {
   const { id } = idSchema.parse(params);
-  const { class_status_desc } = updateClassStatusSchema.parse(body);
+  const { classStatusDesc } = updateClassStatusSchema.parse(body);
 
   const existingClassStatus = await prisma.classStatus.findUnique({
     where: { classStatusId: id },
@@ -214,18 +214,18 @@ export const updateClassStatusService = async (params: unknown, body: unknown) =
   });
 
   if (!existingClassStatus) {
-    throw new AppError('Estado da aula não encontrado.', 404);
+    throw new AppError("Estado da aula não encontrado.", 404);
   }
 
   return prisma.classStatus.update({
     where: { classStatusId: id },
-    data: { classStatusDesc: class_status_desc },
+    data: { classStatusDesc },
   });
 };
 
 export const updateModalityService = async (params: unknown, body: unknown) => {
   const { id } = idSchema.parse(params);
-  const { modality_name, modality_hourly_fee } = updateModalitySchema.parse(body);
+  const { modalityName, modalityHourlyFee } = updateModalitySchema.parse(body);
 
   const existingModality = await prisma.modality.findUnique({
     where: { modalityId: id },
@@ -233,15 +233,15 @@ export const updateModalityService = async (params: unknown, body: unknown) => {
   });
 
   if (!existingModality) {
-    throw new AppError('Modalidade não encontrada.', 404);
+    throw new AppError("Modalidade não encontrada.", 404);
   }
 
   return prisma.modality.update({
     where: { modalityId: id },
     data: {
-      ...(modality_name !== undefined ? { modalityName: modality_name } : {}),
-      ...(modality_hourly_fee !== undefined
-        ? { modalityHourlyFee: Number(modality_hourly_fee) }
+      ...(modalityName !== undefined ? { modalityName } : {}),
+      ...(modalityHourlyFee !== undefined
+        ? { modalityHourlyFee: Number(modalityHourlyFee) }
         : {}),
     },
   });
@@ -249,7 +249,7 @@ export const updateModalityService = async (params: unknown, body: unknown) => {
 
 export const updateStudioService = async (params: unknown, body: unknown) => {
   const { id } = idSchema.parse(params);
-  const { studio_name, studio_max_capacity } = updateStudioSchema.parse(body);
+  const { studioName, studioMaxCapacity } = updateStudioSchema.parse(body);
 
   const existingStudio = await prisma.studio.findUnique({
     where: { studioId: id },
@@ -257,15 +257,15 @@ export const updateStudioService = async (params: unknown, body: unknown) => {
   });
 
   if (!existingStudio) {
-    throw new AppError('Estúdio não encontrado.', 404);
+    throw new AppError("Estúdio não encontrado.", 404);
   }
 
   return prisma.studio.update({
     where: { studioId: id },
     data: {
-      ...(studio_name !== undefined ? { studioName: studio_name } : {}),
-      ...(studio_max_capacity !== undefined
-        ? { studioMaxCapacity: Number(studio_max_capacity) }
+      ...(studioName !== undefined ? { studioName } : {}),
+      ...(studioMaxCapacity !== undefined
+        ? { studioMaxCapacity: Number(studioMaxCapacity) }
         : {}),
     },
   });
@@ -276,7 +276,7 @@ export const updateStudioModalityService = async (
   body: unknown
 ) => {
   const { id } = idSchema.parse(params);
-  const { studio_id, modality_id } = updateStudioModalitySchema.parse(body);
+  const { studioId, modalityId } = updateStudioModalitySchema.parse(body);
 
   const existingStudioModality = await prisma.studioModality.findUnique({
     where: { studioModalityId: id },
@@ -284,14 +284,14 @@ export const updateStudioModalityService = async (
   });
 
   if (!existingStudioModality) {
-    throw new AppError('Relação estúdio-modalidade não encontrada.', 404);
+    throw new AppError("Relação estúdio-modalidade não encontrada.", 404);
   }
 
   return prisma.studioModality.update({
     where: { studioModalityId: id },
     data: {
-      ...(studio_id !== undefined ? { studioId: Number(studio_id) } : {}),
-      ...(modality_id !== undefined ? { modalityId: Number(modality_id) } : {}),
+      ...(studioId !== undefined ? { studioId: Number(studioId) } : {}),
+      ...(modalityId !== undefined ? { modalityId: Number(modalityId) } : {}),
     },
   });
 };
@@ -301,7 +301,7 @@ export const updateUserClassRoleService = async (
   body: unknown
 ) => {
   const { id } = idSchema.parse(params);
-  const { user_class_role_desc } = updateUserClassRoleSchema.parse(body);
+  const { userClassRoleDesc } = updateUserClassRoleSchema.parse(body);
 
   const existingUserClassRole = await prisma.userClassRole.findUnique({
     where: { userClassRoleId: id },
@@ -309,12 +309,12 @@ export const updateUserClassRoleService = async (
   });
 
   if (!existingUserClassRole) {
-    throw new AppError('Papel de aula não encontrado.', 404);
+    throw new AppError("Papel de aula não encontrado.", 404);
   }
 
   return prisma.userClassRole.update({
     where: { userClassRoleId: id },
-    data: { userClassRoleDesc: user_class_role_desc },
+    data: { userClassRoleDesc },
   });
 };
 
@@ -327,7 +327,7 @@ export const deleteUserClassRoleService = async (params: unknown) => {
   });
 
   if (!existingUserClassRole) {
-    throw new AppError('Papel de aula não encontrado.', 404);
+    throw new AppError("Papel de aula não encontrado.", 404);
   }
 
   await prisma.userClassRole.delete({
@@ -346,7 +346,7 @@ export const deleteSchoolYearService = async (params: unknown) => {
   });
 
   if (!existingSchoolYear) {
-    throw new AppError('Ano letivo não encontrado.', 404);
+    throw new AppError("Ano letivo não encontrado.", 404);
   }
 
   await prisma.schoolYear.delete({
@@ -365,7 +365,7 @@ export const deleteClassStatusService = async (params: unknown) => {
   });
 
   if (!existingClassStatus) {
-    throw new AppError('Estado da aula não encontrado.', 404);
+    throw new AppError("Estado da aula não encontrado.", 404);
   }
 
   await prisma.classStatus.delete({
@@ -384,7 +384,7 @@ export const deleteModalityService = async (params: unknown) => {
   });
 
   if (!existingModality) {
-    throw new AppError('Modalidade não encontrada.', 404);
+    throw new AppError("Modalidade não encontrada.", 404);
   }
 
   await prisma.modality.delete({
@@ -403,7 +403,7 @@ export const deleteStudioService = async (params: unknown) => {
   });
 
   if (!existingStudio) {
-    throw new AppError('Estúdio não encontrado.', 404);
+    throw new AppError("Estúdio não encontrado.", 404);
   }
 
   await prisma.studio.delete({
@@ -422,7 +422,7 @@ export const deleteStudioModalityService = async (params: unknown) => {
   });
 
   if (!existingStudioModality) {
-    throw new AppError('Relação estúdio-modalidade não encontrada.', 404);
+    throw new AppError("Relação estúdio-modalidade não encontrada.", 404);
   }
 
   await prisma.studioModality.delete({
