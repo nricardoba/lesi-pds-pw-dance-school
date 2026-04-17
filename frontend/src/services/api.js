@@ -40,14 +40,14 @@ export const registerRequest = async (userName, email, password) => {
   return handleResponse(res);
 };
 
-/* export const forgotPasswordRequest = async (email) => {
+ export const forgotPasswordRequest = async (email) => {
   const res = await fetch(`${API_URL}/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
   return handleResponse(res);
-}; */
+}; 
 
 /* export const resetPasswordRequest = async (token, password) => {
   const res = await fetch(`${API_URL}/auth/reset-password`, {
