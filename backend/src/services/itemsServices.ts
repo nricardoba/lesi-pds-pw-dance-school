@@ -84,13 +84,8 @@ export const getItemByIdService = async (params: unknown) => {
 };
 
 export const createItemService = async (body: unknown) => {
-  const {
-    itemCharacteristicsId,
-    itemConditionId,
-    ownerType,
-    rentFee,
-    userId,
-  } = createItemSchema.parse(body);
+  const { itemCharacteristicsId, itemConditionId, ownerType, rentFee, userId } =
+    createItemSchema.parse(body);
 
   const createdItem = await prisma.item.create({
     data: {

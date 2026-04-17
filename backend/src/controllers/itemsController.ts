@@ -1,12 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import {
   listItemsService,
   getItemByIdService,
   createItemService,
   updateItemService,
   deleteItemService,
-} from '../services/itemsServices';
-import { AppError } from '../utils/appError';
+} from "../services/itemsServices";
+import { AppError } from "../utils/appError";
 
 export const listItemsController = async (_req: Request, res: Response) => {
   try {
@@ -14,7 +14,7 @@ export const listItemsController = async (_req: Request, res: Response) => {
     return res.json(data);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Erro ao obter itens.' });
+    return res.status(500).json({ error: "Erro ao obter itens." });
   }
 };
 
@@ -29,7 +29,7 @@ export const getItemByIdController = async (req: Request, res: Response) => {
       return res.status(error.statusCode).json({ error: error.message });
     }
 
-    return res.status(500).json({ error: 'Erro ao obter item.' });
+    return res.status(500).json({ error: "Erro ao obter item." });
   }
 };
 
@@ -44,7 +44,7 @@ export const createItemController = async (req: Request, res: Response) => {
       return res.status(error.statusCode).json({ error: error.message });
     }
 
-    return res.status(500).json({ error: 'Erro ao criar item.' });
+    return res.status(500).json({ error: "Erro ao criar item." });
   }
 };
 
@@ -59,7 +59,7 @@ export const updateItemController = async (req: Request, res: Response) => {
       return res.status(error.statusCode).json({ error: error.message });
     }
 
-    return res.status(500).json({ error: 'Erro ao atualizar item.' });
+    return res.status(500).json({ error: "Erro ao atualizar item." });
   }
 };
 
@@ -74,6 +74,6 @@ export const deleteItemController = async (req: Request, res: Response) => {
       return res.status(error.statusCode).json({ error: error.message });
     }
 
-    return res.status(500).json({ error: 'Erro ao apagar item.' });
+    return res.status(500).json({ error: "Erro ao apagar item." });
   }
 };
