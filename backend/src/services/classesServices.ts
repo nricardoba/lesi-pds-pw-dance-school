@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { prisma } from '../config/db';
-import { AppError } from '../utils/appError';
+import { z } from "zod";
+import { prisma } from "../config/db";
+import { AppError } from "../utils/appError";
 
 const classIdSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -12,34 +12,34 @@ const classUserParamsSchema = z.object({
 });
 
 const createClassSchema = z.object({
-  school_year_id: z.coerce.number().int().positive(),
-  class_date_start: z.string().min(1),
-  class_date_end: z.string().min(1),
-  class_recurrence: z.boolean().optional().nullable(),
-  studio_modality_id: z.coerce.number().int().positive(),
-  class_final_fee: z.coerce.number().nonnegative(),
-  class_status_id: z.coerce.number().int().positive(),
+  schoolYearId: z.coerce.number().int().positive(),
+  classDateStart: z.string().min(1),
+  classDateEnd: z.string().min(1),
+  classRecurrence: z.boolean().optional().nullable(),
+  studioModalityId: z.coerce.number().int().positive(),
+  classFinalFee: z.coerce.number().nonnegative(),
+  classStatusId: z.coerce.number().int().positive(),
 });
 
 const createUserClassSchema = z.object({
-  user_id: z.coerce.number().int().positive(),
-  user_class_role_id: z.coerce.number().int().positive().optional().nullable(),
-  user_validation: z.boolean().optional(),
+  userId: z.coerce.number().int().positive(),
+  userClassRoleId: z.coerce.number().int().positive().optional().nullable(),
+  userValidation: z.boolean().optional(),
 });
 
 const updateClassSchema = z.object({
-  school_year_id: z.coerce.number().int().positive().optional(),
-  class_date_start: z.string().min(1).optional(),
-  class_date_end: z.string().min(1).optional(),
-  class_recurrence: z.boolean().optional().nullable(),
-  studio_modality_id: z.coerce.number().int().positive().optional(),
-  class_final_fee: z.coerce.number().nonnegative().optional(),
-  class_status_id: z.coerce.number().int().positive().optional(),
+  schoolYearId: z.coerce.number().int().positive().optional(),
+  classDateStart: z.string().min(1).optional(),
+  classDateEnd: z.string().min(1).optional(),
+  classRecurrence: z.boolean().optional().nullable(),
+  studioModalityId: z.coerce.number().int().positive().optional(),
+  classFinalFee: z.coerce.number().nonnegative().optional(),
+  classStatusId: z.coerce.number().int().positive().optional(),
 });
 
 const updateUserClassSchema = z.object({
-  user_class_role_id: z.coerce.number().int().positive().optional().nullable(),
-  user_validation: z.boolean().optional(),
+  userClassRoleId: z.coerce.number().int().positive().optional().nullable(),
+  userValidation: z.boolean().optional(),
 });
 
 export const listClassesService = async () => {
@@ -61,7 +61,7 @@ export const listClassesService = async () => {
       },
     },
     orderBy: {
-      classId: 'asc',
+      classId: "asc",
     },
   });
 };
@@ -90,7 +90,7 @@ export const getClassByIdService = async (params: unknown) => {
   });
 
   if (!classItem) {
-    throw new AppError('Aula não encontrada.', 404);
+    throw new AppError("Aula não encontrada.", 404);
   }
 
   return classItem;
@@ -98,24 +98,24 @@ export const getClassByIdService = async (params: unknown) => {
 
 export const createClassService = async (body: unknown) => {
   const {
-    school_year_id,
-    class_date_start,
-    class_date_end,
-    class_recurrence,
-    studio_modality_id,
-    class_final_fee,
-    class_status_id,
+    schoolYearId,
+    classDateStart,
+    classDateEnd,
+    classRecurrence,
+    studioModalityId,
+    classFinalFee,
+    classStatusId,
   } = createClassSchema.parse(body);
 
   return prisma.class.create({
     data: {
-      schoolYearId: school_year_id,
-      classDateStart: new Date(`1970-01-01T${class_date_start}`),
-      classDateEnd: new Date(`1970-01-01T${class_date_end}`),
-      classRecurrence: class_recurrence ?? false,
-      studioModalityId: studio_modality_id,
-      classFinalFee: class_final_fee,
-      classStatusId: class_status_id,
+      schoolYearId,
+      classDateStart: new Date(`1970-01-01T${classDateStart}`),
+      classDateEnd: new Date(`1970-01-01T${classDateEnd}`),
+      classRecurrence: classRecurrence ?? false,
+      studioModalityId,
+      classFinalFee,
+      classStatusId,
     },
     include: {
       classStatus: true,
@@ -132,7 +132,7 @@ export const createClassService = async (body: unknown) => {
 
 export const addUserToClassService = async (params: unknown, body: unknown) => {
   const { id } = classIdSchema.parse(params);
-  const { user_id, user_class_role_id, user_validation } =
+  const { userId, userClassRoleId, userValidation } =
     createUserClassSchema.parse(body);
 
   const existingClass = await prisma.class.findUnique({
@@ -141,24 +141,24 @@ export const addUserToClassService = async (params: unknown, body: unknown) => {
   });
 
   if (!existingClass) {
-    throw new AppError('Aula não encontrada.', 404);
+    throw new AppError("Aula não encontrada.", 404);
   }
 
   const existingUser = await prisma.user.findUnique({
-    where: { userId: user_id },
+    where: { userId },
     select: { userId: true },
   });
 
   if (!existingUser) {
-    throw new AppError('Utilizador não encontrado.', 404);
+    throw new AppError("Utilizador não encontrado.", 404);
   }
 
   return prisma.userClass.create({
     data: {
       classId: id,
-      userId: user_id,
-      userClassRoleId: user_class_role_id ?? null,
-      userValidation: user_validation ?? false,
+      userId,
+      userClassRoleId: userClassRoleId ?? null,
+      userValidation: userValidation ?? false,
     },
     include: {
       user: true,
@@ -178,41 +178,41 @@ export const updateClassService = async (params: unknown, body: unknown) => {
   });
 
   if (!existingClass) {
-    throw new AppError('Aula não encontrada.', 404);
+    throw new AppError("Aula não encontrada.", 404);
   }
 
   const dataToUpdate: Record<string, unknown> = {};
 
-  if (parsedBody.school_year_id !== undefined) {
-    dataToUpdate.schoolYearId = parsedBody.school_year_id;
+  if (parsedBody.schoolYearId !== undefined) {
+    dataToUpdate.schoolYearId = parsedBody.schoolYearId;
   }
 
-  if (parsedBody.class_date_start !== undefined) {
+  if (parsedBody.classDateStart !== undefined) {
     dataToUpdate.classDateStart = new Date(
-      `1970-01-01T${parsedBody.class_date_start}`
+      `1970-01-01T${parsedBody.classDateStart}`
     );
   }
 
-  if (parsedBody.class_date_end !== undefined) {
+  if (parsedBody.classDateEnd !== undefined) {
     dataToUpdate.classDateEnd = new Date(
-      `1970-01-01T${parsedBody.class_date_end}`
+      `1970-01-01T${parsedBody.classDateEnd}`
     );
   }
 
-  if (parsedBody.class_recurrence !== undefined) {
-    dataToUpdate.classRecurrence = parsedBody.class_recurrence;
+  if (parsedBody.classRecurrence !== undefined) {
+    dataToUpdate.classRecurrence = parsedBody.classRecurrence;
   }
 
-  if (parsedBody.studio_modality_id !== undefined) {
-    dataToUpdate.studioModalityId = parsedBody.studio_modality_id;
+  if (parsedBody.studioModalityId !== undefined) {
+    dataToUpdate.studioModalityId = parsedBody.studioModalityId;
   }
 
-  if (parsedBody.class_final_fee !== undefined) {
-    dataToUpdate.classFinalFee = parsedBody.class_final_fee;
+  if (parsedBody.classFinalFee !== undefined) {
+    dataToUpdate.classFinalFee = parsedBody.classFinalFee;
   }
 
-  if (parsedBody.class_status_id !== undefined) {
-    dataToUpdate.classStatusId = parsedBody.class_status_id;
+  if (parsedBody.classStatusId !== undefined) {
+    dataToUpdate.classStatusId = parsedBody.classStatusId;
   }
 
   return prisma.class.update({
@@ -240,7 +240,7 @@ export const deleteClassService = async (params: unknown) => {
   });
 
   if (!existingClass) {
-    throw new AppError('Aula não encontrada.', 404);
+    throw new AppError("Aula não encontrada.", 404);
   }
 
   await prisma.class.delete({
@@ -262,11 +262,11 @@ export const updateUserClassService = async (
       classId_userId: { classId: id, userId },
     },
     data: {
-      ...(parsedBody.user_class_role_id !== undefined
-        ? { userClassRoleId: parsedBody.user_class_role_id }
+      ...(parsedBody.userClassRoleId !== undefined
+        ? { userClassRoleId: parsedBody.userClassRoleId }
         : {}),
-      ...(parsedBody.user_validation !== undefined
-        ? { userValidation: parsedBody.user_validation }
+      ...(parsedBody.userValidation !== undefined
+        ? { userValidation: parsedBody.userValidation }
         : {}),
     },
     include: {
