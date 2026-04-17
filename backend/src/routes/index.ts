@@ -1,12 +1,17 @@
-// src/routes/index.ts
+﻿// src/routes/index.ts
 import { Router } from 'express';
 import { prisma } from '../config/db';
-import authRoutes from './auth';
-import usersRoutes from './users';
-import classesRoutes from './classes';
-import referencesRoutes from './references';
-import coachingRoutes from './coaching';
 import { ensureAuth } from '../middlewares/ensureAuth';
+
+// Auth & Coaching 
+import authRoutes from './auth';
+import coachingRoutes from './coaching';
+
+// Grouped Routes
+import { usersRouter, userTypesRouter, userClassRolesRouter } from './users';
+import { classesRouter, classStatusesRouter } from './classes';
+import { studiosRouter, modalitiesRouter, studioModalitiesRouter } from './studios';
+import { schoolYearsRouter } from './school';
 
 const router = Router();
 
@@ -28,10 +33,23 @@ router.get('/health', async (_req, res) => {
   }
 });
 
+// Auth
 router.use('/auth', authRoutes);
-router.use('/users', usersRoutes);
-router.use('/classes', classesRoutes);
-router.use('/references', referencesRoutes);
-router.use('/coaching', ensureAuth , coachingRoutes);
+
+// Users Group
+router.use('/users', ensureAuth, usersRouter);
+router.use('/user-types', ensureAuth, userTypesRouter);
+router.use('/user-class-roles', ensureAuth, userClassRolesRouter);
+
+// Classes Group
+router.use('/classes', ensureAuth, classesRouter);
+router.use('/class-statuses', ensureAuth, classStatusesRouter);
+router.use('/coaching', ensureAuth, coachingRoutes);
+
+// Studios Group
+router.use('/studios', ensureAuth, studiosRouter);
+router.use('/modalities', ensureAuth, modalitiesRouter);
+router.use('/studio-modalities', ensureAuth, studioModalitiesRouter);
+router.use('/school-years', ensureAuth, schoolYearsRouter);
 
 export default router;

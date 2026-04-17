@@ -15,7 +15,7 @@ app.use(cors()); // Permite pedidos do teu frontend
 app.use(express.json()); // Permite receber dados no formato JSON
 app.use(express.urlencoded({ extended: true })); // Permite receber dados de formulários
 
-app.use((req, res, next) => {
+app.use((_req, res, next) => {
   const originalJson = res.json.bind(res);
   res.json = ((body: unknown) => {
     if (
@@ -42,5 +42,5 @@ app.use((req, res, next) => {
 app.use('/', routes);
 
 app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  console.log(`⚡️[server]: Server is running at http://localhost:${port}`); 
 });
