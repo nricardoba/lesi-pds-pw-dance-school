@@ -5,6 +5,7 @@ import authRoutes from './auth';
 import usersRoutes from './users';
 import classesRoutes from './classes';
 import referencesRoutes from './references';
+import coachingRoutes from './coaching';
 import { ensureAuth } from '../middlewares/ensureAuth';
 
 const router = Router();
@@ -31,5 +32,6 @@ router.use('/auth', authRoutes);
 router.use('/users', /* ensureAuth ,*/ usersRoutes);
 router.use('/classes', /* ensureAuth ,*/ classesRoutes);
 router.use('/references', /* ensureAuth ,*/ referencesRoutes);
+router.use('/coaching', /* ensureAuth ,*/ coachingRoutes);
 
 export default router;
