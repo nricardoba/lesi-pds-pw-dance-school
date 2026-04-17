@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '../config/db';
 import { AppError } from '../utils/appError';
-import { createClassService, addUserToClassService } from './classesServices';
+import { createClassService, addUserToClassService } from './classes/classesServices';
 
 // ══ SCHEMAS ══
 

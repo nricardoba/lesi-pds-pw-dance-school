@@ -1,31 +1,37 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
+import { checkRole } from '../middlewares/checkRole';
+import { USER_ROLES } from '../utils/permissions';
 import {
   listClassesController,
   getClassByIdController,
   createClassController,
-  addUserToClassController,
   updateClassController,
   deleteClassController,
   updateUserClassController,
   removeUserFromClassController,
+  listClassStatusesController,
+  createClassStatusController,
+  updateClassStatusController,
+  deleteClassStatusController,
 } from '../controllers/classesController';
-import { ensureAuth } from '../middlewares/ensureAuth';
-import { checkRole } from '../middlewares/checkRole';
-import { USER_ROLES } from '../utils/permissions';
 
-const router = Router();
+// ============================================================================
+// CLASSES ROUTER (/classes)
+// ============================================================================
+export const classesRouter = Router();
+classesRouter.get('/', listClassesController);
+classesRouter.get('/:id', getClassByIdController);
+classesRouter.post('/', checkRole([USER_ROLES.ADMIN]), createClassController);
+classesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), updateClassController);
+classesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), deleteClassController);
+classesRouter.put('/:id/users/:userId', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), updateUserClassController);
+classesRouter.delete('/:id/users/:userId', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), removeUserFromClassController);
 
-router.use(ensureAuth);
-
-router.get('/', listClassesController);
-router.get('/:id', getClassByIdController);
-router.post('/newClass', checkRole([USER_ROLES.ADMIN]), createClassController);
-router.post('/:id/users', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), addUserToClassController);
-
-// Permissões específicas pedidas
-router.put('/:id', checkRole([USER_ROLES.ADMIN]), updateClassController);
-router.delete('/:id', checkRole([USER_ROLES.ADMIN]), deleteClassController);
-router.put('/:id/users/:userId', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), updateUserClassController);
-router.delete('/:id/users/:userId', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), removeUserFromClassController);
-
-export default router;
+// ============================================================================
+// CLASS STATUSES ROUTER (/class-statuses)
+// ============================================================================
+export const classStatusesRouter = Router();
+classStatusesRouter.get('/', listClassStatusesController);
+classStatusesRouter.post('/', checkRole([USER_ROLES.ADMIN]), createClassStatusController);
+classStatusesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), updateClassStatusController);
+classStatusesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), deleteClassStatusController);
