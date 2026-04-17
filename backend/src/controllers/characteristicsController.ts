@@ -9,7 +9,7 @@ import {
   addItemImageService,
   removeItemImageService,
 } from "../services/characteristicsServices";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/appError";
 
 const createCharacteristicSchema = z.object({
   name: z.string().min(1),

@@ -1,5 +1,5 @@
 import { prisma } from "../config/db";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/appError";
 
 interface CreateItemCharacteristicsInput {
   name: string;
@@ -17,22 +17,29 @@ export const createItemCharacteristicsService = async (
 
   const newCharacteristic = await prisma.itemCharacteristics.create({
     data: {
-      ...characteristicData,
       itemCharacteristicsName: name,
-      itemCharacteristicsDanceType: danceTypeIds
+      category: { connect: { categoryId: characteristicData.categoryId } },
+      color: { connect: { colorId: characteristicData.colorId } },
+      size: { connect: { sizeId: characteristicData.sizeId } },
+      ...(danceTypeIds && danceTypeIds.length > 0
         ? {
-            create: danceTypeIds.map((id) => ({
-              danceTypeId: id,
-            })),
+            itemCharacteristicsDanceType: {
+              create: danceTypeIds.map((id) => ({
+                danceTypeId: id,
+              })),
+            },
           }
-        : undefined,
-      itemImage: images
+        : {}),
+      ...(images && images.length > 0
         ? {
-            create: images.map((url) => ({
-              imageUrl: url,
-            })),
+            itemImage: {
+              create: images.map((url, index) => ({
+                itemImageUrl: url,
+                itemImageIsMain: index === 0,
+              })),
+            },
           }
-        : undefined,
+        : {}),
     },
     include: {
       itemCharacteristicsDanceType: true,
@@ -59,9 +66,20 @@ export const updateItemCharacteristicsService = async (
 
   const { danceTypeIds, images, name, ...characteristicData } = data;
 
-  const updateData: any = { ...characteristicData };
+  const updateData: any = {};
   if (name) {
     updateData.itemCharacteristicsName = name;
+  }
+  if (characteristicData.categoryId !== undefined) {
+    updateData.category = {
+      connect: { categoryId: characteristicData.categoryId },
+    };
+  }
+  if (characteristicData.colorId !== undefined) {
+    updateData.color = { connect: { colorId: characteristicData.colorId } };
+  }
+  if (characteristicData.sizeId !== undefined) {
+    updateData.size = { connect: { sizeId: characteristicData.sizeId } };
   }
 
   const updated = await prisma.itemCharacteristics.update({
@@ -147,18 +165,19 @@ export const addItemImageService = async (
   return await prisma.itemImage.create({
     data: {
       itemCharacteristicsId,
-      imageUrl: url,
+      itemImageUrl: url,
+      itemImageIsMain: false,
     },
   });
 };
 
-export const removeItemImageService = async (imageId: number) => {
+export const removeItemImageService = async (itemImageId: number) => {
   const existing = await prisma.itemImage.findUnique({
-    where: { imageId },
+    where: { itemImageId },
   });
   if (!existing) {
     throw new AppError("Item Image not found", 404);
   }
 
-  await prisma.itemImage.delete({ where: { imageId } });
+  await prisma.itemImage.delete({ where: { itemImageId } });
 };
