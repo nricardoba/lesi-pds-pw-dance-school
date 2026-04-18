@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { prisma } from "../config/db";
-import { AppError } from "../utils/appError";
+import { prisma } from "../../config/db";
+import { AppError } from "../../utils/appError";
 
 const classIdSchema = z.object({
   id: z.coerce.number().int().positive(),

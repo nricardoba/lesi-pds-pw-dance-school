@@ -1,6 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+﻿import { Request, Response, NextFunction } from 'express';
 export const checkRole = (allowedRoles: number[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
+    console.log('--- checkRole ---');
+    console.log('user:', res.locals.user);
     const user = res.locals.user;
     if (!user) {
       return res.status(401).json({ error: { message: 'Não autenticado.' } });
