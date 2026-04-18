@@ -59,6 +59,20 @@ export const getScheduleVacanciesByUserIdService = async (userId: number): Promi
 export const createScheduleVacancyService = async (data: any): Promise<ScheduleVacancy> => {
   const { userId, schoolYearId, scheduleVacancyStart, scheduleVacancyEnd, scheduleVacancyRecurrence } = data;
 
+  const userExists = await prisma.user.findUnique({
+    where: { userId }
+  });
+  if (!userExists) {
+    throw new AppError('Utilizador não encontrado', 404);
+  }
+
+  const schoolYearExists = await prisma.schoolYear.findUnique({
+    where: { schoolYearId }
+  });
+  if (!schoolYearExists) {
+    throw new AppError('Ano letivo não encontrado', 404);
+  }
+
   const start = new Date(scheduleVacancyStart);
   const end = new Date(scheduleVacancyEnd);
 
@@ -86,6 +100,29 @@ export const updateScheduleVacancyService = async (id: number, data: any): Promi
     throw new AppError('Disponibilidade não encontrada', 404);
   }
 
+  const newUserId = data.userId ?? vacancy.userId;
+  const newSchoolYearId = data.schoolYearId ?? vacancy.schoolYearId;
+
+  // Validar se o novo utilizador existe (apenas se foi alterado)
+  if (data.userId) {
+    const userExists = await prisma.user.findUnique({
+      where: { userId: newUserId }
+    });
+    if (!userExists) {
+      throw new AppError('Utilizador não encontrado', 404);
+    }
+  }
+
+  // Validar se o novo ano letivo existe (apenas se foi alterado)
+  if (data.schoolYearId) {
+    const schoolYearExists = await prisma.schoolYear.findUnique({
+      where: { schoolYearId: newSchoolYearId }
+    });
+    if (!schoolYearExists) {
+      throw new AppError('Ano letivo não encontrado', 404);
+    }
+  }
+
   const start = data.scheduleVacancyStart ? new Date(data.scheduleVacancyStart) : vacancy.scheduleVacancyStart;
   const end = data.scheduleVacancyEnd ? new Date(data.scheduleVacancyEnd) : vacancy.scheduleVacancyEnd;
 
@@ -96,8 +133,8 @@ export const updateScheduleVacancyService = async (id: number, data: any): Promi
   return await prisma.scheduleVacancy.update({
     where: { scheduleVacancyId: id },
     data: {
-      userId: data.userId ?? vacancy.userId,
-      schoolYearId: data.schoolYearId ?? vacancy.schoolYearId,
+      userId: newUserId,
+      schoolYearId: newSchoolYearId,
       scheduleVacancyStart: start,
       scheduleVacancyEnd: end,
       scheduleVacancyRecurrence: data.scheduleVacancyRecurrence ?? vacancy.scheduleVacancyRecurrence
