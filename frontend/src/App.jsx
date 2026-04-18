@@ -9,6 +9,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import MainLayout from './layout/MainLayout';
 import TeachersPage from "./pages/TeachersPage";
 import StudentsPage from "./pages/StudentsPage";
+import CostumesPage from "./pages/CostumesPage";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           >
             <Route path="/professores" element={<TeachersPage />} />
             <Route path="/alunos" element={<StudentsPage />} />
+            <Route path="/figurinos" element={<CostumesPage />} />
           </Route>
           
           
