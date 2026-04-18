@@ -12,6 +12,8 @@ import {
   deleteStudentNumberController,
   addUserContactController,
   deleteUserContactController,
+  addUserAddressController,
+  deleteUserAddressController,
   listUserTypesController,
   listUserClassRolesController,
   createUserClassRoleController,
@@ -37,6 +39,9 @@ usersRouter.delete('/:id/student-number', checkRole([USER_ROLES.ADMIN]), deleteS
 
 usersRouter.post('/:id/contacts', checkRole([USER_ROLES.ADMIN]), addUserContactController);
 usersRouter.delete('/:id/contacts/:contactId', checkRole([USER_ROLES.ADMIN]), deleteUserContactController);
+
+usersRouter.post('/:id/addresses', checkRole([USER_ROLES.ADMIN]), addUserAddressController);
+usersRouter.delete('/:id/addresses/:userAddressId', checkRole([USER_ROLES.ADMIN]), deleteUserAddressController);
 
 // ============================================================================
 // USER TYPES ROUTER (/user-types)
