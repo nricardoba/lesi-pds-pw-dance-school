@@ -6,6 +6,14 @@ import {
   getUserByIdController,
   createUserController,
   updateUserController,
+  upsertUserNifController,
+  deleteUserNifController,
+  upsertStudentNumberController,
+  deleteStudentNumberController,
+  addUserContactController,
+  deleteUserContactController,
+  addUserAddressController,
+  deleteUserAddressController,
   listUserTypesController,
   listUserClassRolesController,
   createUserClassRoleController,
@@ -21,6 +29,19 @@ usersRouter.get('/', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), listUser
 usersRouter.get('/:id', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), getUserByIdController);
 usersRouter.post('/', checkRole([USER_ROLES.ADMIN]), createUserController);
 usersRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), updateUserController);
+
+// => User Profile Details Routes
+usersRouter.put('/:id/nif', checkRole([USER_ROLES.ADMIN]), upsertUserNifController);
+usersRouter.delete('/:id/nif', checkRole([USER_ROLES.ADMIN]), deleteUserNifController);
+
+usersRouter.put('/:id/student-number', checkRole([USER_ROLES.ADMIN]), upsertStudentNumberController);
+usersRouter.delete('/:id/student-number', checkRole([USER_ROLES.ADMIN]), deleteStudentNumberController);
+
+usersRouter.post('/:id/contacts', checkRole([USER_ROLES.ADMIN]), addUserContactController);
+usersRouter.delete('/:id/contacts/:contactId', checkRole([USER_ROLES.ADMIN]), deleteUserContactController);
+
+usersRouter.post('/:id/addresses', checkRole([USER_ROLES.ADMIN]), addUserAddressController);
+usersRouter.delete('/:id/addresses/:userAddressId', checkRole([USER_ROLES.ADMIN]), deleteUserAddressController);
 
 // ============================================================================
 // USER TYPES ROUTER (/user-types)

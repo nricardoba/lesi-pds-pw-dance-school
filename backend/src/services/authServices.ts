@@ -16,6 +16,8 @@ const registerSchema = z.object({
   password: z.string().min(6),
   userTypeId: z.number().int().positive(),
   userIsActive: z.boolean(),
+  userNif: z.string().trim().optional(),
+  phoneNumber: z.string().trim().optional(),
 });
 
 export const loginService = async (body: unknown) => {
@@ -95,7 +97,7 @@ export const registerService = async (body: unknown) => {
     throw new AppError("Dados inválidos.", 400);
   }
 
-  const { userName, email, password, userTypeId, userIsActive } =
+  const { userName, email, password, userTypeId, userIsActive, userNif, phoneNumber } =
     parsedBody.data;
 
   const existingEmail = await prisma.contact.findFirst({
@@ -106,6 +108,34 @@ export const registerService = async (body: unknown) => {
 
   if (existingEmail) {
     throw new AppError("Este email já está registado.", 409);
+  }
+
+  // Verifica se o NIF já existe caso for passado
+  if (userNif) {
+    const existingNif = await prisma.userNIF.findUnique({
+      where: { userNif },
+    });
+    if (existingNif) throw new AppError("Este NIF já está registado.", 409);
+  }
+
+  // Lógica para auto-incrementar o número de aluno (Apenas se for Aluno - userTypeId: 3 no vosso sistema)
+  // O utilizador não envia o número no body, nós calculamos qual é o próximo.
+  let calculatedStudentNumber: string | null = null;
+  if (userTypeId === 3) {
+    const existingStudents = await prisma.studentNumber.findMany({ select: { studentNumber: true } });
+    let maxNumber = 0;
+
+    for (const st of existingStudents) {
+      // Extrai apenas os números da string caso existam letras (ex: "A-123" -> 123)
+      const numMatch = st.studentNumber.replace(/\D/g, "");
+      if (numMatch) {
+        const num = parseInt(numMatch, 10);
+        if (num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    }
+    calculatedStudentNumber = String(maxNumber + 1).padStart(3, "0"); // se os numeros tiverem 3 algarismos no mínimo
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -125,7 +155,7 @@ export const registerService = async (body: unknown) => {
     const createdContact = await tx.contact.create({
       data: {
         contactValue: email,
-        contactTypeId: 1,
+        contactTypeId: 2, 
       },
     });
 
@@ -144,6 +174,41 @@ export const registerService = async (body: unknown) => {
         userCredentialPasswordHash: passwordHash,
       },
     });
+
+    if (userNif) {
+      await tx.userNIF.create({
+        data: {
+          userId: createdUser.userId,
+          userNif: userNif,
+        },
+      });
+    }
+
+    if (calculatedStudentNumber) {
+      await tx.studentNumber.create({
+        data: {
+          userId: createdUser.userId,
+          studentNumber: calculatedStudentNumber,
+        },
+      });
+    }
+
+    if (phoneNumber) {
+      const createdPhoneContact = await tx.contact.create({
+        data: {
+          contactValue: phoneNumber,
+          contactTypeId: 1, // 1 = Telemóvel (de acordo com o Seed)
+        },
+      });
+
+      await tx.userContact.create({
+        data: {
+          userId: createdUser.userId,
+          contactId: createdPhoneContact.contactId,
+          isMainContact: false,
+        },
+      });
+    }
 
     return createdUser;
   });
