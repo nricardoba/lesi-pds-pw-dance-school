@@ -1,5 +1,5 @@
-import { prisma } from "../config/db";
-import { AppError } from "../utils/appError";
+import { prisma } from "../../config/db";
+import { AppError } from "../../utils/appError";
 
 interface CreateItemCharacteristicsInput {
   name: string;
