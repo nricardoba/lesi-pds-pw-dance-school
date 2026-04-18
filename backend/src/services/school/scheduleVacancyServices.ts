@@ -2,7 +2,7 @@ import { ScheduleVacancy } from '@prisma/client';
 import { prisma } from '../../config/db';
 import { AppError } from '../../utils/appError';
 
-export const getAllScheduleVacancies = async (): Promise<ScheduleVacancy[]> => {
+export const getAllScheduleVacanciesService = async (): Promise<ScheduleVacancy[]> => {
   return await prisma.scheduleVacancy.findMany({
     include: {
       user: {
@@ -19,7 +19,7 @@ export const getAllScheduleVacancies = async (): Promise<ScheduleVacancy[]> => {
   });
 };
 
-export const getScheduleVacancyById = async (id: number): Promise<ScheduleVacancy> => {
+export const getScheduleVacancyByIdService = async (id: number): Promise<ScheduleVacancy> => {
   const vacancy = await prisma.scheduleVacancy.findUnique({
     where: { scheduleVacancyId: id },
     include: {
@@ -43,7 +43,7 @@ export const getScheduleVacancyById = async (id: number): Promise<ScheduleVacanc
   return vacancy;
 };
 
-export const getScheduleVacanciesByUserId = async (userId: number): Promise<ScheduleVacancy[]> => {
+export const getScheduleVacanciesByUserIdService = async (userId: number): Promise<ScheduleVacancy[]> => {
   return await prisma.scheduleVacancy.findMany({
     where: { userId },
     include: {
@@ -56,7 +56,7 @@ export const getScheduleVacanciesByUserId = async (userId: number): Promise<Sche
   });
 };
 
-export const createScheduleVacancy = async (data: any): Promise<ScheduleVacancy> => {
+export const createScheduleVacancyService = async (data: any): Promise<ScheduleVacancy> => {
   const { userId, schoolYearId, scheduleVacancyStart, scheduleVacancyEnd, scheduleVacancyRecurrence } = data;
 
   const start = new Date(scheduleVacancyStart);
@@ -77,7 +77,7 @@ export const createScheduleVacancy = async (data: any): Promise<ScheduleVacancy>
   });
 };
 
-export const updateScheduleVacancy = async (id: number, data: any): Promise<ScheduleVacancy> => {
+export const updateScheduleVacancyService = async (id: number, data: any): Promise<ScheduleVacancy> => {
   const vacancy = await prisma.scheduleVacancy.findUnique({
     where: { scheduleVacancyId: id }
   });
@@ -105,7 +105,7 @@ export const updateScheduleVacancy = async (id: number, data: any): Promise<Sche
   });
 };
 
-export const deleteScheduleVacancy = async (id: number): Promise<void> => {
+export const deleteScheduleVacancyService = async (id: number): Promise<void> => {
   const vacancy = await prisma.scheduleVacancy.findUnique({
     where: { scheduleVacancyId: id }
   });

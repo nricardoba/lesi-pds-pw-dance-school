@@ -1,13 +1,26 @@
 ﻿import { NextFunction, Request, Response } from 'express';
-import { AppError } from '../utils/appError';
-import * as scheduleVacancyServices from '../services/school/scheduleVacancyServices';
 
+// => SCHOOL YEARS
 import {
   listSchoolYearsService,
   createSchoolYearService,
   updateSchoolYearService,
   deleteSchoolYearService,
 } from '../services/school/schoolYearsServices';
+
+// => SCHEDULE VACANCIES
+import {
+    getAllScheduleVacanciesService,
+    getScheduleVacancyByIdService,
+    getScheduleVacanciesByUserIdService,
+    createScheduleVacancyService,
+    updateScheduleVacancyService,
+    deleteScheduleVacancyService,
+} from '../services/school/scheduleVacancyServices';
+
+// ============================================================================
+// SCHOOL YEARS
+// ============================================================================
 
 export const listSchoolYearsController = async (_req: Request, res: Response) => {
     try {
@@ -49,13 +62,17 @@ export const deleteSchoolYearController = async (req: Request, res: Response) =>
     }
 };
 
+// ============================================================================
+// SCHEDULE VACANCIES
+// ============================================================================
+
 export const listScheduleVacanciesController = async (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
     try {
-        const vacancies = await scheduleVacancyServices.getAllScheduleVacancies();
+        const vacancies = await getAllScheduleVacanciesService();
         res.status(200).json(vacancies);
     } catch (error) {
         next(error);
@@ -69,7 +86,7 @@ export const getScheduleVacancyByIdController = async (
 ) => {
     try {
         const id = parseInt(req.params.id, 10);
-        const vacancy = await scheduleVacancyServices.getScheduleVacancyById(id);
+        const vacancy = await getScheduleVacancyByIdService(id);
         res.status(200).json(vacancy);
     } catch (error) {
         next(error);
@@ -83,9 +100,7 @@ export const getScheduleVacanciesByUserIdController = async (
 ) => {
     try {
         const userId = parseInt(req.params.userId, 10);
-        const vacancies = await scheduleVacancyServices.getScheduleVacanciesByUserId(
-            userId
-        );
+        const vacancies = await getScheduleVacanciesByUserIdService(userId);
         res.status(200).json(vacancies);
     } catch (error) {
         next(error);
@@ -103,7 +118,7 @@ export const createScheduleVacancyController = async (
             ? parseInt(res.locals.user.id, 10)
             : undefined;
 
-        const newVacancy = await scheduleVacancyServices.createScheduleVacancy({
+        const newVacancy = await createScheduleVacancyService({
             ...data,
             userId: data.userId || defaultUserId,
         });
@@ -121,7 +136,7 @@ export const updateScheduleVacancyController = async (
     try {
         const id = parseInt(req.params.id, 10);
         const data = req.body;
-        const updatedVacancy = await scheduleVacancyServices.updateScheduleVacancy(
+        const updatedVacancy = await updateScheduleVacancyService(
             id,
             data
         );
@@ -138,7 +153,7 @@ export const deleteScheduleVacancyController = async (
 ) => {
     try {
         const id = parseInt(req.params.id, 10);
-        await scheduleVacancyServices.deleteScheduleVacancy(id);
+        await deleteScheduleVacancyService(id);
         res.status(204).send();
     } catch (error) {
         next(error);
