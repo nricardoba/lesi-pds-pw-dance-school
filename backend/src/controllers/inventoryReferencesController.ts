@@ -21,7 +21,7 @@ import {
   createDanceTypeService,
   updateDanceTypeService,
   deleteDanceTypeService,
-} from "../services/inventoryReferencesServices";
+} from "../services/inventory/inventoryReferencesServices";
 import { AppError } from "../utils/appError";
 
 const nameSchema = z.object({

@@ -5,7 +5,7 @@ import {
   createItemService,
   updateItemService,
   deleteItemService,
-} from "../services/itemsServices";
+} from "../services/inventory/itemsServices";
 import { AppError } from "../utils/appError";
 
 export const listItemsController = async (_req: Request, res: Response) => {

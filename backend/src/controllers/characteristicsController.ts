@@ -8,7 +8,7 @@ import {
   deleteItemCharacteristicsService,
   addItemImageService,
   removeItemImageService,
-} from "../services/characteristicsServices";
+} from "../services/inventory/characteristicsServices";
 import { AppError } from "../utils/appError";
 
 const createCharacteristicSchema = z.object({

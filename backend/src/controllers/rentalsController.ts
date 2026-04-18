@@ -6,7 +6,7 @@ import {
   listRentalsService,
   getRentalByIdService,
   deleteRentalService,
-} from "../services/rentalsServices";
+} from "../services/inventory/rentalsServices";
 import { AppError } from "../utils/appError";
 
 const createRentalSchema = z.object({
