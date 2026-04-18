@@ -26,6 +26,7 @@ import {
 import { upsertUserNifService, deleteUserNifService } from '../services/users/userNifServices';
 import { upsertStudentNumberService, deleteStudentNumberService } from '../services/users/studentNumberServices';
 import { addUserContactService, deleteUserContactService } from '../services/users/userContactsServices';
+import { addUserAddressService, deleteUserAddressService } from '../services/users/userAddressesServices';
 
 
 // ============================================================================
@@ -142,6 +143,28 @@ export const deleteUserContactController = async (req: Request, res: Response) =
     console.error(error);
     if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
     return res.status(500).json({ error: 'Erro ao remover contacto do utilizador.' });
+  }
+};
+
+export const addUserAddressController = async (req: Request, res: Response) => {
+  try {
+    const data = await addUserAddressService(req.params, req.body);
+    return res.status(201).json(data);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao adicionar morada ao utilizador.' });
+  }
+};
+
+export const deleteUserAddressController = async (req: Request, res: Response) => {
+  try {
+    const data = await deleteUserAddressService(req.params);
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao remover morada do utilizador.' });
   }
 };
 
