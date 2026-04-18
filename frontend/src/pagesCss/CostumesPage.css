@@ -1,0 +1,214 @@
+
+.costumes-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page-title { margin: 0; font-size: 24px; color: #0F172A; }
+.page-subtitle { margin: 4px 0 0 0; font-size: 14px; color: #64748B; }
+
+.btn-primary {
+    background-color: #176B87;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+
+/* --- TABS (Design Pill como na foto) --- */
+.costumes-tabs {
+  display: inline-flex;
+  background-color: #F8FAFC; /* Fundo cinza suave */
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  width: max-content;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+
+/* --- FILTROS (Alinhados e à esquerda) --- */
+.filters-bar {
+  display: flex;
+  gap: 16px; /* Espaço entre a barra e os dropdowns */
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0 16px;
+  width: 320px; /* Largura fixa, não estica tudo */
+  height: 40px;
+}
+
+.search-box input {
+  border: none;
+  padding: 0 10px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  background: transparent;
+}
+
+.filter-dropdowns {
+  display: flex;
+  gap: 12px;
+}
+
+.dropdown {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropdown select {
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #334155;
+  background-color: transparent;
+  cursor: pointer;
+  height: 100%;
+}
+
+
+/* --- GRELHA E RESTANTES --- */
+.costumes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.rentals-section {
+  margin-top: 8px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 20px 0;
+}
+
+.rentals-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.costumes-page .delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.costumes-page .delete-confirm-card {
+  width: 100%;
+  max-width: 420px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  padding: 20px;
+}
+
+.costumes-page .delete-confirm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.costumes-page .delete-confirm-text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.costumes-page .delete-confirm-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.costumes-page .delete-cancel-btn,
+.costumes-page .delete-confirm-btn {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.costumes-page .delete-cancel-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+}
+
+.costumes-page .delete-cancel-btn:hover {
+  background: #F8FAFC;
+}
+
+.costumes-page .delete-confirm-btn {
+  background: #DC2626;
+  border: 1px solid #DC2626;
+  color: #FFFFFF;
+}
+
+.costumes-page .delete-confirm-btn:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
