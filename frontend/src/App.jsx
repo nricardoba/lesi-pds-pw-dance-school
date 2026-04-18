@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 
+import MainLayout from './layout/MainLayout';
+
 function App() {
   return (
     <AuthProvider>
@@ -21,6 +23,7 @@ function App() {
             </ProtectedRoute>
           } />
           
+          <Route path="/test" element={<MainLayout />}></Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
