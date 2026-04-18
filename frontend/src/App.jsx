@@ -6,6 +6,9 @@ import Dashboard from './pages/Dashboard';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 
+import MainLayout from './layout/MainLayout';
+import TeachersPage from "./pages/TeachersPage";
+
 function App() {
   return (
     <AuthProvider>
@@ -20,6 +23,16 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           } />
+          
+          <Route
+            element={
+                <MainLayout />
+            }
+          >
+            <Route path="/professores" element={<TeachersPage />} />
+          </Route>
+          
+          
           
         </Routes>
       </BrowserRouter>
