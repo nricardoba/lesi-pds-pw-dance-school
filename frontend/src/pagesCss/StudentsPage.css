@@ -1,0 +1,294 @@
+
+.students-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.students-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.students-page .page-title {
+  margin: 0;
+  font-size: 24px;
+  color: #0F172A;
+}
+
+.students-page .page-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #64748B;
+}
+.students-page .btn-primary {
+    background-color: #176B87;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.students-page .search-container {
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0 16px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.students-page .search-icon {
+  font-size: 14px;
+  color: #94A3B8;
+}
+
+.students-page .search-input {
+  border: none;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  background: transparent;
+}
+
+.students-page .table-container {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+}
+
+.students-page .table-header,
+.students-page .table-row {
+  display: grid;
+  grid-template-columns: 3fr 3fr 3fr 1.4fr 100px;
+  padding: 24px;
+  gap: 16px;
+}
+
+.students-page .table-header {
+  border-bottom: 1px solid #E2E8F0;
+  background-color: #FAFAFA;
+}
+
+.students-page .table-row {
+  border-bottom: 1px solid #F1F5F9;
+  min-height: 140px;
+  background-color: #FFFFFF;
+  transition: background-color 0.2s ease;
+}
+
+.students-page .table-row:hover {
+  background-color: #F8FAFC;
+}
+
+.students-page .table-row:last-child {
+  border-bottom: none;
+}
+
+.students-page .th-col {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A3B8;
+  letter-spacing: 0.5px;
+}
+
+.students-page .th-col.col-right {
+  align-items: flex-end;
+}
+
+.students-page .th-col.col-actions {
+  align-items: center;
+}
+
+.students-page .td-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.students-page .col-student {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}
+
+.students-page .col-contact,
+.students-page .col-guardian {
+  justify-content: flex-start;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.students-page .col-birthdate {
+  justify-content: center;
+}
+
+.students-page .col-actions {
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+}
+
+.students-page .student-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4F46E5;
+  flex-shrink: 0;
+}
+
+.students-page .student-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.students-page .student-meta {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.students-page .info-item {
+  font-size: 13px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.students-page .info-icon {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.students-page .text-muted {
+  color: #94A3B8;
+  padding-left: 20px;
+}
+
+.students-page .birthdate-text {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.students-page .action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.students-page .edit-btn {
+  color: #64748B;
+}
+
+.students-page .delete-btn {
+  color: #EF4444;
+}
+
+.students-page .action-btn:hover {
+  background-color: #F1F5F9;
+}
+
+.students-page .text-right {
+  text-align: right;
+}
+
+.students-page .empty-results {
+  padding: 32px;
+  text-align: center;
+  color: #94A3B8;
+  font-size: 14px;
+}
+
+.students-page .delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.students-page .delete-confirm-card {
+  width: 100%;
+  max-width: 420px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  padding: 20px;
+}
+
+.students-page .delete-confirm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.students-page .delete-confirm-text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.students-page .delete-confirm-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.students-page .delete-cancel-btn,
+.students-page .delete-confirm-btn {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.students-page .delete-cancel-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+}
+
+.students-page .delete-cancel-btn:hover {
+  background: #F8FAFC;
+}
+
+.students-page .delete-confirm-btn {
+  background: #DC2626;
+  border: 1px solid #DC2626;
+  color: #FFFFFF;
+}
+
+.students-page .delete-confirm-btn:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
