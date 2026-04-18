@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 
 import MainLayout from './layout/MainLayout';
+import TeachersPage from "./pages/TeachersPage";
 
 function App() {
   return (
@@ -23,7 +24,16 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="/test" element={<MainLayout />}></Route>
+          <Route
+            element={
+                <MainLayout />
+            }
+          >
+            <Route path="/professores" element={<TeachersPage />} />
+          </Route>
+          
+          
+          
         </Routes>
       </BrowserRouter>
     </AuthProvider>
