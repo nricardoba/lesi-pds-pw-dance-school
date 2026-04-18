@@ -22,6 +22,11 @@ import {
   deleteUserClassRoleService,
 } from '../services/users/userClassRolesServices';
 
+// => USER DETAILS (NIF, CONTACTS, STUDENT NUMBER)
+import { upsertUserNifService, deleteUserNifService } from '../services/users/userNifServices';
+import { upsertStudentNumberService, deleteStudentNumberService } from '../services/users/studentNumberServices';
+import { addUserContactService, deleteUserContactService } from '../services/users/userContactsServices';
+
 
 // ============================================================================
 // USERS
@@ -67,6 +72,76 @@ export const updateUserController = async (req: Request, res: Response) => {
     console.error(error);
     if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
     return res.status(500).json({ error: 'Erro ao atualizar utilizador.' });
+  }
+};
+
+// ============================================================================
+// USER PROFILE DETAILS
+// ============================================================================
+
+export const upsertUserNifController = async (req: Request, res: Response) => {
+  try {
+    const data = await upsertUserNifService(req.params, req.body);
+    return res.json(data);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao atualizar NIF do utilizador.' });
+  }
+};
+
+export const deleteUserNifController = async (req: Request, res: Response) => {
+  try {
+    const data = await deleteUserNifService(req.params);
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao apagar NIF do utilizador.' });
+  }
+};
+
+export const upsertStudentNumberController = async (req: Request, res: Response) => {
+  try {
+    const data = await upsertStudentNumberService(req.params, req.body);
+    return res.json(data);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao atualizar Número de Aluno.' });
+  }
+};
+
+export const deleteStudentNumberController = async (req: Request, res: Response) => {
+  try {
+    const data = await deleteStudentNumberService(req.params);
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao apagar Número de Aluno.' });
+  }
+};
+
+export const addUserContactController = async (req: Request, res: Response) => {
+  try {
+    const data = await addUserContactService(req.params, req.body);
+    return res.status(201).json(data);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao adicionar contacto ao utilizador.' });
+  }
+};
+
+export const deleteUserContactController = async (req: Request, res: Response) => {
+  try {
+    const data = await deleteUserContactService(req.params);
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
+    return res.status(500).json({ error: 'Erro ao remover contacto do utilizador.' });
   }
 };
 
