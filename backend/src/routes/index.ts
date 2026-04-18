@@ -14,13 +14,12 @@ import coachingRoutes from "./coaching";
 // Grouped Routes
 import { usersRouter, userTypesRouter, userClassRolesRouter } from "./users";
 import { classesRouter, classStatusesRouter } from "./classes";
-import scheduleVacancyRoutes from "./scheduleVacancy";
 import {
   studiosRouter,
   modalitiesRouter,
   studioModalitiesRouter,
 } from "./studios";
-import { schoolYearsRouter } from "./school";
+import { schoolYearsRouter, scheduleVacanciesRouter } from "./school";
 
 const router = Router();
 
@@ -49,7 +48,6 @@ router.use("/auth", authRoutes);
 router.use("/users", ensureAuth, usersRouter);
 router.use("/user-types", ensureAuth, userTypesRouter);
 router.use("/user-class-roles", ensureAuth, userClassRolesRouter);
-router.use("/schedule-vacancies", ensureAuth, scheduleVacancyRoutes);
 
 // Classes Group
 router.use("/classes", ensureAuth, classesRouter);
@@ -61,6 +59,7 @@ router.use("/studios", ensureAuth, studiosRouter);
 router.use("/modalities", ensureAuth, modalitiesRouter);
 router.use("/studio-modalities", ensureAuth, studioModalitiesRouter);
 router.use("/school-years", ensureAuth, schoolYearsRouter);
+router.use("/schedule-vacancies", ensureAuth, scheduleVacanciesRouter);
 
 // Inventory Group
 router.use("/items", ensureAuth, itemsRoutes);
