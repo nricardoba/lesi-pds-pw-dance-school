@@ -1,7 +1,15 @@
-﻿// src/routes/index.ts
-import { Router } from 'express';
-import { prisma } from '../config/db';
-import { ensureAuth } from '../middlewares/ensureAuth';
+// src/routes/index.ts
+import { Router } from "express";
+import { prisma } from "../config/db";
+import authRoutes from "./auth";
+import usersRoutes from "./users";
+import classesRoutes from "./classes";
+import referencesRoutes from "./references";
+import itemsRoutes from "./items";
+import rentalsRoutes from "./rentals";
+import characteristicsRoutes from "./characteristics";
+import inventoryReferencesRoutes from "./inventoryReferences";
+import { ensureAuth } from "../middlewares/ensureAuth";
 
 // Auth & Coaching 
 import authRoutes from './auth';
@@ -17,7 +25,7 @@ const router = Router();
 
 router.get('/', (_req, res) => {
   res.json({
-    status: 'ok',
+    status: "ok",
     message: "API Ent'Artes a funcionar",
     timestamp: new Date(),
   });
@@ -26,10 +34,10 @@ router.get('/', (_req, res) => {
 router.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'ok', database: 'connected' });
+    res.json({ status: "ok", database: "connected" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: 'error', database: 'disconnected' });
+    res.status(500).json({ status: "error", database: "disconnected" });
   }
 });
 
