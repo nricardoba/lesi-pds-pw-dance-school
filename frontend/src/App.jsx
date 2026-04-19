@@ -17,6 +17,7 @@ import CostumesPage from "./pages/CostumesPage";
 import RoomsPage from "./pages/RoomsPage";
 import SchedulePage from "./pages/SchedulePage";
 import CoachingsPage from "./pages/CoachingsPage";
+import ClassTemplatesPage from "./pages/ClassTemplatesPage";
 
 const ProtectedRoute = ({ children }) => {
   const { role } = useAuth();
@@ -53,6 +54,7 @@ function App() {
             <Route path="/salas" element={<RoomsPage />} />
             <Route path="/coachings" element={<CoachingsPage />} />
             <Route path="/horario" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
+            <Route path="templates-aulas" element={<ProtectedRoute><ClassTemplatesPage /></ProtectedRoute>} />
           </Route>
           
           
