@@ -1,15 +1,15 @@
-import { Request, Response } from 'express';
-import { AppError } from '../utils/appError';
+import { Request, Response } from "express";
+import { AppError } from "../utils/appError";
 import {
   getAvailableStudiosService,
   getVacanciesService,
   requestCoachingService,
   confirmCoachingService,
   validateCoachingService,
-} from '../services/classes/coachingServices';
+  closeCoachingValidationService,
+} from "../services/classes/coachingServices";
 
 export const CoachingController = {
-
   // Fase 1 — listar estúdios disponíveis para uma modalidade
   async getAvailableStudios(req: Request, res: Response) {
     try {
@@ -18,9 +18,13 @@ export const CoachingController = {
       return res.json(studios);
     } catch (error) {
       if (error instanceof AppError) {
-        return res.status(error.statusCode).json({ error: { message: error.message } });
+        return res
+          .status(error.statusCode)
+          .json({ error: { message: error.message } });
       }
-      return res.status(500).json({ error: { message: 'Erro interno do servidor.' } });
+      return res
+        .status(500)
+        .json({ error: { message: "Erro interno do servidor." } });
     }
   },
 
@@ -28,13 +32,20 @@ export const CoachingController = {
   async getVacancies(req: Request, res: Response) {
     try {
       const { professorId, schoolYearId } = req.query;
-      const vacancies = await getVacanciesService(Number(professorId), Number(schoolYearId));
+      const vacancies = await getVacanciesService(
+        Number(professorId),
+        Number(schoolYearId),
+      );
       return res.json(vacancies);
     } catch (error) {
       if (error instanceof AppError) {
-        return res.status(error.statusCode).json({ error: { message: error.message } });
+        return res
+          .status(error.statusCode)
+          .json({ error: { message: error.message } });
       }
-      return res.status(500).json({ error: { message: 'Erro interno do servidor.' } });
+      return res
+        .status(500)
+        .json({ error: { message: "Erro interno do servidor." } });
     }
   },
 
@@ -45,9 +56,13 @@ export const CoachingController = {
       return res.status(201).json(result);
     } catch (error) {
       if (error instanceof AppError) {
-        return res.status(error.statusCode).json({ error: { message: error.message } });
+        return res
+          .status(error.statusCode)
+          .json({ error: { message: error.message } });
       }
-      return res.status(500).json({ error: { message: 'Erro interno do servidor.' } });
+      return res
+        .status(500)
+        .json({ error: { message: "Erro interno do servidor." } });
     }
   },
 
@@ -58,9 +73,13 @@ export const CoachingController = {
       return res.json(result);
     } catch (error) {
       if (error instanceof AppError) {
-        return res.status(error.statusCode).json({ error: { message: error.message } });
+        return res
+          .status(error.statusCode)
+          .json({ error: { message: error.message } });
       }
-      return res.status(500).json({ error: { message: 'Erro interno do servidor.' } });
+      return res
+        .status(500)
+        .json({ error: { message: "Erro interno do servidor." } });
     }
   },
 
@@ -71,9 +90,30 @@ export const CoachingController = {
       return res.json(result);
     } catch (error) {
       if (error instanceof AppError) {
-        return res.status(error.statusCode).json({ error: { message: error.message } });
+        return res
+          .status(error.statusCode)
+          .json({ error: { message: error.message } });
       }
-      return res.status(500).json({ error: { message: 'Erro interno do servidor.' } });
+      return res
+        .status(500)
+        .json({ error: { message: "Erro interno do servidor." } });
+    }
+  },
+  
+  async closeCoaching(req: Request, res: Response) {
+    try {
+      const closedBy = (req as any).user.userId; // ← vem do authMiddleware
+      const result = await closeCoachingValidationService(req.params, closedBy);
+      return res.json(result);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return res
+          .status(error.statusCode)
+          .json({ error: { message: error.message } });
+      }
+      return res
+        .status(500)
+        .json({ error: { message: "Erro interno do servidor." } });
     }
   },
 };
