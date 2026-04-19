@@ -14,8 +14,7 @@ const Sidebar = () => {
     { path: '/professores', name: 'Professores', icon: '👨‍🏫' },
     { path: '/salas', name: 'Salas', icon: '🏢' },
     { path: '/alunos', name: 'Alunos', icon: '👥' },
-    { path: '/modalidades', name: 'Modalidades', icon: '📊' },
-    { path: '/templates-aulas', name: 'Templates de Aulas', icon: '▶' }
+    { path: '/templates-aulas', name: 'Templates de Aulas', icon: '▶' },
   ];
 
   if (role === 'student') {

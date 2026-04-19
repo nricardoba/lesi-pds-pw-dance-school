@@ -16,6 +16,7 @@ import StudentsPage from "./pages/StudentsPage";
 import CostumesPage from "./pages/CostumesPage";
 import RoomsPage from "./pages/RoomsPage";
 import SchedulePage from "./pages/SchedulePage";
+import CoachingsPage from "./pages/CoachingsPage";
 
 const ProtectedRoute = ({ children }) => {
   const { role } = useAuth();
@@ -50,6 +51,7 @@ function App() {
             <Route path="/alunos" element={<StudentsPage />} />
             <Route path="/figurinos" element={<CostumesPage />} />
             <Route path="/salas" element={<RoomsPage />} />
+            <Route path="/coachings" element={<CoachingsPage />} />
             <Route path="/horario" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
           </Route>
           
