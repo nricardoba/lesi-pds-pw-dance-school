@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../pagesCss/StudentsPage.css';
-import StudentModal from '../components/StudentModal/StudentModal';
+import StudentModal from '../components/studentModal/StudentModal';
 
 const StudentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
