@@ -1,10 +1,8 @@
 // src/routes/index.ts
 import { Router } from "express";
 import { prisma } from "../config/db";
-import itemsRoutes from "./items";
-import rentalsRoutes from "./rentals";
 import characteristicsRoutes from "./characteristics";
-import inventoryReferencesRoutes from "./inventoryReferences";
+import { itemsRouter, rentalsRouter, inventoryReferencesRouter } from "./inventory";
 import { ensureAuth } from "../middlewares/ensureAuth";
 
 // Auth & Coaching
@@ -62,9 +60,9 @@ router.use("/school-years", ensureAuth, schoolYearsRouter);
 router.use("/schedule-vacancies", ensureAuth, scheduleVacanciesRouter);
 
 // Inventory Group
-router.use("/items", ensureAuth, itemsRoutes);
-router.use("/rentals", ensureAuth, rentalsRoutes);
+router.use("/items", ensureAuth, itemsRouter);
+router.use("/rentals", ensureAuth, rentalsRouter);
 router.use("/characteristics", ensureAuth, characteristicsRoutes);
-router.use("/inventory-references", ensureAuth, inventoryReferencesRoutes);
+router.use("/inventory-references", ensureAuth, inventoryReferencesRouter);
 
 export default router;
