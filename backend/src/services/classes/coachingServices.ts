@@ -1,10 +1,7 @@
 import { z } from "zod";
 import { prisma } from "../../config/db";
 import { AppError } from "../../utils/appError";
-import {
-  createClassService,
-  addUserToClassService,
-} from "./classesServices";
+import { createClassService, addUserToClassService } from "./classesServices";
 
 // ══ SCHEMAS ══
 
@@ -30,7 +27,6 @@ const classIdSchema = z.object({
 
 const validateCoachingSchema = z.object({
   user_id: z.coerce.number().int().positive(),
-  validated: z.boolean(),
 });
 
 // ══ FASE 1 ══
@@ -282,18 +278,21 @@ export const confirmCoachingService = async (params: unknown) => {
 // ══ FASE 3 ══
 
 // REGRA DE NEGÓCIO:
-// - Validam: professor responsável + professor assistente (se existir) + todos os alunos
-// - O sistema aguarda sempre que TODOS respondam antes de decidir
-//     → todos true  = 'Concluída'
-//     → algum false = 'Cancelada'
-// - Enquanto houver participantes com userValidation === null, mantém-se 'A Decorrer'
+// - userValidation = false (por defeito) significa "ainda não confirmou presença"
+// - userValidation = true significa "confirmou presença"
+// - Não existe rejeição explícita — as 48h são uma regra comunicada aos utilizadores
+//   mas não imposta tecnicamente (não bloqueia confirmações tardias, apenas a coordenação tem a decisão final)
+// - Decisão final (chamada pela coordenação):
+//     → pelo menos 1 professor confirmou (true)  = 'Concluída'
+//     → nenhum professor confirmou               = 'Cancelada'
+//     → alunos com false                         = ausentes registados, não cancela
 
 export const validateCoachingService = async (
   params: unknown,
   body: unknown,
 ) => {
   const { classId } = classIdSchema.parse(params);
-  const { user_id, validated } = validateCoachingSchema.parse(body);
+  const { user_id } = validateCoachingSchema.parse(body);
 
   const existingClass = await prisma.class.findUnique({
     where: { classId },
@@ -316,55 +315,69 @@ export const validateCoachingService = async (
   if (!userClass)
     throw new AppError("Utilizador não está associado a esta aula.", 404);
 
-  // Verifica se o utilizador já validou
-  if (userClass.userValidation !== null) {
-    throw new AppError("Este utilizador já submeteu a sua validação.", 409);
+  // Verifica se já confirmou
+  if (userClass.userValidation === true) {
+    throw new AppError("Este utilizador já confirmou a sua presença.", 409);
   }
 
-  // Regista a validação deste utilizador
+  // Confirma presença — só true, não há rejeição explícita
   await prisma.userClass.update({
     where: { classId_userId: { classId, userId: user_id } },
-    data: { userValidation: validated },
+    data: { userValidation: true },
   });
 
-  // Reler estado atualizado de todos os participantes
-  const updatedUserClasses = await prisma.userClass.findMany({
+  return {
+    message: "Presença confirmada com sucesso.",
+    classId,
+    userId: user_id,
+  };
+};
+
+// ══ FECHO DE VALIDAÇÃO (chamado pela coordenação) ══
+
+// REGRA DE NEGÓCIO:
+// - Chamado manualmente pela coordenação após as 48h
+// - Verifica quem confirmou e decide o estado final
+
+export const closeCoachingValidationService = async (
+  params: unknown,
+  closedBy: number,
+) => {
+  const { classId } = classIdSchema.parse(params);
+
+  const existingClass = await prisma.class.findUnique({
     where: { classId },
-    include: { userClassRole: true },
+    include: {
+      classStatus: true,
+      userClass: { include: { userClassRole: true } },
+    },
   });
+  if (!existingClass) throw new AppError("Aula não encontrada.", 404);
 
-  // Todos os participantes validam:
-  // professor responsável + professor assistente (se existir) + alunos
-  const validatingRoles = [
-    "Professor Responsável",
-    "Professor Assistente",
-    "Aluno",
-  ];
-  const relevantUserClasses = updatedUserClasses.filter((uc) =>
-    validatingRoles.includes(uc.userClassRole?.userClassRoleDesc ?? ""),
-  );
-
-  // Aguarda que todos respondam antes de decidir estado final
-  const allResponded = relevantUserClasses.every(
-    (uc) => uc.userValidation !== null,
-  );
-
-  if (!allResponded) {
-    const pending = relevantUserClasses.filter(
-      (uc) => uc.userValidation === null,
-    ).length;
-    return {
-      message: `Validação registada. A aguardar ${pending} validação(ões).`,
-    };
+  if (existingClass.classStatus.classStatusDesc !== "A Decorrer") {
+    throw new AppError(
+      'Só é possível fechar validações de aulas no estado "A Decorrer".',
+      409,
+    );
   }
 
-  // Todos responderam:
-  // → todos true  = 'Concluída'
-  // → algum false = 'Cancelada'
-  const allValidated = relevantUserClasses.every(
-    (uc) => uc.userValidation === true,
+  const professorRoles = ["Professor Responsável", "Professor Assistente"];
+
+  // Pelo menos 1 professor confirmou → Concluída
+  const anyProfessorConfirmed = existingClass.userClass.some(
+    (uc) =>
+      professorRoles.includes(uc.userClassRole?.userClassRoleDesc ?? "") &&
+      uc.userValidation === true,
   );
-  const finalStatusDesc = allValidated ? "Concluída" : "Cancelada";
+
+  // Alunos que não confirmaram → ausentes
+  const absentStudents = existingClass.userClass.filter(
+    (uc) =>
+      uc.userClassRole?.userClassRoleDesc === "Aluno" &&
+      uc.userValidation === false,
+  );
+
+  const finalStatusDesc = anyProfessorConfirmed ? "Concluída" : "Cancelada";
 
   const finalStatus = await prisma.classStatus.findFirst({
     where: { classStatusDesc: finalStatusDesc },
@@ -386,16 +399,19 @@ export const validateCoachingService = async (
       data: {
         classId,
         classStatusId: finalStatus.classStatusId,
-        userId: user_id,
+        userId: closedBy,
         classStatusHistoryDate: new Date(),
       },
     });
 
     return {
-      message: allValidated
-        ? "Coaching concluído com sucesso."
-        : "Coaching cancelado por falta de validação.",
-      approved: allValidated,
+      message: anyProfessorConfirmed
+        ? absentStudents.length > 0
+          ? `Coaching concluído. ${absentStudents.length} aluno(s) marcado(s) como ausente(s).`
+          : "Coaching concluído com sucesso."
+        : "Coaching cancelado — nenhum professor confirmou a realização da aula.",
+      approved: anyProfessorConfirmed,
+      absentStudents: absentStudents.map((uc) => uc.userId),
       class: updated,
     };
   });
