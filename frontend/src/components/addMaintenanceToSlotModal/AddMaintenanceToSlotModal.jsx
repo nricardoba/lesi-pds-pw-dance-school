@@ -1,4 +1,4 @@
-import '../AddClassToSlotModal/AddClassToSlotModal.css';
+import '../addClassToSlotModal/AddClassToSlotModal.css';
 
 const AddMaintenanceToSlotModal = ({ isOpen, onClose, slotData, rooms, onSave }) => {
   if (!isOpen || !slotData) return null;

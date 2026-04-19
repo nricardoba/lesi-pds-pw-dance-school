@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import '../pagesCss/classTemplatesPage.css';
+import '../pagesCss/ClassTemplatesPage.css';
 import ClassModal from '../components/classModal/ClassModal';
 import {
   readClassTemplatesFromStorage,
