@@ -6,7 +6,7 @@ import {
   requestCoachingService,
   confirmCoachingService,
   validateCoachingService,
-} from '../services/coachingServices';
+} from '../services/classes/coachingServices';
 
 export const CoachingController = {
 
