@@ -158,7 +158,7 @@ return prisma.userClass.create({
     classId: id,
     userId,
     userClassRoleId: userClassRoleId ?? null,
-    userValidation: userValidation ?? null,
+    userValidation: userValidation ?? false,
   },
   include: {
     user: true,
