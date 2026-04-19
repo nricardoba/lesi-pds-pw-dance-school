@@ -1,20 +1,44 @@
+import { z } from "zod";
 import { prisma } from "../../config/db";
 import { AppError } from "../../utils/appError";
 
-interface CreateRentItemInput {
-  userId: number;
-  itemId: number;
-  rentDateStart: Date;
-  rentDateEnd: Date;
-}
+const rentalIdSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 
-export const createRentalService = async (data: CreateRentItemInput) => {
+const createRentalSchema = z.object({
+  userId: z.coerce.number().int().positive(),
+  itemId: z.coerce.number().int().positive(),
+  rentDateStart: z
+    .string()
+    .datetime()
+    .or(z.date())
+    .transform((val) => new Date(val)),
+  rentDateEnd: z
+    .string()
+    .datetime()
+    .or(z.date())
+    .transform((val) => new Date(val)),
+});
+
+const returnRentalSchema = z.object({
+  actualRentDateEnd: z
+    .string()
+    .datetime()
+    .or(z.date())
+    .transform((val) => new Date(val)),
+  itemDamaged: z.boolean().optional(),
+});
+
+export const createRentalService = async (body: unknown) => {
+  const data = createRentalSchema.parse(body);
+
   // Check if school item exists
   const schoolItem = await prisma.schoolItem.findUnique({
     where: { itemId: data.itemId },
   });
   if (!schoolItem) {
-    throw new AppError("School Item not found", 404);
+    throw new AppError("Item não encontrado.", 404);
   }
 
   // Check if the user exists
@@ -22,7 +46,7 @@ export const createRentalService = async (data: CreateRentItemInput) => {
     where: { userId: data.userId },
   });
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError("Utilizador não encontrado.", 404);
   }
 
   // Prevent double-renting if we only allow one active rental per item
@@ -34,7 +58,7 @@ export const createRentalService = async (data: CreateRentItemInput) => {
   });
 
   if (activeRental) {
-    throw new AppError("Item is already rented", 400);
+    throw new AppError("O item já se encontra alugado.", 400);
   }
 
   const rental = await prisma.rentItem.create({
@@ -49,22 +73,21 @@ export const createRentalService = async (data: CreateRentItemInput) => {
   return rental;
 };
 
-export const returnRentalService = async (
-  id: number,
-  actualRentDateEnd: Date,
-  itemDamaged?: boolean,
-) => {
+export const returnRentalService = async (params: unknown, body: unknown) => {
+  const { id } = rentalIdSchema.parse(params);
+  const data = returnRentalSchema.parse(body);
+
   const rental = await prisma.rentItem.findUnique({ where: { rentId: id } });
 
   if (!rental) {
-    throw new AppError("Rental not found", 404);
+    throw new AppError("Aluguer não encontrado.", 404);
   }
 
   const updatedRental = await prisma.rentItem.update({
     where: { rentId: id },
     data: {
-      actualRentDateEnd,
-      itemDamaged: itemDamaged ?? false,
+      actualRentDateEnd: data.actualRentDateEnd,
+      itemDamaged: data.itemDamaged ?? false,
     },
   });
 
@@ -84,7 +107,9 @@ export const listRentalsService = async () => {
   });
 };
 
-export const getRentalByIdService = async (id: number) => {
+export const getRentalByIdService = async (params: unknown) => {
+  const { id } = rentalIdSchema.parse(params);
+
   const rental = await prisma.rentItem.findUnique({
     where: { rentId: id },
     include: {
@@ -98,17 +123,19 @@ export const getRentalByIdService = async (id: number) => {
   });
 
   if (!rental) {
-    throw new AppError("Rental not found", 404);
+    throw new AppError("Aluguer não encontrado.", 404);
   }
 
   return rental;
 };
 
-export const deleteRentalService = async (id: number) => {
+export const deleteRentalService = async (params: unknown) => {
+  const { id } = rentalIdSchema.parse(params);
+
   const rental = await prisma.rentItem.findUnique({ where: { rentId: id } });
 
   if (!rental) {
-    throw new AppError("Rental not found", 404);
+    throw new AppError("Aluguer não encontrado.", 404);
   }
 
   await prisma.rentItem.delete({
