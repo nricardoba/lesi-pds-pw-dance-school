@@ -1,17 +1,24 @@
+import { useAuth } from '../../contexts/AuthContext';
 import './Header.css';
 
 const Header = () => {
+  const { role, setRole } = useAuth();
+
   return (
   <header className="header">
       <div className="header__actions">
-        <button className="header__action-btn header__action-btn--direcao">Direção</button>
+        <select 
+          className="header__action-btn header__action-btn--direcao" 
+          value={role} 
+          onChange={(e) => setRole(e.target.value)}
+        >
+          <option value="admin">Direção</option>
+          <option value="teacher">Professor</option>
+          <option value="student">Aluno</option>
+        </select>
         <button className="header__action-btn header__action-btn--notif">
           <span className="header__notif-icon">🔔</span>        
         </button>
-        <div className="header__user-dropdown">
-          <span className="header__user-avatar">D</span>
-          <p>Direção Ent'Artes</p>
-        </div>
       </div>
     </header>
   )
