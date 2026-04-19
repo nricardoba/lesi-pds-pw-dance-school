@@ -1,0 +1,31 @@
+
+.days-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 24px 0;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.day-tab {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #E2E8F0;
+  background-color: #FFFFFF;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.day-tab:hover {
+  background-color: #F8FAFC;
+}
+
+.day-tab.active {
+  background-color: #176B87;
+  border-color: #176B87;
+  color: #FFFFFF;
+}
