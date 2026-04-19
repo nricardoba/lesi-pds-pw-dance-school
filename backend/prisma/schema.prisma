@@ -319,7 +319,7 @@ model UserClass {
   classId         Int            @map("class_id")
   userId          Int            @map("user_id")
   userClassRoleId Int?           @map("user_class_role_id")
-  userValidation  Boolean        @default(false) @map("user_validation")
+  userValidation  Boolean?       @map("user_validation")
   class           Class          @relation(fields: [classId], references: [classId], onDelete: Cascade, onUpdate: Cascade)
   userClassRole   UserClassRole? @relation(fields: [userClassRoleId], references: [userClassRoleId], onDelete: Cascade, onUpdate: Cascade)
   user            User           @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)

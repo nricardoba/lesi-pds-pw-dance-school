@@ -188,7 +188,7 @@ CREATE TABLE "User_Class" (
   "class_id" int,
   "user_id" int,
   "user_class_role_id" int,
-  "user_validation" bool NOT NULL,
+  "user_validation" boolean,
   PRIMARY KEY ("class_id", "user_id")
 );
 
