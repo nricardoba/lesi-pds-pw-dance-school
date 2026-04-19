@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -10,6 +11,15 @@ import MainLayout from './layout/MainLayout';
 import TeachersPage from "./pages/TeachersPage";
 import StudentsPage from "./pages/StudentsPage";
 import CostumesPage from "./pages/CostumesPage";
+
+const ProtectedRoute = ({ children }) => {
+  const { role } = useAuth();
+  if (role === 'student') {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
 
 function App() {
   return (
@@ -34,6 +44,7 @@ function App() {
             <Route path="/professores" element={<TeachersPage />} />
             <Route path="/alunos" element={<StudentsPage />} />
             <Route path="/figurinos" element={<CostumesPage />} />
+            <Route path="/salas" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
           </Route>
           
           
