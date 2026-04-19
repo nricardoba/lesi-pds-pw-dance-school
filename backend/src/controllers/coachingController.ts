@@ -99,11 +99,15 @@ export const CoachingController = {
         .json({ error: { message: "Erro interno do servidor." } });
     }
   },
-  
+
   async closeCoaching(req: Request, res: Response) {
     try {
-      const closedBy = (req as any).user.userId; // ← vem do authMiddleware
-      const result = await closeCoachingValidationService(req.params, closedBy);
+      const closedBy = res.locals.user.id;
+
+      const result = await closeCoachingValidationService(
+        req.params,
+        Number(closedBy),
+      );
       return res.json(result);
     } catch (error) {
       if (error instanceof AppError) {
