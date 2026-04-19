@@ -1,9 +1,12 @@
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = () => {
+  const { role } = useAuth();
+  
   // Lista de todos os itens do menu com os respetivos caminhos (rotas)
-  const menuItems = [
+  let menuItems = [
     { path: '/', name: 'Dashboard', icon: '▦' },
     { path: '/horario', name: 'Horário de Aulas', icon: '📅' },
     { path: '/coachings', name: 'Coachings', icon: '✨' },
@@ -11,8 +14,15 @@ const Sidebar = () => {
     { path: '/professores', name: 'Professores', icon: '👨‍🏫' },
     { path: '/salas', name: 'Salas', icon: '🏢' },
     { path: '/alunos', name: 'Alunos', icon: '👥' },
-    { path: '/modalidades', name: 'Modalidades', icon: '📊' }
+    { path: '/modalidades', name: 'Modalidades', icon: '📊' },
+    { path: '/templates-aulas', name: 'Templates de Aulas', icon: '▶' }
   ];
+
+  if (role === 'student') {
+    menuItems = menuItems.filter(item => 
+      !['/salas', '/alunos', '/modalidades', '/templates-aulas', '/professores'].includes(item.path)
+    );
+  }
 
   return (
     <aside className="sidebar">
