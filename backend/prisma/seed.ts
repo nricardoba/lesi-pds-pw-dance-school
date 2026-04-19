@@ -110,6 +110,84 @@ async function main() {
   });
 
   console.log("✔ Admin user seed complete.");
+
+  // 6. Professor
+  const profPasswordHash = await bcrypt.hash("Prof123!", 10);
+
+  await prisma.user.create({
+    data: {
+      userId: 2,
+      userName: "Professor Teste",
+      userTypeId: 2,
+      userIsActive: true,
+    },
+  });
+
+  await prisma.contact.create({
+    data: {
+      contactId: 2,
+      contactValue: "professor@professor.com",
+      contactTypeId: 2,
+    },
+  });
+
+  await prisma.userContact.create({
+    data: {
+      userContactId: 2,
+      userId: 2,
+      contactId: 2,
+      isMainContact: true,
+    },
+  });
+
+  await prisma.userCredential.create({
+    data: {
+      userId: 2,
+      userContactId: 2,
+      userCredentialPasswordHash: profPasswordHash,
+    },
+  });
+
+  console.log("✔ Professor user seed complete.");
+
+  // 7. Aluno
+  const alunoPasswordHash = await bcrypt.hash("Aluno123!", 10);
+
+  await prisma.user.create({
+    data: {
+      userId: 3,
+      userName: "Aluno Teste",
+      userTypeId: 3,
+      userIsActive: true,
+    },
+  });
+
+  await prisma.contact.create({
+    data: {
+      contactId: 3,
+      contactValue: "aluno@aluno.com",
+      contactTypeId: 2,
+    },
+  });
+
+  await prisma.userContact.create({
+    data: {
+      userContactId: 3,
+      userId: 3,
+      contactId: 3,
+      isMainContact: true,
+    },
+  });
+
+  await prisma.userCredential.create({
+    data: {
+      userId: 3,
+      userContactId: 3,
+      userCredentialPasswordHash: alunoPasswordHash,
+    },
+  });
+
+  console.log("✔ Aluno user seed complete.");
   console.log("Seeding finished successfully.");
 }
 
