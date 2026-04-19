@@ -1,0 +1,82 @@
+
+.coachings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+}
+
+.coachings-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.coachings-page__title {
+  margin: 0;
+  font-size: 24px;
+  color: #0F172A;
+}
+
+.coachings-page__subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #64748B;
+}
+
+/* Kanban Board Layout */
+.kanban-board {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 16px; /* Espaço para a scrollbar se necessário */
+  flex: 1;
+}
+
+.kanban-column {
+  flex: 1;
+  min-width: 300px;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  height: max-content;
+  min-height: 400px;
+}
+
+.kanban-column__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.kanban-column__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.kanban-column__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.empty-state {
+  text-align: center;
+  color: #94A3B8;
+  font-size: 14px;
+  margin-top: 40px;
+}
