@@ -81,7 +81,7 @@ export const createItemCharacteristicsController = catchAsync(
 export const updateItemCharacteristicsController = catchAsync(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) throw new AppError("ID de caracterÌstica inv·lido", 400);
+    if (isNaN(id)) throw new AppError("ID de caracterÔøΩstica invÔøΩlido", 400);
 
     const data = updateCharacteristicSchema.parse(req.body);
     const updated = await updateItemCharacteristicsService(id, data);
@@ -99,7 +99,7 @@ export const listItemCharacteristicsController = catchAsync(
 export const getItemCharacteristicsByIdController = catchAsync(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) throw new AppError("ID de caracterÌstica inv·lido", 400);
+    if (isNaN(id)) throw new AppError("ID de caracterÔøΩstica invÔøΩlido", 400);
 
     const characteristic = await getItemCharacteristicsByIdService(id);
     return res.json(characteristic);
@@ -109,7 +109,7 @@ export const getItemCharacteristicsByIdController = catchAsync(
 export const deleteItemCharacteristicsController = catchAsync(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) throw new AppError("ID de caracterÌstica inv·lido", 400);
+    if (isNaN(id)) throw new AppError("ID de caracterÔøΩstica invÔøΩlido", 400);
 
     await deleteItemCharacteristicsService(id);
     return res.status(204).send();
@@ -119,10 +119,15 @@ export const deleteItemCharacteristicsController = catchAsync(
 export const addItemImageController = catchAsync(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) throw new AppError("ID de caracterÌstica inv·lido", 400);
+    if (isNaN(id)) throw new AppError("ID de caracter√≠stica inv√°lido", 400);
 
-    const { url } = addImageSchema.parse(req.body);
-    const image = await addItemImageService(id, url);
+    if (!req.file) {
+      throw new AppError("Nenhuma imagem enviada", 400);
+    }
+
+    const imageUrl = `/uploads/${req.file.filename}`;
+
+    const image = await addItemImageService(id, imageUrl);
     return res.status(201).json(image);
   },
 );
