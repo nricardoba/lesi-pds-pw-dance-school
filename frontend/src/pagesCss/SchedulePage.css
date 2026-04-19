@@ -1,0 +1,420 @@
+
+.schedule-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* --- Cabeçalho e Botões --- */
+.schedule-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.schedule-page__title {
+  margin: 0;
+  font-size: 24px;
+  color: #0F172A;
+}
+
+.schedule-page__subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #64748B;
+}
+
+.btn-primary {
+  background-color: #176B87;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-dropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background-color: white;
+  border: 1px solid #E2E8F0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #334155;
+  cursor: pointer;
+}
+
+/* --- Estrutura do Calendário --- */
+.calendar-container {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+}
+
+.calendar-header {
+  display: flex;
+  border-bottom: 1px solid #E2E8F0;
+  background-color: #FAFAFA;
+}
+
+.time-column-header {
+  width: 80px;
+  padding: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94A3B8;
+  border-right: 1px solid #E2E8F0;
+  text-align: center;
+}
+
+.day-column-header {
+  flex: 1;
+  padding: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94A3B8;
+  border-right: 1px solid #E2E8F0;
+  text-align: left;
+}
+.day-column-header:last-child {
+  border-right: none;
+}
+
+/* --- Corpo do Calendário --- */
+.calendar-body {
+  display: flex;
+  position: relative;
+}
+
+.time-column {
+  width: 80px;
+  border-right: 1px solid #E2E8F0;
+  background-color: #FAFAFA;
+}
+
+.time-slot {
+  height: 80px; /* 1 hora = 80px */
+  padding-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.days-grid {
+  flex: 1;
+  display: flex;
+  position: relative;
+}
+
+/* Linhas de fundo do calendário */
+.grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.grid-line {
+  height: 80px;
+  border-bottom: 1px solid #F1F5F9;
+  box-sizing: border-box;
+}
+
+/* Colunas onde as aulas entram */
+.day-column {
+  flex: 1;
+  position: relative;
+  border-right: 1px solid #F1F5F9;
+  z-index: 1; /* Fica acima das linhas de fundo */
+}
+.day-column:last-child {
+  border-right: none;
+}
+
+.calendar-slots-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.calendar-slot-row {
+  height: 80px;
+  border-bottom: 1px solid transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-slot-trigger {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.2s;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.calendar-slot-row:hover .calendar-slot-trigger,
+.calendar-slot-trigger.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.calendar-slot-trigger.active,
+.calendar-slot-trigger:hover {
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.slot-menu-schedule {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  min-width: 170px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slot-menu-schedule button {
+  border: none;
+  background: #f8fafc;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  color: #1e293b;
+  padding: 8px 10px;
+}
+
+.slot-menu-schedule button:hover {
+  background: #edf2f7;
+}
+
+/* --- Cartões das Aulas --- */
+.class-card_schedule {
+  position: absolute;
+  left: 8px;
+  background-color: #EBF3F6; /* Cor azul claro da imagem */
+  border: 1px solid #D1E1E8;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  z-index: 3;
+}
+
+.class-card_schedule__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 3px;
+}
+
+.class-card_schedule__delete-btn {
+  border: none;
+  background: #FFFFFF;
+  color: #DC2626;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  transition: background-color 0.2s;
+}
+
+.class-card_schedule__delete-btn:hover {
+  background: #FEE2E2;
+}
+
+.class-card_schedule__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+  text-transform: capitalize;
+}
+
+.class-card_schedule__details {
+  margin: 3px 0 0 0;
+  font-size: 11px;
+  color: #64748B;
+  line-height: 1.25;
+}
+
+.class-card_schedule__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.class-level {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.level-intermédio {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+
+.level-iniciante {
+  background-color: #D1FAE5;
+  color: #059669;
+}
+
+.level-avançado {
+  background-color: #DBEAFE;
+  color: #1D4ED8;
+}
+
+.level-todos {
+  background-color: #E2E8F0;
+  color: #334155;
+}
+
+.class-occupancy {
+  font-size: 11px;
+  color: #94A3B8;
+}
+
+.schedule-page .delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.schedule-page .delete-confirm-card {
+  width: 100%;
+  max-width: 420px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  padding: 20px;
+}
+
+.schedule-page .delete-confirm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.schedule-page .delete-confirm-text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.schedule-page .delete-confirm-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.schedule-page .delete-cancel-btn,
+.schedule-page .delete-confirm-btn {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.schedule-page .delete-cancel-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+}
+
+.schedule-page .delete-cancel-btn:hover {
+  background: #F8FAFC;
+}
+
+.schedule-page .delete-confirm-btn {
+  background: #DC2626;
+  border: 1px solid #DC2626;
+  color: #FFFFFF;
+}
+
+.schedule-page .delete-confirm-btn:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
+
+.template-list-modal {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.template-option-btn {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.template-option-btn strong {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.template-option-btn span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.template-option-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
