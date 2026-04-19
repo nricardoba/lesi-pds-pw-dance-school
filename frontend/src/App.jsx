@@ -1,7 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { useAuth } from "./contexts/AuthContext";
-import ProtectedRoute from './components/ProtectedRoute';
+/* descomentar para amostrar login e testar autenticação e no main.jsx tambem */
+/*
+import { AuthProvider } from './context/AuthContext';  //conection to back end  
+import ProtectedRoute from './components/ProtectedRoute'; //conection to back end
+*/
+import { useAuth, AuthProvider } from "./contexts/AuthContext"; // Simulação de autenticação com base em papéis (roles)
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Register from './pages/Register';
@@ -11,6 +14,8 @@ import MainLayout from './layout/MainLayout';
 import TeachersPage from "./pages/TeachersPage";
 import StudentsPage from "./pages/StudentsPage";
 import CostumesPage from "./pages/CostumesPage";
+import RoomsPage from "./pages/RoomsPage";
+import SchedulePage from "./pages/SchedulePage";
 
 const ProtectedRoute = ({ children }) => {
   const { role } = useAuth();
@@ -44,7 +49,8 @@ function App() {
             <Route path="/professores" element={<TeachersPage />} />
             <Route path="/alunos" element={<StudentsPage />} />
             <Route path="/figurinos" element={<CostumesPage />} />
-            <Route path="/salas" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
+            <Route path="/salas" element={<RoomsPage />} />
+            <Route path="/horario" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
           </Route>
           
           
