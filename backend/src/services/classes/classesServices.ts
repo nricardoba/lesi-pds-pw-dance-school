@@ -24,7 +24,7 @@ const createClassSchema = z.object({
 const createUserClassSchema = z.object({
   userId: z.coerce.number().int().positive(),
   userClassRoleId: z.coerce.number().int().positive().optional().nullable(),
-  userValidation: z.boolean().optional().nullable(),
+  userValidation: z.boolean().optional(),
 });
 
 const updateClassSchema = z.object({
