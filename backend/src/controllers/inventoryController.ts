@@ -1,5 +1,16 @@
 import { Request, Response } from "express";
+import { z } from "zod";
 import {
+  // => CHARACTERISTICS
+  createItemCharacteristicsService,
+  updateItemCharacteristicsService,
+  listItemCharacteristicsService,
+  getItemCharacteristicsByIdService,
+  deleteItemCharacteristicsService,
+  addItemImageService,
+  removeItemImageService,
+
+  // => INVENTORY REFERENCES
   listCategoriesService,
   createCategoryService,
   updateCategoryService,
@@ -20,157 +31,189 @@ import {
   createDanceTypeService,
   updateDanceTypeService,
   deleteDanceTypeService,
-} from "../services/inventory/inventoryReferencesServices";
-import {
+
+  // => ITEMS
   listItemsService,
   getItemByIdService,
   createItemService,
   updateItemService,
   deleteItemService,
-} from "../services/inventory/itemsServices";
-import {
+
+  // => RENTALS
   createRentalService,
   returnRentalService,
   listRentalsService,
   getRentalByIdService,
   deleteRentalService,
-} from "../services/inventory/rentalsServices";
+} from "../services/inventory";
+import { catchAsync } from "../utils/catchAsync";
 import { AppError } from "../utils/appError";
+
+// ============================================================================
+// CHARACTERISTICS
+// ============================================================================
+
+const createCharacteristicSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  price: z.number().nonnegative().optional(),
+  categoryId: z.number().int().positive(),
+  colorId: z.number().int().positive(),
+  sizeId: z.number().int().positive(),
+  danceTypeIds: z.array(z.number().int().positive()).optional(),
+  images: z.array(z.string().url()).optional(),
+});
+
+const updateCharacteristicSchema = createCharacteristicSchema.partial();
+
+const addImageSchema = z.object({
+  url: z.string().url(),
+});
+
+export const createItemCharacteristicsController = catchAsync(
+  async (req: Request, res: Response) => {
+    const data = createCharacteristicSchema.parse(req.body);
+    const characteristic = await createItemCharacteristicsService(data);
+    return res.status(201).json(characteristic);
+  },
+);
+
+export const updateItemCharacteristicsController = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) throw new AppError("ID de caracterÌstica inv·lido", 400);
+
+    const data = updateCharacteristicSchema.parse(req.body);
+    const updated = await updateItemCharacteristicsService(id, data);
+    return res.json(updated);
+  },
+);
+
+export const listItemCharacteristicsController = catchAsync(
+  async (_req: Request, res: Response) => {
+    const characteristics = await listItemCharacteristicsService();
+    return res.json(characteristics);
+  },
+);
+
+export const getItemCharacteristicsByIdController = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) throw new AppError("ID de caracterÌstica inv·lido", 400);
+
+    const characteristic = await getItemCharacteristicsByIdService(id);
+    return res.json(characteristic);
+  },
+);
+
+export const deleteItemCharacteristicsController = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) throw new AppError("ID de caracterÌstica inv·lido", 400);
+
+    await deleteItemCharacteristicsService(id);
+    return res.status(204).send();
+  },
+);
+
+export const addItemImageController = catchAsync(
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) throw new AppError("ID de caracterÌstica inv·lido", 400);
+
+    const { url } = addImageSchema.parse(req.body);
+    const image = await addItemImageService(id, url);
+    return res.status(201).json(image);
+  },
+);
+
+export const removeItemImageController = catchAsync(
+  async (req: Request, res: Response) => {
+    const imageId = parseInt(req.params.imageId, 10);
+    if (isNaN(imageId)) throw new AppError("Invalid image ID", 400);
+
+    await removeItemImageService(imageId);
+    return res.status(204).send();
+  },
+);
 
 // ============================================================================
 // ITEMS
 // ============================================================================
 
-export const listItemsController = async (_req: Request, res: Response) => {
-  try {
+export const listItemsController = catchAsync(
+  async (_req: Request, res: Response) => {
     const data = await listItemsService();
     return res.json(data);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Erro ao obter itens." });
-  }
-};
+  },
+);
 
-export const getItemByIdController = async (req: Request, res: Response) => {
-  try {
+export const getItemByIdController = catchAsync(
+  async (req: Request, res: Response) => {
     const data = await getItemByIdService(req.params);
     return res.json(data);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao obter item." });
-  }
-};
+  },
+);
 
-export const createItemController = async (req: Request, res: Response) => {
-  try {
+export const createItemController = catchAsync(
+  async (req: Request, res: Response) => {
     const data = await createItemService(req.body);
     return res.status(201).json(data);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao criar item." });
-  }
-};
+  },
+);
 
-export const updateItemController = async (req: Request, res: Response) => {
-  try {
+export const updateItemController = catchAsync(
+  async (req: Request, res: Response) => {
     const data = await updateItemService(req.params, req.body);
     return res.json(data);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao atualizar item." });
-  }
-};
+  },
+);
 
-export const deleteItemController = async (req: Request, res: Response) => {
-  try {
+export const deleteItemController = catchAsync(
+  async (req: Request, res: Response) => {
     const data = await deleteItemService(req.params);
     return res.json(data);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao apagar item." });
-  }
-};
+  },
+);
 
 // ============================================================================
 // RENTALS
 // ============================================================================
 
-export const createRentalController = async (req: Request, res: Response) => {
-  try {
+export const createRentalController = catchAsync(
+  async (req: Request, res: Response) => {
     const rental = await createRentalService(req.body);
     return res.status(201).json(rental);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao criar aluguer." });
-  }
-};
+  },
+);
 
-export const returnRentalController = async (req: Request, res: Response) => {
-  try {
+export const returnRentalController = catchAsync(
+  async (req: Request, res: Response) => {
     const updatedRental = await returnRentalService(req.params, req.body);
     return res.json(updatedRental);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao devolver aluguer." });
-  }
-};
+  },
+);
 
-export const listRentalsController = async (_req: Request, res: Response) => {
-  try {
+export const listRentalsController = catchAsync(
+  async (_req: Request, res: Response) => {
     const rentals = await listRentalsService();
     return res.json(rentals);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao obter alugueres." });
-  }
-};
+  },
+);
 
-export const getRentalByIdController = async (req: Request, res: Response) => {
-  try {
+export const getRentalByIdController = catchAsync(
+  async (req: Request, res: Response) => {
     const rental = await getRentalByIdService(req.params);
     return res.json(rental);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao obter aluguer." });
-  }
-};
+  },
+);
 
-export const deleteRentalController = async (req: Request, res: Response) => {
-  try {
-    const data = await deleteRentalService(req.params);
+export const deleteRentalController = catchAsync(
+  async (req: Request, res: Response) => {
+    await deleteRentalService(req.params);
     return res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao apagar aluguer." });
-  }
-};
+  },
+);
 
 // ============================================================================
 // INVENTORY REFERENCES
@@ -180,305 +223,158 @@ export const deleteRentalController = async (req: Request, res: Response) => {
 // CATEGORY
 // ----------------------------------------------------------------------------
 
-export const listCategoriesController = async (
-  _req: Request,
-  res: Response,
-) => {
-  try {
+export const listCategoriesController = catchAsync(
+  async (_req: Request, res: Response) => {
     const categories = await listCategoriesService();
     return res.json(categories);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao obter categorias." });
-  }
-};
+  },
+);
 
-export const createCategoryController = async (req: Request, res: Response) => {
-  try {
+export const createCategoryController = catchAsync(
+  async (req: Request, res: Response) => {
     const category = await createCategoryService(req.body);
     return res.status(201).json(category);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao criar categoria." });
-  }
-};
+  },
+);
 
-export const updateCategoryController = async (req: Request, res: Response) => {
-  try {
+export const updateCategoryController = catchAsync(
+  async (req: Request, res: Response) => {
     const updated = await updateCategoryService(req.params, req.body);
     return res.json(updated);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao atualizar categoria." });
-  }
-};
+  },
+);
 
-export const deleteCategoryController = async (req: Request, res: Response) => {
-  try {
+export const deleteCategoryController = catchAsync(
+  async (req: Request, res: Response) => {
     await deleteCategoryService(req.params);
     return res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao apagar categoria." });
-  }
-};
+  },
+);
 
 // ----------------------------------------------------------------------------
 // COLOR
 // ----------------------------------------------------------------------------
 
-export const listColorsController = async (_req: Request, res: Response) => {
-  try {
+export const listColorsController = catchAsync(
+  async (_req: Request, res: Response) => {
     const colors = await listColorsService();
     return res.json(colors);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao obter cores." });
-  }
-};
+  },
+);
 
-export const createColorController = async (req: Request, res: Response) => {
-  try {
+export const createColorController = catchAsync(
+  async (req: Request, res: Response) => {
     const color = await createColorService(req.body);
     return res.status(201).json(color);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao criar cor." });
-  }
-};
+  },
+);
 
-export const updateColorController = async (req: Request, res: Response) => {
-  try {
+export const updateColorController = catchAsync(
+  async (req: Request, res: Response) => {
     const updated = await updateColorService(req.params, req.body);
     return res.json(updated);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao atualizar cor." });
-  }
-};
+  },
+);
 
-export const deleteColorController = async (req: Request, res: Response) => {
-  try {
+export const deleteColorController = catchAsync(
+  async (req: Request, res: Response) => {
     await deleteColorService(req.params);
     return res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao apagar cor." });
-  }
-};
+  },
+);
 
 // ----------------------------------------------------------------------------
 // SIZE
 // ----------------------------------------------------------------------------
 
-export const listSizesController = async (_req: Request, res: Response) => {
-  try {
+export const listSizesController = catchAsync(
+  async (_req: Request, res: Response) => {
     const sizes = await listSizesService();
     return res.json(sizes);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao obter tamanhos." });
-  }
-};
+  },
+);
 
-export const createSizeController = async (req: Request, res: Response) => {
-  try {
+export const createSizeController = catchAsync(
+  async (req: Request, res: Response) => {
     const size = await createSizeService(req.body);
     return res.status(201).json(size);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao criar tamanho." });
-  }
-};
+  },
+);
 
-export const updateSizeController = async (req: Request, res: Response) => {
-  try {
+export const updateSizeController = catchAsync(
+  async (req: Request, res: Response) => {
     const updated = await updateSizeService(req.params, req.body);
     return res.json(updated);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao atualizar tamanho." });
-  }
-};
+  },
+);
 
-export const deleteSizeController = async (req: Request, res: Response) => {
-  try {
+export const deleteSizeController = catchAsync(
+  async (req: Request, res: Response) => {
     await deleteSizeService(req.params);
     return res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao apagar tamanho." });
-  }
-};
+  },
+);
 
 // ----------------------------------------------------------------------------
 // ITEM CONDITION
 // ----------------------------------------------------------------------------
 
-export const listItemConditionsController = async (
-  _req: Request,
-  res: Response,
-) => {
-  try {
+export const listItemConditionsController = catchAsync(
+  async (_req: Request, res: Response) => {
     const conditions = await listItemConditionsService();
     return res.json(conditions);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao obter estados de item." });
-  }
-};
+  },
+);
 
-export const createItemConditionController = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
+export const createItemConditionController = catchAsync(
+  async (req: Request, res: Response) => {
     const condition = await createItemConditionService(req.body);
     return res.status(201).json(condition);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao criar estado de item." });
-  }
-};
+  },
+);
 
-export const updateItemConditionController = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
+export const updateItemConditionController = catchAsync(
+  async (req: Request, res: Response) => {
     const updated = await updateItemConditionService(req.params, req.body);
     return res.json(updated);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao atualizar estado de item." });
-  }
-};
+  },
+);
 
-export const deleteItemConditionController = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
+export const deleteItemConditionController = catchAsync(
+  async (req: Request, res: Response) => {
     await deleteItemConditionService(req.params);
     return res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao apagar estado de item." });
-  }
-};
+  },
+);
 
 // ----------------------------------------------------------------------------
 // DANCE TYPE
 // ----------------------------------------------------------------------------
 
-export const listDanceTypesController = async (
-  _req: Request,
-  res: Response,
-) => {
-  try {
+export const listDanceTypesController = catchAsync(
+  async (_req: Request, res: Response) => {
     const danceTypes = await listDanceTypesService();
     return res.json(danceTypes);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao obter tipos de dan√ßa." });
-  }
-};
+  },
+);
 
-export const createDanceTypeController = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
+export const createDanceTypeController = catchAsync(
+  async (req: Request, res: Response) => {
     const danceType = await createDanceTypeService(req.body);
     return res.status(201).json(danceType);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao criar tipo de dan√ßa." });
-  }
-};
+  },
+);
 
-export const updateDanceTypeController = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
+export const updateDanceTypeController = catchAsync(
+  async (req: Request, res: Response) => {
     const updated = await updateDanceTypeService(req.params, req.body);
     return res.json(updated);
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao atualizar tipo de dan√ßa." });
-  }
-};
+  },
+);
 
-export const deleteDanceTypeController = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
+export const deleteDanceTypeController = catchAsync(
+  async (req: Request, res: Response) => {
     await deleteDanceTypeService(req.params);
     return res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({ error: error.message });
-    }
-    return res.status(500).json({ error: "Erro ao apagar tipo de dan√ßa." });
-  }
-};
+  },
+);

@@ -1,59 +1,44 @@
 ﻿import { Router } from 'express';
 import { checkRole } from '../middlewares/checkRole';
 import { USER_ROLES } from '../utils/permissions';
-import {
-  listUsersController,
-  getUserByIdController,
-  createUserController,
-  updateUserController,
-  upsertUserNifController,
-  deleteUserNifController,
-  upsertStudentNumberController,
-  deleteStudentNumberController,
-  addUserContactController,
-  deleteUserContactController,
-  addUserAddressController,
-  deleteUserAddressController,
-  listUserTypesController,
-  listUserClassRolesController,
-  createUserClassRoleController,
-  updateUserClassRoleController,
-  deleteUserClassRoleController,
-} from '../controllers/usersController';
+import * as UsersController from '../controllers/usersController';
 
 // ============================================================================
 // USERS ROUTER (/users)
 // ============================================================================
 export const usersRouter = Router();
-usersRouter.get('/', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), listUsersController);
-usersRouter.get('/:id', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), getUserByIdController);
-usersRouter.post('/', checkRole([USER_ROLES.ADMIN]), createUserController);
-usersRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), updateUserController);
+
+usersRouter.get('/', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), UsersController.listUsersController);
+usersRouter.get('/:id', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), UsersController.getUserByIdController);
+usersRouter.post('/', checkRole([USER_ROLES.ADMIN]), UsersController.createUserController);
+usersRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.updateUserController);
 
 // => User Profile Details Routes
-usersRouter.put('/:id/nif', checkRole([USER_ROLES.ADMIN]), upsertUserNifController);
-usersRouter.delete('/:id/nif', checkRole([USER_ROLES.ADMIN]), deleteUserNifController);
+usersRouter.put('/:id/nif', checkRole([USER_ROLES.ADMIN]), UsersController.upsertUserNifController);
+usersRouter.delete('/:id/nif', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserNifController);
 
-usersRouter.put('/:id/student-number', checkRole([USER_ROLES.ADMIN]), upsertStudentNumberController);
-usersRouter.delete('/:id/student-number', checkRole([USER_ROLES.ADMIN]), deleteStudentNumberController);
+usersRouter.put('/:id/student-number', checkRole([USER_ROLES.ADMIN]), UsersController.upsertStudentNumberController);
+usersRouter.delete('/:id/student-number', checkRole([USER_ROLES.ADMIN]), UsersController.deleteStudentNumberController);
 
-usersRouter.post('/:id/contacts', checkRole([USER_ROLES.ADMIN]), addUserContactController);
-usersRouter.delete('/:id/contacts/:contactId', checkRole([USER_ROLES.ADMIN]), deleteUserContactController);
+usersRouter.post('/:id/contacts', checkRole([USER_ROLES.ADMIN]), UsersController.addUserContactController);
+usersRouter.delete('/:id/contacts/:contactId', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserContactController);
 
-usersRouter.post('/:id/addresses', checkRole([USER_ROLES.ADMIN]), addUserAddressController);
-usersRouter.delete('/:id/addresses/:userAddressId', checkRole([USER_ROLES.ADMIN]), deleteUserAddressController);
+usersRouter.post('/:id/addresses', checkRole([USER_ROLES.ADMIN]), UsersController.addUserAddressController);
+usersRouter.delete('/:id/addresses/:userAddressId', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserAddressController);
 
 // ============================================================================
 // USER TYPES ROUTER (/user-types)
 // ============================================================================
 export const userTypesRouter = Router();
-userTypesRouter.get('/', listUserTypesController);
+
+userTypesRouter.get('/', UsersController.listUserTypesController);
 
 // ============================================================================
 // USER CLASS ROLES ROUTER (/user-class-roles)
 // ============================================================================
 export const userClassRolesRouter = Router();
-userClassRolesRouter.get('/', listUserClassRolesController);
-userClassRolesRouter.post('/', checkRole([USER_ROLES.ADMIN]), createUserClassRoleController);
-userClassRolesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), updateUserClassRoleController);
-userClassRolesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), deleteUserClassRoleController);
+
+userClassRolesRouter.get('/', UsersController.listUserClassRolesController);
+userClassRolesRouter.post('/', checkRole([USER_ROLES.ADMIN]), UsersController.createUserClassRoleController);
+userClassRolesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.updateUserClassRoleController);
+userClassRolesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserClassRoleController);

@@ -1,170 +1,94 @@
 ﻿import { Request, Response } from 'express';
-import { AppError } from '../utils/appError';
+import { catchAsync } from '../utils/catchAsync';
 
-// => STUDIOS
 import {
+  // => STUDIOS
   listStudiosService,
   createStudioService,
   updateStudioService,
   deleteStudioService,
-} from '../services/studios/studiosServices';
-
-// => MODALITIES
-import {
+  
+  // => MODALITIES
   listModalitiesService,
   createModalityService,
   updateModalityService,
   deleteModalityService,
-} from '../services/studios/modalitiesServices';
 
-// => STUDIO MODALITIES
-import {
+  // => STUDIO MODALITIES
   listStudioModalitiesService,
   createStudioModalityService,
   updateStudioModalityService,
   deleteStudioModalityService,
-} from '../services/studios/studioModalitiesServices';
-
-
+} from '../services/studios';
 
 // ============================================================================
 // STUDIOS
 // ============================================================================
 
-export const listStudiosController = async (_req: Request, res: Response) => {
-    try {
-        const data = await listStudiosService();
-        return res.json(data);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao obter estúdios.' });
-    }
-};
+export const listStudiosController = catchAsync(async (_req: Request, res: Response) => {
+  const data = await listStudiosService();
+  return res.json(data);
+});
 
-export const createStudioController = async (req: Request, res: Response) => {
-    try {
-        const data = await createStudioService(req.body);
-        return res.status(201).json(data);
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao criar estúdio.' });
-    }
-};
+export const createStudioController = catchAsync(async (req: Request, res: Response) => {
+  const data = await createStudioService(req.body);
+  return res.status(201).json(data);
+});
 
-export const updateStudioController = async (req: Request, res: Response) => {
-    try {
-        const data = await updateStudioService(req.params, req.body);
-        return res.json(data);
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao atualizar estúdio.' });
-    }
-};
+export const updateStudioController = catchAsync(async (req: Request, res: Response) => {
+  const data = await updateStudioService(req.params, req.body);
+  return res.json(data);
+});
 
-export const deleteStudioController = async (req: Request, res: Response) => {
-    try {
-        await deleteStudioService(req.params);
-        return res.status(204).send();
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao apagar estúdio.' });
-    }
-};
+export const deleteStudioController = catchAsync(async (req: Request, res: Response) => {
+  await deleteStudioService(req.params);
+  return res.status(204).send();
+});
 
 // ============================================================================
 // MODALITIES
 // ============================================================================
 
-export const listModalitiesController = async (_req: Request, res: Response) => {
-    try {
-        const data = await listModalitiesService();
-        return res.json(data);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao obter modalidades.' });
-    }
-};
+export const listModalitiesController = catchAsync(async (_req: Request, res: Response) => {
+  const data = await listModalitiesService();
+  return res.json(data);
+});
 
-export const createModalityController = async (req: Request, res: Response) => {
-    try {
-        const data = await createModalityService(req.body);
-        return res.status(201).json(data);
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao criar modalidade.' });
-    }
-};
+export const createModalityController = catchAsync(async (req: Request, res: Response) => {
+  const data = await createModalityService(req.body);
+  return res.status(201).json(data);
+});
 
-export const updateModalityController = async (req: Request, res: Response) => {
-    try {
-        const data = await updateModalityService(req.params, req.body);
-        return res.json(data);
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao atualizar modalidade.' });
-    }
-};
+export const updateModalityController = catchAsync(async (req: Request, res: Response) => {
+  const data = await updateModalityService(req.params, req.body);
+  return res.json(data);
+});
 
-export const deleteModalityController = async (req: Request, res: Response) => {
-    try {
-        await deleteModalityService(req.params);
-        return res.status(204).send();
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao apagar modalidade.' });
-    }
-};
+export const deleteModalityController = catchAsync(async (req: Request, res: Response) => {
+  await deleteModalityService(req.params);
+  return res.status(204).send();
+});
 
 // ============================================================================
 // STUDIO MODALITIES
 // ============================================================================
 
-export const listStudioModalitiesController = async (_req: Request, res: Response) => {
-    try {
-        const data = await listStudioModalitiesService();
-        return res.json(data);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao obter relações estúdio-modalidade.' });
-    }
-};
+export const listStudioModalitiesController = catchAsync(async (_req: Request, res: Response) => {
+  const data = await listStudioModalitiesService();
+  return res.json(data);
+});
 
-export const createStudioModalityController = async (req: Request, res: Response) => {
-    try {
-        const data = await createStudioModalityService(req.body);
-        return res.status(201).json(data);
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao criar relação estúdio-modalidade.' });
-    }
-};
+export const createStudioModalityController = catchAsync(async (req: Request, res: Response) => {
+  const data = await createStudioModalityService(req.body);
+  return res.status(201).json(data);
+});
 
-export const updateStudioModalityController = async (req: Request, res: Response) => {
-    try {
-        const data = await updateStudioModalityService(req.params, req.body);
-        return res.json(data);
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao atualizar relação estúdio-modalidade.' });
-    }
-};
+export const updateStudioModalityController = catchAsync(async (req: Request, res: Response) => {
+  const data = await updateStudioModalityService(req.params, req.body);
+  return res.json(data);
+});
 
-export const deleteStudioModalityController = async (req: Request, res: Response) => {
-    try {
-        await deleteStudioModalityService(req.params);
-        return res.status(204).send();
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AppError) return res.status(error.statusCode).json({ error: error.message });
-        return res.status(500).json({ error: 'Erro ao apagar relação estúdio-modalidade.' });
-    }
-};
-
+export const deleteStudioModalityController = catchAsync(async (req: Request, res: Response) => {
+  await deleteStudioModalityService(req.params);
+  return res.status(204).send();
+});
