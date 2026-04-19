@@ -10,9 +10,18 @@ export const globalErrorHandler = (
   console.error("Global Error:", err);
 
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json({ error: err.message });
+    return res.status(err.statusCode).json({ error: { message: err.message } });
+  }
+
+  if (err.name === 'ZodError') {
+    return res.status(400).json({ error: { message: "Erro de validação.", details: err.errors } });
   }
 
   // Capturar erros não planeados (500)
-  return res.status(500).json({ error: err.message || "Ocorreu um erro interno no servidor." });
+  const message =
+    process.env.NODE_ENV === 'development' && err?.message
+      ? err.message
+      : "Ocorreu um erro interno no servidor.";
+      
+  return res.status(500).json({ error: { message } });
 };

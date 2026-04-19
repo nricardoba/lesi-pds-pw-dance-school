@@ -1,7 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler } from 'express';
 
-export const catchAsync = (fn: Function) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+export const catchAsync = <T extends RequestHandler>(fn: T): RequestHandler => {
+  return (req, res, next) => {
+    try {
+      return Promise.resolve(fn(req, res, next)).catch(next);
+    } catch (error) {
+      return next(error);
+    }
   };
 };

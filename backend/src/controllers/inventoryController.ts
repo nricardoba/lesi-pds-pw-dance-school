@@ -81,7 +81,7 @@ export const createItemCharacteristicsController = catchAsync(
 export const updateItemCharacteristicsController = catchAsync(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) throw new AppError("Invalid characteristic ID", 400);
+    if (isNaN(id)) throw new AppError("ID de característica inválido", 400);
 
     const data = updateCharacteristicSchema.parse(req.body);
     const updated = await updateItemCharacteristicsService(id, data);
@@ -99,7 +99,7 @@ export const listItemCharacteristicsController = catchAsync(
 export const getItemCharacteristicsByIdController = catchAsync(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) throw new AppError("Invalid characteristic ID", 400);
+    if (isNaN(id)) throw new AppError("ID de característica inválido", 400);
 
     const characteristic = await getItemCharacteristicsByIdService(id);
     return res.json(characteristic);
@@ -109,7 +109,7 @@ export const getItemCharacteristicsByIdController = catchAsync(
 export const deleteItemCharacteristicsController = catchAsync(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) throw new AppError("Invalid characteristic ID", 400);
+    if (isNaN(id)) throw new AppError("ID de característica inválido", 400);
 
     await deleteItemCharacteristicsService(id);
     return res.status(204).send();
@@ -119,7 +119,7 @@ export const deleteItemCharacteristicsController = catchAsync(
 export const addItemImageController = catchAsync(
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) throw new AppError("Invalid characteristic ID", 400);
+    if (isNaN(id)) throw new AppError("ID de característica inválido", 400);
 
     const { url } = addImageSchema.parse(req.body);
     const image = await addItemImageService(id, url);
