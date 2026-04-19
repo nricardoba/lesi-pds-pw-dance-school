@@ -24,7 +24,7 @@ const createClassSchema = z.object({
 const createUserClassSchema = z.object({
   userId: z.coerce.number().int().positive(),
   userClassRoleId: z.coerce.number().int().positive().optional().nullable(),
-  userValidation: z.boolean().optional(),
+  userValidation: z.boolean().optional().nullable(),
 });
 
 const updateClassSchema = z.object({
@@ -153,19 +153,19 @@ export const addUserToClassService = async (params: unknown, body: unknown) => {
     throw new AppError("Utilizador não encontrado.", 404);
   }
 
-  return prisma.userClass.create({
-    data: {
-      classId: id,
-      userId,
-      userClassRoleId: userClassRoleId ?? null,
-      userValidation: userValidation ?? false,
-    },
-    include: {
-      user: true,
-      class: true,
-      userClassRole: true,
-    },
-  });
+return prisma.userClass.create({
+  data: {
+    classId: id,
+    userId,
+    userClassRoleId: userClassRoleId ?? null,
+    userValidation: userValidation ?? null,
+  },
+  include: {
+    user: true,
+    class: true,
+    userClassRole: true,
+  },
+});
 };
 
 export const updateClassService = async (params: unknown, body: unknown) => {
