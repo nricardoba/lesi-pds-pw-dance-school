@@ -75,8 +75,14 @@ async function main() {
   // 5. Admin
   const passwordHash = await bcrypt.hash("Admin123!", 10);
 
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { userId: 1 },
+    update: {
+      userName: "Administrador",
+      userTypeId: 1,
+      userIsActive: true,
+    },
+    create: {
       userId: 1,
       userName: "Administrador",
       userTypeId: 1,
@@ -84,16 +90,27 @@ async function main() {
     },
   });
 
-  await prisma.contact.create({
-    data: {
+  await prisma.contact.upsert({
+    where: { contactId: 1 },
+    update: {
+      contactValue: "admin@admin.com",
+      contactTypeId: 2,
+    },
+    create: {
       contactId: 1,
       contactValue: "admin@admin.com",
       contactTypeId: 2,
     },
   });
 
-  await prisma.userContact.create({
-    data: {
+  await prisma.userContact.upsert({
+    where: { userContactId: 1 },
+    update: {
+      userId: 1,
+      contactId: 1,
+      isMainContact: true,
+    },
+    create: {
       userContactId: 1,
       userId: 1,
       contactId: 1,
@@ -101,8 +118,13 @@ async function main() {
     },
   });
 
-  await prisma.userCredential.create({
-    data: {
+  await prisma.userCredential.upsert({
+    where: { userId: 1 },
+    update: {
+      userContactId: 1,
+      userCredentialPasswordHash: passwordHash,
+    },
+    create: {
       userId: 1,
       userContactId: 1,
       userCredentialPasswordHash: passwordHash,
@@ -110,6 +132,128 @@ async function main() {
   });
 
   console.log("✔ Admin user seed complete.");
+
+  // 6. Professor
+  const profPasswordHash = await bcrypt.hash("Prof123!", 10);
+
+  await prisma.user.upsert({
+    where: { userId: 2 },
+    update: {
+      userName: "Professor Teste",
+      userTypeId: 2,
+      userIsActive: true,
+    },
+    create: {
+      userId: 2,
+      userName: "Professor Teste",
+      userTypeId: 2,
+      userIsActive: true,
+    },
+  });
+
+  await prisma.contact.upsert({
+    where: { contactId: 2 },
+    update: {
+      contactValue: "professor@professor.com",
+      contactTypeId: 2,
+    },
+    create: {
+      contactId: 2,
+      contactValue: "professor@professor.com",
+      contactTypeId: 2,
+    },
+  });
+
+  await prisma.userContact.upsert({
+    where: { userContactId: 2 },
+    update: {
+      userId: 2,
+      contactId: 2,
+      isMainContact: true,
+    },
+    create: {
+      userContactId: 2,
+      userId: 2,
+      contactId: 2,
+      isMainContact: true,
+    },
+  });
+
+  await prisma.userCredential.upsert({
+    where: { userId: 2 },
+    update: {
+      userContactId: 2,
+      userCredentialPasswordHash: profPasswordHash,
+    },
+    create: {
+      userId: 2,
+      userContactId: 2,
+      userCredentialPasswordHash: profPasswordHash,
+    },
+  });
+
+  console.log("✔ Professor user seed complete.");
+
+  // 7. Aluno
+  const alunoPasswordHash = await bcrypt.hash("Aluno123!", 10);
+
+  await prisma.user.upsert({
+    where: { userId: 3 },
+    update: {
+      userName: "Aluno Teste",
+      userTypeId: 3,
+      userIsActive: true,
+    },
+    create: {
+      userId: 3,
+      userName: "Aluno Teste",
+      userTypeId: 3,
+      userIsActive: true,
+    },
+  });
+
+  await prisma.contact.upsert({
+    where: { contactId: 3 },
+    update: {
+      contactValue: "aluno@aluno.com",
+      contactTypeId: 2,
+    },
+    create: {
+      contactId: 3,
+      contactValue: "aluno@aluno.com",
+      contactTypeId: 2,
+    },
+  });
+
+  await prisma.userContact.upsert({
+    where: { userContactId: 3 },
+    update: {
+      userId: 3,
+      contactId: 3,
+      isMainContact: true,
+    },
+    create: {
+      userContactId: 3,
+      userId: 3,
+      contactId: 3,
+      isMainContact: true,
+    },
+  });
+
+  await prisma.userCredential.upsert({
+    where: { userId: 3 },
+    update: {
+      userContactId: 3,
+      userCredentialPasswordHash: alunoPasswordHash,
+    },
+    create: {
+      userId: 3,
+      userContactId: 3,
+      userCredentialPasswordHash: alunoPasswordHash,
+    },
+  });
+
+  console.log("✔ Aluno user seed complete.");
   console.log("Seeding finished successfully.");
 }
 
