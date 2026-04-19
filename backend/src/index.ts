@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { prisma } from './config/db';
 import routes from './routes';
+import { globalErrorHandler } from './middlewares/globalErrorHandler';
 
 dotenv.config();
 
@@ -40,6 +41,9 @@ app.use((_req, res, next) => {
 });
 
 app.use('/', routes);
+
+// Middleware Global de Erros (sempre no final)
+app.use(globalErrorHandler);
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`); 

@@ -1,8 +1,7 @@
 // src/routes/index.ts
 import { Router } from "express";
 import { prisma } from "../config/db";
-import characteristicsRoutes from "./characteristics";
-import { itemsRouter, rentalsRouter, inventoryReferencesRouter } from "./inventory";
+import { itemsRouter, rentalsRouter, inventoryReferencesRouter, characteristicsRouter } from "./inventory";
 import { ensureAuth } from "../middlewares/ensureAuth";
 
 // Auth & Coaching
@@ -62,7 +61,7 @@ router.use("/schedule-vacancies", ensureAuth, scheduleVacanciesRouter);
 // Inventory Group
 router.use("/items", ensureAuth, itemsRouter);
 router.use("/rentals", ensureAuth, rentalsRouter);
-router.use("/characteristics", ensureAuth, characteristicsRoutes);
+router.use("/characteristics", ensureAuth, characteristicsRouter);
 router.use("/inventory-references", ensureAuth, inventoryReferencesRouter);
 
 export default router;
