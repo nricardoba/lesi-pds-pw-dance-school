@@ -110,8 +110,8 @@ export const createClassService = async (body: unknown) => {
   return prisma.class.create({
     data: {
       schoolYearId,
-      classDateStart: new Date(`1970-01-01T${classDateStart}`),
-      classDateEnd: new Date(`1970-01-01T${classDateEnd}`),
+      classDateStart: new Date(classDateStart),
+      classDateEnd: new Date(classDateEnd),
       classRecurrence: classRecurrence ?? false,
       studioModalityId,
       classFinalFee,
@@ -189,13 +189,13 @@ export const updateClassService = async (params: unknown, body: unknown) => {
 
   if (parsedBody.classDateStart !== undefined) {
     dataToUpdate.classDateStart = new Date(
-      `1970-01-01T${parsedBody.classDateStart}`
+      parsedBody.classDateStart
     );
   }
 
   if (parsedBody.classDateEnd !== undefined) {
     dataToUpdate.classDateEnd = new Date(
-      `1970-01-01T${parsedBody.classDateEnd}`
+      parsedBody.classDateEnd
     );
   }
 
