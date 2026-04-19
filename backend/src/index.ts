@@ -15,6 +15,7 @@ const port = process.env.PORT || 3333;
 app.use(cors()); // Permite pedidos do teu frontend
 app.use(express.json()); // Permite receber dados no formato JSON
 app.use(express.urlencoded({ extended: true })); // Permite receber dados de formulários
+app.use('/uploads', express.static('uploads')); // Serve ficheiros estáticos da pasta "uploads"
 
 app.use((_req, res, next) => {
   const originalJson = res.json.bind(res);

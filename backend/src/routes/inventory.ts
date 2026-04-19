@@ -2,7 +2,7 @@ import { Router } from "express";
 import { checkRole } from "../middlewares/checkRole";
 import { USER_ROLES } from "../utils/permissions";
 import * as InventoryController from "../controllers/inventoryController";
-
+import { upload } from "../middlewares/upload";
 
 // ============================================================================
 // CHARACTERISTICS ROUTER
@@ -33,6 +33,7 @@ characteristicsRouter.delete(
 // Image routes
 characteristicsRouter.post(
     "/:id/images",
+    upload.single("image"),
     InventoryController.addItemImageController,
 );
 characteristicsRouter.delete(
