@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { apiClient } from '../../services/api';
+﻿import { useState } from 'react';
+import { createUser, updateUser } from '../../services/users';
 import './StudentModal.css';
 
 const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
@@ -41,28 +41,16 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
 
       if (isEditing) {
         // --- ATUALIZAR ---
-        await apiClient(`/users/${initialData.id}`, {
-          method: 'PUT',
-          token,
-          body: {
-            userName: payload.userName,
-            userBirthDate: payload.userBirthDate,
-            userStartDate: payload.userStartDate,
-            // Não atualizamos o userTypeId aqui para não retirar funções se for um super admin por ex.
-          }
-        });
+        await updateUser(initialData.id, { userName: payload.userName, userBirthDate: payload.userBirthDate, userStartDate: payload.userStartDate }, token);
         createdOrUpdatedUserId = initialData.id;
         
         // Futuramente farás chamadas aqui para atualizar nif, student number, ou adicionar novos contactos em falta
         // Exemplo:
-        // await apiClient(`/users/${initialData.id}/nif`, { method: 'PUT', token, body: { userNif: payload.userNif }});
+        // await updateUser(initialData.id, { userNif: payload.userNif }, token);
       } else {
         // --- CRIAR NOVO ---
-        const response = await apiClient('/users', {
-          method: 'POST',
-          token,
-          body: payload
-        });
+        const response = await createUser(payload, token);
+          
         createdOrUpdatedUserId = response.userId;
       }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../pagesCss/StudentsPage.css';
 import StudentModal from '../components/studentModal/StudentModal';
-import { apiClient } from '../services/api';
+import { getUsers, updateUser } from '../services/users';
 import { useAuth } from '../context/useAuth';
 
 const StudentsPage = () => {
@@ -20,7 +20,7 @@ const StudentsPage = () => {
     try {
       setIsLoading(true);
       // Chama a listagem de utilizadores do backend
-      const data = await apiClient('/users', { token });
+      const data = await getUsers(token);
       
       // Filtra apenas os alunos (assume que o Backend usa 'Student' ou 'Aluno' no userTypeDesc)
       const studentsOnly = data.filter(u => 
@@ -109,11 +109,7 @@ const StudentsPage = () => {
       // await apiClient(`/users/${studentToDelete.id}`, { method: 'DELETE', token });
       
       // Ou alternativamente apenas meter inativo (soft delete) usando PUT /users/:id
-      await apiClient(`/users/${studentToDelete.id}`, { 
-        method: 'PUT', 
-        token, 
-        body: { userIsActive: false } 
-      });
+      await updateUser(studentToDelete.id, { userIsActive: false }, token);
 
       setStudentToDelete(null);
       await fetchStudents(); // Re-fetch
