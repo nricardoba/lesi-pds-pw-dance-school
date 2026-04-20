@@ -6,7 +6,6 @@ import { ensureAuth } from "../middlewares/ensureAuth";
 
 // Auth & Coaching
 import authRoutes from "./auth";
-import coachingRoutes from "./coaching";
 
 // Grouped Routes
 import { usersRouter, userTypesRouter, userClassRolesRouter } from "./users";
@@ -49,7 +48,6 @@ router.use("/user-class-roles", ensureAuth, userClassRolesRouter);
 // Classes Group
 router.use("/classes", ensureAuth, classesRouter);
 router.use("/class-statuses", ensureAuth, classStatusesRouter);
-router.use("/coaching", ensureAuth, coachingRoutes);
 
 // Studios Group
 router.use("/studios", ensureAuth, studiosRouter);
