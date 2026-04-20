@@ -1,6 +1,6 @@
 import '../addClassToSlotModal/AddClassToSlotModal.css';
 
-const AddMaintenanceToSlotModal = ({ isOpen, onClose, slotData, rooms, onSave }) => {
+const AddMaintenanceToSlotModal = ({ isOpen, onClose, slotData, studios, onSave }) => {
   if (!isOpen || !slotData) return null;
 
   const handleModalClick = (e) => e.stopPropagation();
@@ -12,8 +12,8 @@ const AddMaintenanceToSlotModal = ({ isOpen, onClose, slotData, rooms, onSave })
     // Cria o objeto da manutenção com os dados do slot e do formulário
     const maintenanceData = {
       id: Date.now(), // Gera um ID único provisório
-      roomId: parseInt(formData.get('roomId')),
-      room: rooms.find(r => r.id === parseInt(formData.get('roomId')))?.name, // Busca o nome da sala para a grelha
+      studioId: parseInt(formData.get('studioId')),
+      studio: studios.find(r => r.id === parseInt(formData.get('studioId')))?.name, // Busca o nome da estúdio para a grelha
       day: slotData.day,
       time: slotData.hour,
       duration: parseFloat(formData.get('duration')),
@@ -35,13 +35,13 @@ const AddMaintenanceToSlotModal = ({ isOpen, onClose, slotData, rooms, onSave })
 
         <form className="modal-form" onSubmit={handleSubmit}>
           
-          {/* Dropdown para selecionar/confirmar a Sala */}
+          {/* Dropdown para selecionar/confirmar a Estúdio */}
           <div className="form-group full-width">
-            <label>Sala</label>
-            <select name="roomId" defaultValue={slotData.room.id} required>
-              {rooms.map(room => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
+            <label>Estúdio</label>
+            <select name="studioId" defaultValue={slotData.studio.id} required>
+              {studios.map(studio => (
+                <option key={studio.id} value={studio.id}>
+                  {studio.name}
                 </option>
               ))}
             </select>

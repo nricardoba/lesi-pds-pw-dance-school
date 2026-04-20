@@ -15,7 +15,7 @@ const Sidebar = () => {
     { path: '/coachings', name: 'Coachings', icon: '✨' },
     { path: '/figurinos', name: 'Figurinos', icon: '👗' },
     { path: '/professores', name: 'Professores', icon: '👨‍🏫' },
-    { path: '/salas', name: 'Salas', icon: '🏢' },
+    { path: '/estudios', name: 'Estúdios', icon: '🏢' },
     { path: '/alunos', name: 'Alunos', icon: '👥' },
     { path: '/templates-aulas', name: 'Templates de Aulas', icon: '▶' },
   ];

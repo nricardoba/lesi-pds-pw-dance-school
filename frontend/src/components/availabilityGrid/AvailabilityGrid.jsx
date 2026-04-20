@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './AvailabilityGrid.css';
 
-const AvailabilityGrid = ({ rooms, activeDay, displayDate, classes, maintenances, onAddClass, onAddMaintenance }) => {
+const AvailabilityGrid = ({ studios, activeDay, displayDate, classes, maintenances, onAddClass, onAddMaintenance }) => {
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 
-  // Estado para saber qual célula tem o menu aberto: { roomId: 1, hour: '09:00' }
+  // Estado para saber qual célula tem o menu aberto: { studioId: 1, hour: '09:00' }
   const [activeMenu, setActiveMenu] = useState(null); 
   const gridRef = useRef(null);
 
@@ -26,27 +26,27 @@ const AvailabilityGrid = ({ rooms, activeDay, displayDate, classes, maintenances
 
       <div className="availability-grid-container">
         {/* Cabeçalho da Grelha */}
-        <div className="grid-header-row" style={{ gridTemplateColumns: `80px repeat(${rooms.length}, 1fr)` }}>
+        <div className="grid-header-row" style={{ gridTemplateColumns: `80px repeat(${studios.length}, 1fr)` }}>
           <div className="grid-cell-header">HORA</div>
-          {rooms.map(room => (
-            <div key={room.id} className="grid-cell-header">{room.name.toUpperCase()}</div>
+          {studios.map(studio => (
+            <div key={studio.id} className="grid-cell-header">{studio.name.toUpperCase()}</div>
           ))}
         </div>
 
         {/* Linhas de Horas */}
         {hours.map(hour => (
-          <div key={hour} className="grid-row" style={{ gridTemplateColumns: `80px repeat(${rooms.length}, 1fr)` }}>
+          <div key={hour} className="grid-row" style={{ gridTemplateColumns: `80px repeat(${studios.length}, 1fr)` }}>
             <div className="grid-cell-time">{hour}</div>
             
-            {rooms.map(room => {
-              // Verifica se existe aula para esta sala, dia e hora
-             const classHere = classes?.find(c => c.day === activeDay && c.room === room.name && c.time === hour);
-              const maintenanceHere = maintenances?.find(m => m.day === activeDay && m.room === room.name && m.time === hour);
+            {studios.map(studio => {
+              // Verifica se existe aula para esta estúdio, dia e hora
+             const classHere = classes?.find(c => c.day === activeDay && c.studio === studio.name && c.time === hour);
+              const maintenanceHere = maintenances?.find(m => m.day === activeDay && m.studio === studio.name && m.time === hour);
               
-              const isMenuOpen = activeMenu?.roomId === room.id && activeMenu?.hour === hour;
+              const isMenuOpen = activeMenu?.studioId === studio.id && activeMenu?.hour === hour;
 
               return (
-                <div key={`${room.id}-${hour}`} className="grid-cell-content">
+                <div key={`${studio.id}-${hour}`} className="grid-cell-content">
                   {classHere ? (
                     <div className="status-box occupied">
                       <span className="class-title">{classHere.className}</span>
@@ -60,7 +60,7 @@ const AvailabilityGrid = ({ rooms, activeDay, displayDate, classes, maintenances
                     ) : (
                       <div 
                       className={`status-box free ${isMenuOpen ? 'active' : ''}`}
-                      onClick={() => setActiveMenu(isMenuOpen ? null : { roomId: room.id, hour })}
+                      onClick={() => setActiveMenu(isMenuOpen ? null : { studioId: studio.id, hour })}
                     >
                       Livre
                     </div>
@@ -71,14 +71,14 @@ const AvailabilityGrid = ({ rooms, activeDay, displayDate, classes, maintenances
                       <button onClick={(e) => {
                         e.stopPropagation();
                         setActiveMenu(null);
-                        onAddClass(room, hour);
+                        onAddClass(studio, hour);
                       }}>
                         + Adicionar Aula
                       </button>
                       <button onClick={(e) => {
                         e.stopPropagation();
                         setActiveMenu(null);
-                        onAddMaintenance(room, hour);
+                        onAddMaintenance(studio, hour);
                       }}>
                         🔧 Agendar Manutenção
                       </button>
