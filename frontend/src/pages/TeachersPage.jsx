@@ -19,20 +19,20 @@ const TeachersPage = () => {
     try {
       setIsLoading(true);
       const data = await getUsers(token);
-      
-      const teachersOnly = data.filter(u => 
-        u.userType?.userTypeDesc?.toLowerCase() === 'teacher' || 
+
+      const teachersOnly = data.filter(u =>
+        u.userType?.userTypeDesc?.toLowerCase() === 'teacher' ||
         u.userType?.userTypeDesc?.toLowerCase() === 'professor' ||
         u.userType?.userTypeDesc?.toLowerCase() === 'professora'
       );
-      
+
       const formattedTeachers = teachersOnly.map(u => {
         const emailContact = u.userContact?.find(
           c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'email'
         );
         const phoneContact = u.userContact?.find(
-          c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'telemóvel' || 
-               c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone'
+          c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'telemóvel' ||
+            c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone'
         );
 
         return {
@@ -59,7 +59,7 @@ const TeachersPage = () => {
     fetchTeachers();
   }, []);
 
-  const filteredTeachers = teachers.filter(teacher => 
+  const filteredTeachers = teachers.filter(teacher =>
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -88,10 +88,10 @@ const TeachersPage = () => {
 
   const handleConfirmDeleteTeacher = async () => {
     if (!teacherToDelete) return;
-    
+
     // Futura implementação de remoção no backend aqui
     // await deleteUser(teacherToDelete.user_id, token);
-    
+
     setTeachers(teachers.filter((teacher) => teacher.user_id !== teacherToDelete.user_id));
     setTeacherToDelete(null);
   };
@@ -103,16 +103,18 @@ const TeachersPage = () => {
           <h1 className="page-title">Professores</h1>
           <p className="page-subtitle">{teachers.length} professores registados</p>
         </div>
+        {isAdmin && (
         <button className="btn-primary" onClick={handleOpenNewTeacher}>
           + Novo Professor
         </button>
+        )}
       </header>
 
       <div className="search-container">
         <span className="search-icon">🔍</span>
-        <input 
-          type="search" 
-          placeholder="Pesquisar professores..." 
+        <input
+          type="search"
+          placeholder="Pesquisar professores..."
           className="search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -131,16 +133,18 @@ const TeachersPage = () => {
           <div className="th-col col-right">
             <span>ESPECIALIDADES</span>
           </div>
+          {isAdmin && (
           <div className="th-col col-actions">
             <span>AÇÕES</span>
           </div>
+          )}
         </div>
 
         {/* CORPO DA TABELA */}
         <div className="table-body">
           {filteredTeachers.map((teacher) => (
             <div key={teacher.user_id} className="table-row">
-              
+
               {/* Coluna 1: Info (Topo) e Aulas (Fundo) */}
               <div className="td-col col-professor">
                 <div className="prof-top">
@@ -150,7 +154,7 @@ const TeachersPage = () => {
                     <span className="prof-bio">{teacher.bio}</span>
                   </div>
                 </div>
-                
+
               </div>
 
               {/* Coluna 2: Contactos (Apenas Topo) */}
@@ -173,13 +177,22 @@ const TeachersPage = () => {
               </div>
 
               {/* Coluna 4: Ações */}
+              {isAdmin && (
               <div className="td-col col-actions">
                 <div className="row-actions">
-                  <button className="action-btn edit-btn" onClick={() => handleEditTeacher(teacher)}>✎</button>
-                  <button className="action-btn delete-btn" onClick={() => handleAskDeleteTeacher(teacher)}>🗑️</button>
+                  
+                    <div className="row-actions">
+                      <button className="action-btn edit-btn" onClick={() => handleEditTeacher(teacher)}>
+                        ✎
+                      </button>
+                      <button className="action-btn delete-btn" onClick={() => handleAskDeleteTeacher(teacher)}>
+                        🗑️
+                      </button>
+                    </div>
+                 
                 </div>
               </div>
-
+               )}
             </div>
           ))}
           {filteredTeachers.length === 0 && (
@@ -187,12 +200,12 @@ const TeachersPage = () => {
           )}
         </div>
       </div>
-      
-      <TeacherModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        initialData={editingTeacher} 
-        onSave={handleSaveTeacher} 
+
+      <TeacherModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialData={editingTeacher}
+        onSave={handleSaveTeacher}
       />
 
       {teacherToDelete && (

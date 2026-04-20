@@ -13,6 +13,7 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 
 import MainLayout from './layout/MainLayout';
+import HomePage from "./pages/HomePage";
 import TeachersPage from "./pages/TeachersPage";
 import StudentsPage from "./pages/StudentsPage";
 import CostumesPage from "./pages/CostumesPage";
@@ -28,15 +29,10 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
           <Route path="/teacher-dashboard" element={
             <ProtectedRoute allowedRoles={['teacher']}>
               <TeacherDashboard />
@@ -53,7 +49,7 @@ function App() {
                 <MainLayout />
             }
           >
-            <Route path="/#" element={<HomePage /> } />
+            <Route path="/dashboard" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/professores" element={<TeachersPage />} />
             <Route path="/alunos" element={<StudentsPage />} />
             <Route path="/figurinos" element={<CostumesPage />} />
