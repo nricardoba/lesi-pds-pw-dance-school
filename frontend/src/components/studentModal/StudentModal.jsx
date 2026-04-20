@@ -1,6 +1,11 @@
+import { useState } from 'react';
+import { apiClient } from '../../services/api';
 import './StudentModal.css';
 
-const StudentModal = ({ isOpen, onClose, initialData, onSave }) => {
+const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
   if (!isOpen) return null;
 
   const handleModalClick = (e) => {
@@ -9,42 +14,67 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave }) => {
 
   const isEditing = !!initialData;
   const modalTitle = isEditing ? 'Editar Aluno' : 'Novo Aluno';
-  const submitButtonText = isEditing ? 'Guardar' : 'Criar Aluno';
+  const submitButtonText = isEditing ? (isSubmitting ? 'A guardar...' : 'Guardar') : (isSubmitting ? 'A criar...' : 'Criar Aluno');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const email = formData.get('email');
-    const phone = formData.get('phone');
+    setIsSubmitting(true);
+    setError(null);
     
-    const studentData = {
-      id: isEditing ? initialData.id : Date.now(),
-      name: formData.get('name'),
-      student_number: formData.get('student_number'),
-      nif: formData.get('nif'),
-      user_start_date: formData.get('user_start_date'),
-      email,
-      phone,
-      contacts: [
-        { type: 'email', value: email },
-        { type: 'phone', value: phone }
-      ],
-      birthdate: formData.get('birthdate'),
-      guardianName: formData.get('guardianName'),
-      guardianEmail: formData.get('guardianEmail'),
-      guardianPhone: formData.get('guardianPhone'),
-      address: {
-        street: formData.get('street'),
-        postalCode: formData.get('postalCode'),
-        locality: formData.get('locality')
-      },
-      notes: formData.get('notes'),
-      // Se for edição mantém a cor, se for novo, atribui uma cor padrão (ou podias fazer uma função para gerar cores aleatórias pastel)
-      avatarColor: isEditing ? initialData.avatarColor : '#E0E7FF' 
+    const formData = new FormData(e.target);
+    
+    const studentUserTypeId = 3; 
+
+    // Valores do formulário base
+    const payload = {
+      userName: formData.get('name'),
+      userBirthDate: formData.get('birthdate') || null,
+      userStartDate: formData.get('user_start_date') || null,
+      userTypeId: studentUserTypeId,
+      userIsActive: true,
+      studentNumber: formData.get('student_number') || undefined,
+      userNif: formData.get('nif') || undefined,
     };
 
-    onSave(studentData);
-    onClose();
+    try {
+      let createdOrUpdatedUserId;
+
+      if (isEditing) {
+        // --- ATUALIZAR ---
+        await apiClient(`/users/${initialData.id}`, {
+          method: 'PUT',
+          token,
+          body: {
+            userName: payload.userName,
+            userBirthDate: payload.userBirthDate,
+            userStartDate: payload.userStartDate,
+            // Não atualizamos o userTypeId aqui para não retirar funções se for um super admin por ex.
+          }
+        });
+        createdOrUpdatedUserId = initialData.id;
+        
+        // Futuramente farás chamadas aqui para atualizar nif, student number, ou adicionar novos contactos em falta
+        // Exemplo:
+        // await apiClient(`/users/${initialData.id}/nif`, { method: 'PUT', token, body: { userNif: payload.userNif }});
+      } else {
+        // --- CRIAR NOVO ---
+        const response = await apiClient('/users', {
+          method: 'POST',
+          token,
+          body: payload
+        });
+        createdOrUpdatedUserId = response.userId;
+      }
+
+      // Finalizado sem erros
+      onSave(); 
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Ocorreu um erro ao guardar.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -53,12 +83,13 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave }) => {
         
         <div className="modal-header">
           <h2 className="modal-title">{modalTitle}</h2>
-          <button className="modal-close-btn" onClick={onClose}>&times;</button>
+          <button className="modal-close-btn" onClick={onClose} disabled={isSubmitting}>&times;</button>
         </div>
 
-        {/* Adicionei uma class scrollable para o caso do ecrã ser pequeno, o formulário não sair por fora */}
         <form className="modal-form scrollable-form" onSubmit={handleSubmit}>
           
+          {error && <div className="error-message" style={{color: 'red', marginBottom: '15px'}}>{error}</div>}
+
           {/* --- DADOS DO ALUNO --- */}
           <div className="form-group full-width">
             <label>Nome do Aluno</label>
@@ -139,8 +170,8 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave }) => {
           </div>
 
           <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn-submit">{submitButtonText}</button>
+            <button type="button" className="btn-cancel" onClick={onClose} disabled={isSubmitting}>Cancelar</button>
+            <button type="submit" className="btn-submit" disabled={isSubmitting}>{submitButtonText}</button>
           </div>
         </form>
 

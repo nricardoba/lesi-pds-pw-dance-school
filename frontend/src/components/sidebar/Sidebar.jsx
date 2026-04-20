@@ -1,13 +1,16 @@
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import './Sidebar.css';
 
 const Sidebar = () => {
-  const { role } = useAuth();
+  const { user } = useAuth();
   
+  // A role vem de user.user_type_desc e vem do backend (ex: "Admin", "Teacher", "Student")
+  const role = user?.user_type_desc;
+
   // Lista de todos os itens do menu com os respetivos caminhos (rotas)
   let menuItems = [
-    { path: '/', name: 'Dashboard', icon: '▦' },
+    { path: '/dashboard', name: 'Dashboard', icon: '▦' },
     { path: '/horario', name: 'Horário de Aulas', icon: '📅' },
     { path: '/coachings', name: 'Coachings', icon: '✨' },
     { path: '/figurinos', name: 'Figurinos', icon: '👗' },
@@ -17,17 +20,17 @@ const Sidebar = () => {
     { path: '/templates-aulas', name: 'Templates de Aulas', icon: '▶' },
   ];
 
-   if (role === 'admin') {
+   if (role === 'Admin') {
     menuItems.push({ path: '/aprovacao-horarios', name: 'Aprovação Horários', icon: '✅' });
   }
 
-  if (role === 'student') {
+  if (role === 'Student') {
     menuItems = menuItems.filter(item => 
-      !['/salas', '/alunos', '/modalidades', '/templates-aulas', '/professores'].includes(item.path)
+      !['/salas', '/modalidades', '/templates-aulas', '/professores'].includes(item.path)
     );
   }
   
-   if (role === 'teacher') {
+   if (role === 'Teacher') {
     menuItems.splice(2, 0, { path: '/horario-professor', name: 'Meu Horário', icon: '🧭' });
   }
 
@@ -59,10 +62,10 @@ const Sidebar = () => {
       </nav>
 
       <div className="sidebar-profile">
-        <div className="profile-avatar">D</div>
+        <div className="profile-avatar">{user?.user_name?.[0] || 'D'}</div>
         <div className="profile-info">
-          <h4>Direção Ent'Artes</h4>
-          <p>Admin</p>
+          <h4>{user?.user_name || 'Direção'}</h4>
+          <p>{role}</p>
         </div>
       </div>
     </aside>

@@ -1,5 +1,6 @@
 ﻿import { Router } from 'express';
 import { checkRole } from '../middlewares/checkRole';
+import { ensureAuth } from '../middlewares/ensureAuth'; // Mantém-se para rotas que precisem de login sem restrição de Role
 import { USER_ROLES } from '../utils/permissions';
 import * as UsersController from '../controllers/usersController';
 
@@ -8,6 +9,7 @@ import * as UsersController from '../controllers/usersController';
 // ============================================================================
 export const usersRouter = Router();
 
+// Usando o nosso checkRole fundido (ele já faz a validação do token internamente)
 usersRouter.get('/', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), UsersController.listUsersController);
 usersRouter.get('/:id', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), UsersController.getUserByIdController);
 usersRouter.post('/', checkRole([USER_ROLES.ADMIN]), UsersController.createUserController);
@@ -31,14 +33,15 @@ usersRouter.delete('/:id/addresses/:userAddressId', checkRole([USER_ROLES.ADMIN]
 // ============================================================================
 export const userTypesRouter = Router();
 
-userTypesRouter.get('/', UsersController.listUserTypesController);
+// Se esta rota for livre só para users logados (não importa o tipo), usa o ensureAuth. Se for aberta a público, não tem middleware.
+userTypesRouter.get('/', ensureAuth, UsersController.listUserTypesController);
 
 // ============================================================================
 // USER CLASS ROLES ROUTER (/user-class-roles)
 // ============================================================================
 export const userClassRolesRouter = Router();
 
-userClassRolesRouter.get('/', UsersController.listUserClassRolesController);
+userClassRolesRouter.get('/', ensureAuth, UsersController.listUserClassRolesController);
 userClassRolesRouter.post('/', checkRole([USER_ROLES.ADMIN]), UsersController.createUserClassRoleController);
 userClassRolesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.updateUserClassRoleController);
 userClassRolesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserClassRoleController);
