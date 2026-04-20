@@ -17,6 +17,10 @@ const Sidebar = () => {
     { path: '/templates-aulas', name: 'Templates de Aulas', icon: '▶' },
   ];
 
+   if (role === 'admin') {
+    menuItems.push({ path: '/aprovacao-horarios', name: 'Aprovação Horários', icon: '✅' });
+  }
+
   if (role === 'student') {
     menuItems = menuItems.filter(item => 
       !['/salas', '/alunos', '/modalidades', '/templates-aulas', '/professores'].includes(item.path)
