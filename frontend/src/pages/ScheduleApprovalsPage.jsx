@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import '../pagesCss/ScheduleApprovalsPage.css';
-import ScheduleApprovalsStats from '../components/ScheduleApprovals/ScheduleApprovalsStats';
-import ScheduleApprovalsControls from '../components/ScheduleApprovals/ScheduleApprovalsControls';
-import ScheduleApprovalsTable from '../components/ScheduleApprovals/ScheduleApprovalsTable';
-import ScheduleApprovalModal from '../components/ScheduleApprovals/ScheduleApprovalModal';
+import ScheduleApprovalsStats from '../components/scheduleApprovals/ScheduleApprovalsStats';
+import ScheduleApprovalsControls from '../components/scheduleApprovals/ScheduleApprovalsControls';
+import ScheduleApprovalsTable from '../components/scheduleApprovals/ScheduleApprovalsTable';
+import ScheduleApprovalModal from '../components/scheduleApprovals/ScheduleApprovalModal';
 
 const REQUESTS_SEED = [
   {
