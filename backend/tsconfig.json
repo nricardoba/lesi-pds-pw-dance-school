@@ -12,6 +12,6 @@
     "resolveJsonModule": true,
     "types": ["node"],
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/integration/app.integration.spec.ts", "tests/unit/appError.spec.ts"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"],
 }
