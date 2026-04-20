@@ -18,7 +18,7 @@ const Login = () => {
       const data = await loginRequest(email, password);
 
       login(data);
-      navigate("/dashboard");
+      navigate("/");
     } catch (error) {
       setErro(error.message || "Erro de ligação ao servidor");
     }
