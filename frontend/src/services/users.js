@@ -30,3 +30,35 @@ export const deleteUser = async (id, token) => {
     token
   });
 };
+
+export const updateUserNif = async (id, data, token) => {
+  return apiClient(`/users/${id}/nif`, {
+    method: 'PUT',
+    body: data,
+    token
+  });
+};
+
+export const updateStudentNumber = async (id, data, token) => {
+  return apiClient(`/users/${id}/student-number`, {
+    method: 'PUT',
+    body: data,
+    token
+  });
+};
+
+export const addUserContact = async (id, data, token) => {
+  return apiClient(`/users/${id}/contacts`, {
+    method: 'POST',
+    body: data,
+    token
+  });
+};
+
+export const addUserAddress = async (id, data, token) => {
+  return apiClient(`/users/${id}/addresses`, {
+    method: 'POST',
+    body: data,
+    token
+  });
+};
