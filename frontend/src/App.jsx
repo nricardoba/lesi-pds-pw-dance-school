@@ -7,6 +7,8 @@ import ProtectedRoute from './components/ProtectedRoute'; //conection to back en
 //import { useAuth, AuthProvider } from "./contexts/AuthContext"; // Simulação de autenticação com base em papéis (roles)
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import TeacherDashboard from './pages/TeacherDashboard';
+import StudentDashboard from './pages/StudentDashboard';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 
@@ -33,6 +35,16 @@ function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/teacher-dashboard" element={
+            <ProtectedRoute allowedRoles={['teacher']}>
+              <TeacherDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/student-dashboard" element={
+            <ProtectedRoute allowedRoles={['student', 'parent']}>
+              <StudentDashboard />
             </ProtectedRoute>
           } />
           
