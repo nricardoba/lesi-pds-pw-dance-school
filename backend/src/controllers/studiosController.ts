@@ -3,6 +3,7 @@ import { catchAsync } from '../utils/catchAsync';
 
 import {
   // => STUDIOS
+  getAvailableStudiosService,
   listStudiosService,
   createStudioService,
   updateStudioService,
@@ -24,6 +25,13 @@ import {
 // ============================================================================
 // STUDIOS
 // ============================================================================
+
+
+export const getAvailableStudios = catchAsync(async (req: Request, res: Response) => {
+  const modalityId = Number(req.query.modalityId);
+  const data = await getAvailableStudiosService(modalityId);
+  return res.json(data);
+});
 
 export const listStudiosController = catchAsync(async (_req: Request, res: Response) => {
   const data = await listStudiosService();

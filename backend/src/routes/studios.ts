@@ -8,6 +8,7 @@ import * as StudiosController from '../controllers/studiosController';
 // ============================================================================
 export const studiosRouter = Router();
 
+studiosRouter.get('/studios', StudiosController.getAvailableStudios);
 studiosRouter.get('/', StudiosController.listStudiosController);
 studiosRouter.post('/', checkRole([USER_ROLES.ADMIN]), StudiosController.createStudioController);
 studiosRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), StudiosController.updateStudioController);
