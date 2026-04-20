@@ -1,8 +1,4 @@
-# Criar base de dados no docker
-
-***Este ficheiro tem de ser melhorado, passar para inglês e fazer uma revisão.***
-
----
+# Criar base de dados
 
 Para começar, o docker desktop deve estar a correr.
 
@@ -51,16 +47,16 @@ Este comando é opcional, serve para limpar o volume do docker
 ```
 docker-compose down -v
 ```
-*Nota: podes ter de utilizar `docker compose` em vez de `docker-compose`*
+*Nota: Pode ter de utilizar `docker compose` em vez de `docker-compose`*
 
 ---
 
-### 1.4. Subir novamente a base de dados (agora vazia)
+### 1.4. Subir novamente a base de dados
 ```
 docker-compose up -d
 ```
 *Nota 1: Esperar 10 segundos depois de correr este comando*  
-*Nota 2: podes ter de utilizar `docker compose` em vez de `docker-compose`*
+*Nota 2: Pode ter de utilizar `docker compose` em vez de `docker-compose`*
 
 ---
 
@@ -82,7 +78,7 @@ docker ps
 ```
 npx prisma migrate dev
 ```
-*(Não precisas do `--name init` desta vez porque não estás a criar uma nova migração, estás apenas a dizer ao Prisma para aplicar as que já existem na pasta).*
+*(Não precisa do `--name init` desta vez porque não está a criar uma nova migração, está apenas a dizer ao Prisma para aplicar as que já existem na pasta).*
 
 ---
 
@@ -121,11 +117,10 @@ npx prisma db seed
 docker-compose up -d
 ```
 *Nota 1: Esperar 10 segundos depois de correr este comando*  
-*Nota 2: podes ter de utilizar `docker compose` em vez de `docker-compose`*
+*Nota 2: Pode ter de utilizar `docker compose` em vez de `docker-compose`*
 
 ### 2.2. Aplicar as alterações efetuadas no ficheiro schema.prisma
-Sempre que quiseres adicionar uma coluna ou tabela nova, mudas **apenas** no `schema.prisma` e corres no terminal:  
-***Este comando é só para quem ficar responsável por fazer alterações ao ficheiro `prisma/schema.prisma`***
+Sempre que quiser adicionar uma coluna ou tabela nova, muda **apenas** no `schema.prisma` e corre no terminal:  
 ```
 npx prisma migrate dev --name add_new_table
 ```
