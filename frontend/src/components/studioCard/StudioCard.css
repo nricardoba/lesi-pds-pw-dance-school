@@ -1,5 +1,5 @@
 
-.room-card {
+.studio-card {
   background-color: #FFFFFF;
   border: 1px solid #E2E8F0;
   border-radius: 12px;
@@ -11,18 +11,18 @@
   gap: 12px;
 }
 
-.room-card__header {
+.studio-card__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 
-.room-card__title-area {
+.studio-card__title-area {
   display: flex;
   gap: 12px;
 }
 
-.room-icon {
+.studio-icon {
   background-color: #F0F9FF;
   color: #0369A1;
   width: 40px;
@@ -34,14 +34,14 @@
   font-size: 20px;
 }
 
-.room-name {
+.studio-name {
   margin: 0 0 4px 0;
   font-size: 15px;
   font-weight: 600;
   color: #0F172A;
 }
 
-.room-size-tag {
+.studio-size-tag {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 12px;
@@ -53,7 +53,7 @@
 .tag-média { background-color: #F3E8FF; color: #7E22CE; }
 .tag-pequena { background-color: #FCE7F3; color: #BE185D; }
 
-.room-card__capacity {
+.studio-card__capacity {
   font-size: 13px;
   color: #64748B;
   display: flex;
@@ -61,7 +61,7 @@
   gap: 6px;
 }
 
-.room-card__equipment {
+.studio-card__equipment {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -77,9 +77,9 @@
   border-radius: 16px;
 }
 
-.room-card__actions .icon-btn {
+.studio-card__actions .icon-btn {
   background: none; border: none; cursor: pointer;
   padding: 4px; font-size: 14px;
 }
-.room-card__actions .edit-btn { color: #64748B; }
-.room-card__actions .delete-btn { color: #EF4444; }
+.studio-card__actions .edit-btn { color: #64748B; }
+.studio-card__actions .delete-btn { color: #EF4444; }

@@ -14,7 +14,7 @@ import MainLayout from './layout/MainLayout';
 import TeachersPage from "./pages/TeachersPage";
 import StudentsPage from "./pages/StudentsPage";
 import CostumesPage from "./pages/CostumesPage";
-import RoomsPage from "./pages/RoomsPage";
+import StudiosPage from "./pages/StudiosPage";
 import SchedulePage from "./pages/SchedulePage";
 import CoachingsPage from "./pages/CoachingsPage";
 import ClassTemplatesPage from "./pages/ClassTemplatesPage";
@@ -44,7 +44,7 @@ function App() {
             <Route path="/professores" element={<TeachersPage />} />
             <Route path="/alunos" element={<StudentsPage />} />
             <Route path="/figurinos" element={<CostumesPage />} />
-            <Route path="/salas" element={<RoomsPage />} />
+            <Route path="/estudios" element={<StudiosPage />} />
             <Route path="/coachings" element={<CoachingsPage />} />
             <Route path="/horario" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
             <Route path="/horario-professor" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSchedulePage /></ProtectedRoute>} />

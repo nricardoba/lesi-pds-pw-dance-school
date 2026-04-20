@@ -1,6 +1,6 @@
 import './AddClassToSlotModal.css';
 
-const AddClassToSlotModal = ({ isOpen, onClose, slotData, rooms, onSave }) => {
+const AddClassToSlotModal = ({ isOpen, onClose, slotData, studios, onSave }) => {
   // Se não estiver aberto ou faltarem dados, não renderiza
   if (!isOpen || !slotData) return null;
 
@@ -12,7 +12,7 @@ const AddClassToSlotModal = ({ isOpen, onClose, slotData, rooms, onSave }) => {
     
     // Aqui podes depois ligar à tua lógica real de gravar a aula
     const assignmentData = {
-      roomId: parseInt(formData.get('roomId')),
+      studioId: parseInt(formData.get('studioId')),
       day: slotData.day,
       hour: slotData.hour,
       duration: parseFloat(formData.get('duration'))
@@ -33,13 +33,13 @@ const AddClassToSlotModal = ({ isOpen, onClose, slotData, rooms, onSave }) => {
 
         <form className="modal-form" onSubmit={handleSubmit}>
           
-          {/* 1. Dropdown para selecionar a Sala (conforme o teu pedido) */}
+          {/* 1. Dropdown para selecionar a Estúdio (conforme o teu pedido) */}
           <div className="form-group full-width">
-            <label>Sala</label>
-            <select name="roomId" defaultValue={slotData.room.id} required>
-              {rooms.map(room => (
-                <option key={room.id} value={room.id}>
-                  {room.name}
+            <label>Estúdio</label>
+            <select name="studioId" defaultValue={slotData.studio.id} required>
+              {studios.map(studio => (
+                <option key={studio.id} value={studio.id}>
+                  {studio.name}
                 </option>
               ))}
             </select>
@@ -73,14 +73,14 @@ const AddClassToSlotModal = ({ isOpen, onClose, slotData, rooms, onSave }) => {
 
           {/* Caixa de Aviso igual à da imagem */}
           <div className="info-box mt-16">
-            Não há aulas sem sala atribuída para {slotData.day}.<br/>
+            Não há aulas sem estúdio atribuída para {slotData.day}.<br/>
             Crie uma nova aula no Horário de Aulas primeiro.
           </div>
 
           <div className="modal-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancelar</button>
             <button type="submit" className="btn-submit">
-              <span style={{ marginRight: '6px' }}>➔</span> Atribuir à Sala
+              <span style={{ marginRight: '6px' }}>➔</span> Atribuir à Estúdio
             </button>
           </div>
         </form>
