@@ -53,6 +53,7 @@ function App() {
                 <MainLayout />
             }
           >
+            <Route path="/#" element={<HomePage /> } />
             <Route path="/professores" element={<TeachersPage />} />
             <Route path="/alunos" element={<StudentsPage />} />
             <Route path="/figurinos" element={<CostumesPage />} />
