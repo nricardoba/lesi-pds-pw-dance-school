@@ -2,7 +2,7 @@ import './RentalItem.css';
 
 const RentalItem = ({ rental, onReturn }) => {
   const isLate = rental.status.toLowerCase() === 'atrasado';
-  const isReturned = rental.status.toLowerCase() === 'concluído';
+  const isReturned = rental.status.toLowerCase() === 'concluÃ­do';
 
   return (
     <div className="rental-item">
@@ -13,7 +13,7 @@ const RentalItem = ({ rental, onReturn }) => {
       </div>
       
       <div className="rental-item__actions">
-        <span className="rental-price">€{Number(rental.price).toFixed(2)}</span>
+        <span className="rental-price">â‚¬{Number(rental.price).toFixed(2)}</span>
         
         <span className={`rental-status ${isLate ? 'status-late' : isReturned ? 'status-returned' : 'status-active'}`}>
           {rental.status}
