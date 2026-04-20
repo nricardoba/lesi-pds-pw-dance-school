@@ -1,4 +1,4 @@
-﻿import { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { catchAsync } from '../utils/catchAsync';
 
 import {
@@ -17,6 +17,12 @@ import {
   createClassStatusService,
   updateClassStatusService,
   deleteClassStatusService,
+
+  // => COACHING
+  requestCoachingService,
+  confirmCoachingService,
+  validateCoachingService,
+  closeCoachingValidationService,
 } from '../services/classes';
 
 // ============================================================================
@@ -85,4 +91,29 @@ export const updateClassStatusController = catchAsync(async (req: Request, res: 
 export const deleteClassStatusController = catchAsync(async (req: Request, res: Response) => {
   await deleteClassStatusService(req.params);
   return res.status(204).send();
+});
+
+// ============================================================================
+// COACHING
+// ============================================================================
+
+export const requestCoachingController = catchAsync(async (req: Request, res: Response) => {
+  const data = await requestCoachingService(req.body);
+  return res.status(201).json(data);
+});
+
+export const confirmCoachingController = catchAsync(async (req: Request, res: Response) => {
+  const data = await confirmCoachingService(req.params, req.body);
+  return res.json(data);
+});
+
+export const validateCoachingController = catchAsync(async (req: Request, res: Response) => {
+  const data = await validateCoachingService(req.params, req.body);
+  return res.json(data);
+});
+
+export const closeCoachingController = catchAsync(async (req: Request, res: Response) => {
+  const closedBy = res.locals.user.id;
+  const data = await closeCoachingValidationService(req.params, req.body, Number(closedBy));
+  return res.json(data);
 });
