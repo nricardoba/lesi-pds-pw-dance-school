@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './CoachingModal.css';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import { readScheduleClassesFromStorage } from '../../utils/scheduleStorage';
 
 const CoachingModal = ({ isOpen, onClose, onSave }) => {
