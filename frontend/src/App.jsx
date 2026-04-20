@@ -50,11 +50,11 @@ function App() {
             }
           >
             <Route path="/dashboard" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-            <Route path="/professores" element={<TeachersPage />} />
-            <Route path="/alunos" element={<StudentsPage />} />
-            <Route path="/figurinos" element={<CostumesPage />} />
-            <Route path="/estudios" element={<StudiosPage />} />
-            <Route path="/coachings" element={<CoachingsPage />} />
+            <Route path="/professores" element={<ProtectedRoute><TeachersPage /></ProtectedRoute>} />
+            <Route path="/alunos" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
+            <Route path="/figurinos" element={<ProtectedRoute><CostumesPage /></ProtectedRoute>} />
+            <Route path="/estudios" element={<ProtectedRoute><StudiosPage /></ProtectedRoute>} />
+            <Route path="/coachings" element={<ProtectedRoute><CoachingsPage /></ProtectedRoute>} />
             <Route path="/horario" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
             <Route path="/horario-professor" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSchedulePage /></ProtectedRoute>} />
             <Route path="/aprovacao-horarios" element={<ProtectedRoute allowedRoles={['admin']}><ScheduleApprovalsPage /></ProtectedRoute>} />
