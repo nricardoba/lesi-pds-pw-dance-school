@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../pagesCss/CoachingsPage.css';
 import CoachingCard from '../components/coachingCard/CoachingCard';
 import CoachingModal from '../components/coachingModal/CoachingModal';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { 
   readCoachingsFromStorage, writeCoachingsToStorage,
   readScheduleClassesFromStorage, writeScheduleClassesToStorage 
