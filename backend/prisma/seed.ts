@@ -265,4 +265,68 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+  });  // 8. Inventory initial data
+  console.log("Seeding inventory data...");
+
+  // Add Categories
+  const category1 = await prisma.category.upsert({ where: { categoryName: "Ballet" }, update: {}, create: { categoryName: "Ballet" } });
+  const category2 = await prisma.category.upsert({ where: { categoryName: "Contemporâneo" }, update: {}, create: { categoryName: "Contemporâneo" } });
+  
+  // Add Colors
+  const color1 = await prisma.color.upsert({ where: { colorName: "Branco" }, update: {}, create: { colorName: "Branco" } });
+  const color2 = await prisma.color.upsert({ where: { colorName: "Preto" }, update: {}, create: { colorName: "Preto" } });
+
+  // Add Sizes
+  const size1 = await prisma.size.upsert({ where: { sizeName: "S" }, update: {}, create: { sizeName: "S" } });
+  const size2 = await prisma.size.upsert({ where: { sizeName: "M" }, update: {}, create: { sizeName: "M" } });
+
+  // Add Item Condition
+  const conditionNew = await prisma.itemCondition.upsert({ where: { itemConditionName: "Novo" }, update: {}, create: { itemConditionName: "Novo" } });
+  
+  // Add Item Characteristic
+  const char1 = await prisma.itemCharacteristics.create({
+    data: {
+      itemCharacteristicsName: "Tutu Clássico",
+      categoryId: category1.categoryId,
+      colorId: color1.colorId,
+      sizeId: size1.sizeId,
+    }
   });
+
+  const char2 = await prisma.itemCharacteristics.create({
+    data: {
+      itemCharacteristicsName: "Collants",
+      categoryId: category2.categoryId,
+      colorId: color2.colorId,
+      sizeId: size2.sizeId,
+    }
+  });
+
+  // Add Items
+  const item1 = await prisma.item.create({
+    data: {
+      itemCharacteristicsId: char1.itemCharacteristicsId,
+      itemConditionId: conditionNew.itemConditionId,
+    }
+  });
+
+  const item2 = await prisma.item.create({
+    data: {
+      itemCharacteristicsId: char2.itemCharacteristicsId,
+      itemConditionId: conditionNew.itemConditionId,
+    }
+  });
+
+  await prisma.schoolItem.create({
+    data: {
+      itemId: item1.itemId,
+    }
+  });
+
+  await prisma.schoolItem.create({
+    data: {
+      itemId: item2.itemId,
+    }
+  });
+
+  console.log("? Inventory seed complete.");
