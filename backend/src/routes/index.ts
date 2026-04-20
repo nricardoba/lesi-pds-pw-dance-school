@@ -1,7 +1,11 @@
-// src/routes/index.ts
 import { Router } from "express";
 import { prisma } from "../config/db";
-import { itemsRouter, rentalsRouter, inventoryReferencesRouter, characteristicsRouter } from "./inventory";
+import {
+  itemsRouter,
+  rentalsRouter,
+  inventoryReferencesRouter,
+  characteristicsRouter,
+} from "./inventory";
 import { ensureAuth } from "../middlewares/ensureAuth";
 
 // Auth & Coaching
@@ -9,7 +13,7 @@ import authRoutes from "./auth";
 
 // Grouped Routes
 import { usersRouter, userTypesRouter, userClassRolesRouter } from "./users";
-import { classesRouter, classStatusesRouter } from "./classes";
+import { classesRouter, classStatusesRouter, coachingRouter } from "./classes";
 import {
   studiosRouter,
   modalitiesRouter,
@@ -48,8 +52,9 @@ router.use("/user-class-roles", ensureAuth, userClassRolesRouter);
 // Classes Group
 router.use("/classes", ensureAuth, classesRouter);
 router.use("/class-statuses", ensureAuth, classStatusesRouter);
+router.use("/coachings", ensureAuth, coachingRouter);
 
-// Studios Group
+// Studios / School Group
 router.use("/studios", ensureAuth, studiosRouter);
 router.use("/modalities", ensureAuth, modalitiesRouter);
 router.use("/studio-modalities", ensureAuth, studioModalitiesRouter);

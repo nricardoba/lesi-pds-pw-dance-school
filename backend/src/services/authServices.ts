@@ -118,8 +118,6 @@ export const registerService = async (body: unknown) => {
     if (existingNif) throw new AppError("Este NIF já está registado.", 409);
   }
 
-  // Lógica para auto-incrementar o número de aluno (Apenas se for Aluno - userTypeId: 3 no vosso sistema)
-  // O utilizador não envia o número no body, nós calculamos qual é o próximo.
   let calculatedStudentNumber: string | null = null;
   if (userTypeId === 3) {
     const existingStudents = await prisma.studentNumber.findMany({ select: { studentNumber: true } });

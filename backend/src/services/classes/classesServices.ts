@@ -11,6 +11,10 @@ const classIdSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+const coachingClassIdSchema = z.object({
+  classId: z.coerce.number().int().positive(),
+});
+
 const classUserParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
   userId: z.coerce.number().int().positive(),
@@ -513,7 +517,7 @@ export const requestCoachingService = async (body: unknown) => {
 // ══ FASE 2 ══
 
 export const confirmCoachingService = async (params: unknown, body: unknown) => {
-  const { id: classId } = classIdSchema.parse(params);
+  const { classId } = coachingClassIdSchema.parse(params);
   const { studio_id } = confirmCoachingSchema.parse(body);
 
   const existingClass = await prisma.class.findUnique({
@@ -603,7 +607,7 @@ export const validateCoachingService = async (
   params: unknown,
   body: unknown,
 ) => {
-  const { id: classId } = classIdSchema.parse(params);
+  const { classId } = coachingClassIdSchema.parse(params);
   const { user_id } = validateCoachingSchema.parse(body);
 
   const existingClass = await prisma.class.findUnique({
@@ -657,7 +661,7 @@ export const closeCoachingValidationService = async (
   body: unknown,
   closedBy: number,
 ) => {
-  const { id: classId } = classIdSchema.parse(params);
+  const { classId } = coachingClassIdSchema.parse(params);
 
   if (body !== undefined && body !== null && typeof body !== "object") {
     throw new AppError("Payload inválido.", 400);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import '../pagesCss/CostumesPage.css';
 import CostumeCard from '../components/costumeCard/CostumeCard';
 import CostumeModal from '../components/costumeModal/CostumeModal';
@@ -9,15 +9,23 @@ import { getItems, getRentals, createRental, returnRental } from '../services/in
 import { getUsers } from '../services/users';
 import { useAuth } from '../context/useAuth';
 
+const getCostumeStatus = (itemId, rentals) => {
+  const hasActiveRental = rentals.some(
+    (rental) => rental.itemId === itemId && !rental.actualRentDateEnd,
+  );
+
+  return hasActiveRental ? 'Alugado' : 'Disponível';
+};
+
 const CostumesPage = () => {
-  const { token, user } = useAuth();
-  const isAdmin = user?.user_type_desc === 'Admin';
+  const { token, user, role } = useAuth();
+  const isAdmin = role === 'admin';
 
   const [activeTab, setActiveTab] = useState('figurinos');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('todos');
   const [statusFilter, setStatusFilter] = useState('todas');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCostume, setEditingCostume] = useState(null);
 
@@ -27,65 +35,63 @@ const CostumesPage = () => {
 
   const [costumes, setCostumes] = useState([]);
   const [activeRentals, setActiveRentals] = useState([]);
-  const [students, setStudents] = useState([]); // Array de alunos para o modal
+  const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      
+
       const [itemsData, rentalsData, usersData] = await Promise.all([
         getItems(token),
         getRentals(token),
-        getUsers(token)
+        getUsers(token),
       ]);
 
-      // Filtrar apenas utilizadores do tipo "Student" ou "Aluno"
-      const studentsOnly = usersData.filter(u => 
-        u.userType?.userTypeDesc?.toLowerCase() === 'student' || 
-        u.userType?.userTypeDesc?.toLowerCase() === 'aluno'
-      );
+      const studentsOnly = usersData.filter((u) => {
+        const type = u.userType?.userTypeDesc?.toLowerCase() || '';
+        return type === 'student' || type === 'aluno';
+      });
       setStudents(studentsOnly);
 
-      // Mapeamento dos Items do Backend para 'costumes' no Frontend
-      const formattedItems = itemsData.map(item => {
+      const formattedRentals = rentalsData.map((rental) => ({
+        id: rental.rentId,
+        itemId: rental.itemId,
+        costumeName:
+          rental.schoolItem?.item?.itemCharacteristics?.itemCharacteristicsName ||
+          'Figurino desconhecido',
+        studentName: rental.user?.userName || 'Aluno desconhecido',
+        startDate: rental.rentDateStart ? rental.rentDateStart.split('T')[0] : '',
+        endDate: rental.rentDateEnd ? rental.rentDateEnd.split('T')[0] : '',
+        actualReturnDate: rental.actualRentDateEnd ? rental.actualRentDateEnd.split('T')[0] : '',
+        price: Number(rental.schoolItem?.rentFee ?? 0),
+        status: rental.actualRentDateEnd ? 'Concluído' : 'Ativo',
+      }));
+
+      const formattedItems = itemsData.map((item) => {
         const chars = item.itemCharacteristics || {};
-        const cat = chars.category?.categoryName || 'Desconhecida';
-        const isRental = true; // Assumido se houver preço associado ou logicamente
-        
+        const category = chars.category?.categoryName || 'Desconhecida';
+        const status = getCostumeStatus(item.itemId, rentalsData);
+
         return {
           id: item.itemId,
           title: chars.itemCharacteristicsName || 'Sem nome',
-          category: cat,
+          category,
           size: chars.size?.sizeName || 'N/A',
           condition: item.itemCondition?.itemConditionName || 'Novo',
           color: chars.color?.colorName || 'N/A',
-          price: Number(item.schoolItem?.rentFee) || 0,
-          lateFee: 2.50, // Pode vir de configurações globais futuramente
-          isRental: isRental,
-          stock: 1, // Atualmente é uma unidade por item tracking
-          status: 'Disponível', // Determinado consoante o estado de aluguer atual
-          actionText: 'Alugar',
-          image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150'
-        };
-      });
-
-      // Mapeamento dos Alugueres
-      const formattedRentals = rentalsData.map(rental => {
-        return {
-          id: rental.rentalId,
-          costumeName: rental.item?.itemCharacteristics?.itemCharacteristicsName || 'Figurino desconhecido',
-          studentName: rental.user?.userName || 'Aluno desconhecido',
-          startDate: rental.rentalStartDate ? rental.rentalStartDate.split('T')[0] : '',
-          endDate: rental.rentalEndDate ? rental.rentalEndDate.split('T')[0] : '',
-          price: Number(rental.rentalAmount) || 0,
-          status: rental.rentalIsReturned ? 'Concluído' : 'Ativo'
+          price: Number(item.schoolItem?.rentFee ?? 0),
+          lateFee: Number(item.schoolItem?.lateFee ?? 0),
+          isRental: true,
+          stock: status === 'Disponível' ? 1 : 0,
+          status,
+          actionText: status === 'Disponível' ? 'Alugar' : 'Indisponível',
+          image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150',
         };
       });
 
       setCostumes(formattedItems);
       setActiveRentals(formattedRentals);
-
     } catch (error) {
       console.error('Erro ao carregar dados dos figurinos/alugueres:', error);
     } finally {
@@ -94,26 +100,25 @@ const CostumesPage = () => {
   };
 
   useEffect(() => {
-    if (token) fetchData();
+    if (token) {
+      fetchData();
+    }
   }, [token]);
 
-  // A LÓGICA DE FILTRAGEM COMPLETA (Isto faz os filtros funcionarem)
-  const filteredCostumes = costumes.filter(costume => {
-    // 1. Pesquisa por Nome
-    if (searchTerm && !costume.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-    
-    // 2. Filtro Categoria
-    if (categoryFilter !== 'todos' && costume.category.toLowerCase() !== categoryFilter.toLowerCase()) return false;
-    
-    // 3. Filtro Estado
-    if (statusFilter !== 'todas') {
-      if (statusFilter === 'disponivel' && costume.status !== 'Disponível') return false;
-      if (statusFilter === 'alugado' && costume.status !== 'Alugado') return false;
-    }
-    return true; 
-  });
+  const filteredCostumes = useMemo(() => {
+    return costumes.filter((costume) => {
+      if (searchTerm && !costume.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (categoryFilter !== 'todos' && costume.category.toLowerCase() !== categoryFilter.toLowerCase()) return false;
 
-  // Controlo do Modal
+      if (statusFilter !== 'todas') {
+        if (statusFilter === 'disponivel' && costume.status !== 'Disponível') return false;
+        if (statusFilter === 'alugado' && costume.status !== 'Alugado') return false;
+      }
+
+      return true;
+    });
+  }, [costumes, searchTerm, categoryFilter, statusFilter]);
+
   const handleOpenNewCostume = () => {
     setEditingCostume(null);
     setIsModalOpen(true);
@@ -125,6 +130,10 @@ const CostumesPage = () => {
   };
 
   const handleOpenRentalModal = (costume) => {
+    if (costume.status !== 'Disponível') {
+      return;
+    }
+
     setRentingCostume(costume);
     setIsRentalModalOpen(true);
   };
@@ -132,36 +141,41 @@ const CostumesPage = () => {
   const handleSaveRental = async (rentalData) => {
     try {
       if (!rentalData.studentId) {
-        alert("Por favor selecione um aluno válido.");
+        alert('Por favor selecione um aluno válido.');
         return;
       }
-      
+
       const payload = {
         userId: Number(rentalData.studentId),
-        itemId: rentingCostume.id, // O ID do item guardado na pág
+        itemId: rentingCostume.id,
         rentDateStart: new Date(rentalData.startDate).toISOString(),
-        rentDateEnd: new Date(rentalData.endDate).toISOString()
+        rentDateEnd: new Date(rentalData.endDate).toISOString(),
       };
 
       await createRental(payload, token);
-      
-      // Recarrega tudo para atualizar estados do item e as tabs de Rentals
-      fetchData(); 
+      await fetchData();
       setIsRentalModalOpen(false);
-
+      setRentingCostume(null);
     } catch (error) {
       console.error(error);
-      alert("Erro ao criar aluguer.");
+      alert('Erro ao criar aluguer.');
     }
   };
 
   const handleReturnRental = async (rentalId) => {
     try {
-      await returnRental(rentalId, token);
-      fetchData(); // Atualiza a lista
+      await returnRental(
+        rentalId,
+        {
+          actualRentDateEnd: new Date().toISOString(),
+          itemDamaged: false,
+        },
+        token,
+      );
+      await fetchData();
     } catch (error) {
       console.error(error);
-      alert("Erro ao devolver o equipamento.");
+      alert('Erro ao devolver o equipamento.');
     }
   };
 
@@ -169,7 +183,7 @@ const CostumesPage = () => {
     costumeData.isRental = true;
     costumeData.actionText = costumeData.status === 'Disponível' ? 'Alugar' : 'Indisponível';
     if (editingCostume) {
-      setCostumes(costumes.map(c => c.id === costumeData.id ? costumeData : c));
+      setCostumes(costumes.map((c) => (c.id === costumeData.id ? costumeData : c)));
     } else {
       setCostumes([...costumes, costumeData]);
     }
@@ -184,10 +198,7 @@ const CostumesPage = () => {
   };
 
   const handleConfirmDeleteCostume = () => {
-    if (!costumeToDelete) {
-      return;
-    }
-
+    if (!costumeToDelete) return;
     setCostumes(costumes.filter((costume) => costume.id !== costumeToDelete.id));
     setCostumeToDelete(null);
   };
@@ -199,48 +210,47 @@ const CostumesPage = () => {
           <h1 className="page-title">Figurinos</h1>
           <p className="page-subtitle">Gestão de aluguer e venda de figurinos</p>
         </div>
-        {isAdmin && (<button className="btn-primary" onClick={handleOpenNewCostume}>
-          + Novo Figurino
-        </button>)}
+        {isAdmin && (
+          <button className="btn-primary" onClick={handleOpenNewCostume}>
+            + Novo Figurino
+          </button>
+        )}
       </header>
 
-      {/* TABS REFEITAS PARA SEREM CAIXAS CINZENTAS COMO NA FOTO */}
       <div className="costumes-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'figurinos' ? 'active' : ''}`}
           onClick={() => setActiveTab('figurinos')}
         >
-          <span style={{opacity: 0.5}}>📦</span> Figurinos
+          <span style={{ opacity: 0.5 }}>📦</span> Figurinos
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'alugueres' ? 'active' : ''}`}
           onClick={() => setActiveTab('alugueres')}
         >
-          <span style={{opacity: 0.5}}>📋</span> Alugueres
+          <span style={{ opacity: 0.5 }}>📋</span> Alugueres
         </button>
       </div>
 
-      {activeTab === 'figurinos' ? (
+      {isLoading ? (
+        <div style={{ padding: '24px', color: '#64748B' }}>A carregar...</div>
+      ) : activeTab === 'figurinos' ? (
         <>
-          {/* BARRA DE FILTROS REFEITA PARA FICAR ALINHADA À ESQUERDA */}
           <div className="filters-bar">
             <div className="search-box">
               <span className="search-icon">🔍</span>
-              <input 
-                type="search" 
-                placeholder="Pesquisar figurinos..." 
+              <input
+                type="search"
+                placeholder="Pesquisar figurinos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             <div className="filter-dropdowns">
               <div className="dropdown">
                 <span className="icon">♈</span>
-                <select 
-                  value={categoryFilter} 
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                >
+                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
                   <option value="todos">Todos</option>
                   <option value="ballet">Ballet</option>
                   <option value="hip hop">Hip Hop</option>
@@ -248,12 +258,9 @@ const CostumesPage = () => {
                   <option value="contemporâneo">Contemporâneo</option>
                 </select>
               </div>
-              
+
               <div className="dropdown">
-                <select 
-                  value={statusFilter} 
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="todas">Todas</option>
                   <option value="disponivel">Disponíveis</option>
                   <option value="alugado">Alugados</option>
@@ -263,14 +270,15 @@ const CostumesPage = () => {
           </div>
 
           <div className="costumes-grid">
-            {filteredCostumes.map(costume => (
-                <CostumeCard isAdmin={isAdmin} 
-                  key={costume.id} 
-                  costume={costume} 
-                  onEdit={() => handleEditCostume(costume)} 
-                  onRent={() => handleOpenRentalModal(costume)}
-                  onDelete={() => handleAskDeleteCostume(costume)}
-                />
+            {filteredCostumes.map((costume) => (
+              <CostumeCard
+                isAdmin={isAdmin}
+                key={costume.id}
+                costume={costume}
+                onEdit={() => handleEditCostume(costume)}
+                onRent={() => handleOpenRentalModal(costume)}
+                onDelete={() => handleAskDeleteCostume(costume)}
+              />
             ))}
             {filteredCostumes.length === 0 && (
               <div style={{ padding: '24px', color: '#64748B' }}>Nenhum figurino encontrado.</div>
@@ -281,20 +289,23 @@ const CostumesPage = () => {
         <div className="rentals-section">
           <h3 className="section-title">Alugueres Ativos</h3>
           <div className="rentals-list">
-            {activeRentals.map(rental => (
+            {activeRentals.map((rental) => (
               <RentalItem key={rental.id} rental={rental} onReturn={handleReturnRental} />
             ))}
+            {activeRentals.length === 0 && (
+              <div style={{ padding: '24px', color: '#64748B' }}>Não existem alugueres registados.</div>
+            )}
           </div>
         </div>
       )}
 
-      <CostumeModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        initialData={editingCostume} 
-        onSave={handleSaveCostume} 
+      <CostumeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialData={editingCostume}
+        onSave={handleSaveCostume}
       />
-      <RentalModal 
+      <RentalModal
         isOpen={isRentalModalOpen}
         onClose={() => setIsRentalModalOpen(false)}
         costume={rentingCostume}
