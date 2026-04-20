@@ -1,0 +1,20 @@
+
+.dashboard-grid {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start; 
+  width: 100%;
+}
+
+.primary-column {
+  flex: 1; 
+  display: flex;
+  flex-direction: column;
+  gap: 24px; 
+  min-width: 0; 
+}
+
+.secondary-column {
+    display: flex;
+    gap:20px;
+}
