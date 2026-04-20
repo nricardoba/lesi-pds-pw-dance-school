@@ -1,33 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { AuthContext } from './AuthContextCreate';
 
+const getStoredJson = (key) => {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const normalizeRole = (user) => {
+  const typeDesc = user?.user_type_desc?.toLowerCase() || '';
+
+  if (typeDesc.includes('aluno') || typeDesc.includes('student')) {
+    return 'student';
+  }
+
+  if (typeDesc.includes('professor') || typeDesc.includes('teacher')) {
+    return 'teacher';
+  }
+
+  if (typeDesc.includes('encarregado') || typeDesc.includes('parent')) {
+    return 'parent';
+  }
+
+  if (typeDesc.includes('admin') || typeDesc.includes('dire') || typeDesc.includes('coord')) {
+    return 'admin';
+  }
+
+  return null;
+};
+
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem('user'))
-  );
-  
-  const [role, setRole] = useState('admin');
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [user, setUser] = useState(() => getStoredJson('user'));
 
-  useEffect(() => {
-    if (user) {
-      const typeDesc = user.user_type_desc?.toLowerCase() || '';
-      if (typeDesc.includes('aluno')) {
-        setRole('student');
-      } else if (typeDesc.includes('professor')) {
-        setRole('teacher');
-      } else {
-        setRole('admin');
-      }
-    }
-  }, [user]);
+  const role = useMemo(() => normalizeRole(user), [user]);
 
-  const login = ({ accessToken, user }) => {
+  const login = ({ accessToken, user: loggedUser }) => {
     localStorage.setItem('token', accessToken);
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('user', JSON.stringify(loggedUser));
 
     setToken(accessToken);
-    setUser(user);
+    setUser(loggedUser);
   };
 
   const logout = () => {
@@ -36,11 +52,10 @@ export const AuthProvider = ({ children }) => {
 
     setToken(null);
     setUser(null);
-    setRole('admin');
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, role, setRole, login, logout }}>
+    <AuthContext.Provider value={{ token, user, role, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

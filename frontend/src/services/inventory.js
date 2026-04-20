@@ -12,13 +12,14 @@ export const createRental = async (rentalData, token) => {
   return apiClient('/rentals', {
     method: 'POST',
     body: rentalData,
-    token
+    token,
   });
 };
 
-export const returnRental = async (rentalId, token) => {
+export const returnRental = async (rentalId, payload, token) => {
   return apiClient(`/rentals/${rentalId}/return`, {
     method: 'PUT',
-    token
+    body: payload,
+    token,
   });
 };
