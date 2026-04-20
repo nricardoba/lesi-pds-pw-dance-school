@@ -254,23 +254,13 @@ async function main() {
   });
 
   console.log("✔ Aluno user seed complete.");
-  console.log("Seeding finished successfully.");
-}
 
-main()
-  .catch((e) => {
-    console.error("Error during seeding:", e);
-    // @ts-ignore - Caso o @types/node ainda dê erro de linting
-    if (typeof process !== "undefined") process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });  // 8. Inventory initial data
+  // 8. Inventory initial data
   console.log("Seeding inventory data...");
 
   // Add Categories
   const category1 = await prisma.category.upsert({ where: { categoryName: "Ballet" }, update: {}, create: { categoryName: "Ballet" } });
-  const category2 = await prisma.category.upsert({ where: { categoryName: "Contempor�neo" }, update: {}, create: { categoryName: "Contempor�neo" } });
+  const category2 = await prisma.category.upsert({ where: { categoryName: "Contemporâneo" }, update: {}, create: { categoryName: "Contemporâneo" } });
   
   // Add Colors
   const color1 = await prisma.color.upsert({ where: { colorName: "Branco" }, update: {}, create: { colorName: "Branco" } });
@@ -286,7 +276,7 @@ main()
   // Add Item Characteristic
   const char1 = await prisma.itemCharacteristics.create({
     data: {
-      itemCharacteristicsName: "Tutu Cl�ssico",
+      itemCharacteristicsName: "Tutu Clássico",
       categoryId: category1.categoryId,
       colorId: color1.colorId,
       sizeId: size1.sizeId,
@@ -320,13 +310,28 @@ main()
   await prisma.schoolItem.create({
     data: {
       itemId: item1.itemId,
+      rentFee: 10.00,
     }
   });
 
   await prisma.schoolItem.create({
     data: {
       itemId: item2.itemId,
+      rentFee: 5.00,
     }
   });
 
-  console.log("? Inventory seed complete.");
+  console.log("✔ Inventory seed complete.");
+
+  console.log("Seeding finished successfully.");
+}
+
+main()
+  .catch((e) => {
+    console.error("Error during seeding:", e);
+    // @ts-ignore - Caso o @types/node ainda dê erro de linting
+    if (typeof process !== "undefined") process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
