@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import '../pagesCss/RoomsPage.css';
-import RoomCard from '../components/roomCard/RoomCard';
+import '../pagesCss/StudiosPage.css';
+import StudioCard from '../components/studioCard/StudioCard';
 import DaysTabs from '../components/daysTabs/DaysTabs';
 import AvailabilityGrid from '../components/availabilityGrid/AvailabilityGrid';
 import MaintenanceModal from '../components/maintenanceModal/MaintenanceModal';
-import RoomModal from '../components/roomModal/RoomModal';
+import StudioModal from '../components/studioModal/StudioModal';
 import AddClassToSlotModal from '../components/addClassToSlotModal/AddClassToSlotModal';
 import AddMaintenanceToSlotModal from '../components/addMaintenanceToSlotModal/AddMaintenanceToSlotModal';
+
+import { useAuth } from '../context/useAuth';
+import { getStudios, createStudio, updateStudio } from '../services/studios';
 
 import {
   readScheduleClassesFromStorage,
   writeScheduleClassesToStorage
 } from '../utils/scheduleStorage';
 
-const RoomsPage = () => {
+const StudiosPage = () => {
+  const { token, user } = useAuth();
+  const isAdmin = user?.user_type_desc?.toLowerCase() === 'admin';
   const normalizeDay = (day) => {
     if (!day) {
       return '';
@@ -43,27 +48,47 @@ const RoomsPage = () => {
 
 
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
-  const [isNewRoomModalOpen, setIsNewRoomModalOpen] = useState(false);
-  const [editingRoom, setEditingRoom] = useState(null);
+  const [isNewStudioModalOpen, setIsNewStudioModalOpen] = useState(false);
+  const [editingStudio, setEditingStudio] = useState(null);
   const [isAddClassModalOpen, setIsAddClassModalOpen] = useState(false);
   const [isAddMaintenanceToSlotModalOpen, setIsAddMaintenanceToSlotModalOpen] = useState(false);
   const [isAddMaintenanceSlotModalOpen, setIsAddMaintenanceSlotModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
 
-  // Dados das Salas
- const [rooms, setRooms] = useState ([
-    { id: 1, name: 'Sala Principal', size: 'Grande', capacity: 25, equipment: ['Espelhos', 'Barra', 'Som'] },
-    { id: 2, name: 'Sala Ballet', size: 'Média', capacity: 15, equipment: ['Espelhos', 'Barra dupla', 'Piano'] },
-    { id: 3, name: 'Sala Hip Hop', size: 'Média', capacity: 20, equipment: ['Espelhos', 'Som potente', 'Piso especial'] },
-    { id: 4, name: 'Estúdio Pequeno', size: 'Pequena', capacity: 8, equipment: ['Espelhos', 'Som'] }
-  ]);
+  const [studios, setStudios] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchStudios = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getStudios(token);
+      
+      const formattedStudios = data.map(s => ({
+        id: s.studioId,
+        name: s.studioName,
+        capacity: s.studioMaxCapacity,
+        size: s.studioMaxCapacity >= 20 ? 'Grande' : s.studioMaxCapacity >= 10 ? 'Média' : 'Pequena',
+        equipment: [],
+      }));
+
+      setStudios(formattedStudios);
+    } catch (error) {
+      console.error('Erro ao carregar estúdios:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (token) fetchStudios();
+  }, [token]);
 
   const [scheduledClasses, setScheduledClasses] = useState(() => {
     const persisted = readScheduleClassesFromStorage();
     return persisted.map((classItem) => ({
       id: classItem.id,
       day: normalizeDay(classItem.day),
-      room: classItem.room,
+      studio: classItem.studio,
       time: hourFromClass(classItem),
       className: classItem.name,
       teacher: classItem.instructor
@@ -71,50 +96,63 @@ const RoomsPage = () => {
   });
 
   const [maintenances, setMaintenances] = useState([
-    { id: 1, day: 'Terça', room: 'Sala Principal', time: '10:00', reason: 'Reparação espelho' }
+    { id: 1, day: 'Terça', studio: 'Estúdio Principal', time: '10:00', reason: 'Reparação espelho' }
   ]);
 
 
-  const handleOpenNewRoom = () => {
-    setEditingRoom(null);
-    setIsNewRoomModalOpen(true);
+  const handleOpenNewStudio = () => {
+    setEditingStudio(null);
+    setIsNewStudioModalOpen(true);
   };
 
-  const handleEditRoom = (room) => {
-    setEditingRoom(room);
-    setIsNewRoomModalOpen(true);
+  const handleEditStudio = (studio) => {
+    setEditingStudio({
+       id: studio.id,
+       studio_name: studio.name,
+       studio_max_capacity: studio.capacity,
+    });
+    setIsNewStudioModalOpen(true);
   };
 
-  const handleSaveRoom = (roomData) => {
-    if (editingRoom) {
-      // Atualiza a sala existente
-      setRooms(rooms.map(r => r.id === roomData.id ? roomData : r));
-    } else {
-      // Adiciona nova sala
-      setRooms([...rooms, roomData]);
+  const handleSaveStudio = async (studioData) => {
+    try {
+      const payload = {
+         studioName: studioData.studio_name,
+         studioMaxCapacity: studioData.studio_max_capacity,
+      };
+
+      if (editingStudio) {
+        await updateStudio(editingStudio.id, payload, token);
+      } else {
+        await createStudio(payload, token);
+      }
+      
+      await fetchStudios();
+    } catch(err) {
+      console.error('Erro a guardar estúdio:', err);
     }
   };
 
-    const handleAddClassToSlot = (room, hour) => {
-    setSelectedSlot({ room: room, hour: hour, day: activeDay });
+    const handleAddClassToSlot = (studio, hour) => {
+    setSelectedSlot({ studio: studio, hour: hour, day: activeDay });
     setIsAddClassModalOpen(true);
   };
 
-  const handleAddMaintenanceToSlot = (room, hour) => {
-    setSelectedSlot({ room: room, hour: hour, day: activeDay });
+  const handleAddMaintenanceToSlot = (studio, hour) => {
+    setSelectedSlot({ studio: studio, hour: hour, day: activeDay });
     setIsAddMaintenanceSlotModalOpen(true);
   };
 
   // Função para guardar a nova manutenção
  const handleSaveSlotAssignment = (data) => {
-    //Encontrar o nome da sala através do ID que vem do modal
-    const roomObj = rooms.find(r => r.id === data.roomId);
+    //Encontrar o nome da estúdio através do ID que vem do modal
+    const studioObj = studios.find(r => r.id === data.studioId);
 
     //objeto da aula que será adicionado à grelha
     const newClassBlock = {
       id: Date.now(),
       day: data.day,
-      room: roomObj ? roomObj.name : '', 
+      studio: studioObj ? studioObj.name : '', 
       time: data.hour,                   
       className: 'Aula Atribuída',       
       teacher: 'A Definir'               
@@ -131,7 +169,7 @@ const RoomsPage = () => {
       {
         id: Date.now(),
         name: 'Aula Atribuída',
-        room: roomObj ? roomObj.name : '',
+        studio: studioObj ? studioObj.name : '',
         day: (data.day || '').toUpperCase(),
         classDate: '',
         category: 'A Definir',
@@ -193,33 +231,43 @@ const RoomsPage = () => {
   const formattedActiveDate = `${pad2(activeDateObj.getDate())}/${pad2(activeDateObj.getMonth() + 1)}`;
 
   return (
-    <div className="rooms-page">
+    <div className="studios-page">
       {/* Cabeçalho */}
       <header className="page-header">
         <div>
-          <h1 className="page-title">Salas</h1>
-          <p className="page-subtitle">{rooms.length} salas registadas</p>
+          <h1 className="page-title">Estúdios</h1>
+          <p className="page-subtitle">{studios.length} estúdios registadas</p>
         </div>
         <div className="header-actions">
-          <button className="btn-secondary" onClick={() => setIsMaintenanceModalOpen(true)}>
-            🔧 Agendar Manutenção
-          </button>
-          <button className="btn-primary" onClick={handleOpenNewRoom}>
-            + Nova Sala
-          </button>
+          {isAdmin && (
+            <button className="btn-secondary" onClick={() => setIsMaintenanceModalOpen(true)}>
+              🔧 Agendar Manutenção
+            </button>
+          )}
+          {isAdmin && (
+            <button className="btn-primary" onClick={handleOpenNewStudio}>
+              + Novo Estúdio
+            </button>
+          )}
         </div>
       </header>
 
-      {/* Cartões das Salas */}
-      <div className="rooms-cards-container">
-        {rooms.map(room => (
-          <RoomCard 
-            key={room.id} 
-            room={room} 
-            onEdit={() => handleEditRoom(room)} 
-          />
-        ))}
-      </div>
+      {/* Cartões das Estúdios */}
+      {isLoading ? (
+        <div style={{ textAlign: 'center', marginTop: '2rem' }}>A carregar estúdios...</div>
+      ) : (
+        <div className="studios-cards-container">
+          {studios.map(studio => (
+            <StudioCard 
+              key={studio.id} 
+              studio={studio} 
+              isAdmin={isAdmin}
+              onEdit={() => handleEditStudio(studio)} 
+            />
+          ))}
+          {studios.length === 0 && <div className="empty-results">Nenhum estúdio encontrado.</div>}
+        </div>
+      )}
 
       <div className="calendar-picker-strip" style={{ margin: '20px 0' }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -250,7 +298,7 @@ const RoomsPage = () => {
       <DaysTabs days={daysOfWeek} activeDay={activeDay} onSelectDay={setActiveDay} />
 
       <AvailabilityGrid 
-        rooms={rooms} 
+        studios={studios} 
         activeDay={activeDay}
         displayDate={formattedActiveDate}
         classes={scheduledClasses}
@@ -261,18 +309,18 @@ const RoomsPage = () => {
 
      <MaintenanceModal isOpen={isMaintenanceModalOpen} onClose={() => setIsMaintenanceModalOpen(false)} />
 
-     <RoomModal 
-        isOpen={isNewRoomModalOpen} 
-        onClose={() => setIsNewRoomModalOpen(false)} 
-        initialData={editingRoom}
-        onSave={handleSaveRoom}
+     <StudioModal 
+        isOpen={isNewStudioModalOpen} 
+        onClose={() => setIsNewStudioModalOpen(false)} 
+        initialData={editingStudio}
+        onSave={handleSaveStudio}
       />
 
       <AddClassToSlotModal 
         isOpen={isAddClassModalOpen}
         onClose={() => setIsAddClassModalOpen(false)}
         slotData={selectedSlot}
-        rooms={rooms}
+        studios={studios}
         onSave={handleSaveSlotAssignment}
       />
 
@@ -280,11 +328,11 @@ const RoomsPage = () => {
         isOpen={isAddMaintenanceSlotModalOpen}
         onClose={() => setIsAddMaintenanceSlotModalOpen(false)}
         slotData={selectedSlot}
-        rooms={rooms}
+        studios={studios}
         onSave={handleSaveSlotMaintenance}
       />
     </div>
   );
 };
 
-export default RoomsPage;
+export default StudiosPage;

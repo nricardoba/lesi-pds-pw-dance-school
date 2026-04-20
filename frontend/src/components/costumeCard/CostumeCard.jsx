@@ -1,7 +1,7 @@
 import './CostumeCard.css';
 
   // Define a cor da tag de estado baseada no valor
- const CostumeCard = ({ costume, onEdit, onRent, onDelete }) => {
+ const CostumeCard = ({ costume, onEdit, onRent, onDelete, isAdmin }) => {
   const getStatusClass = (status) => {
     switch(status.toLowerCase()) {
       case 'disponível': return 'status-available';
@@ -22,7 +22,7 @@ import './CostumeCard.css';
         </span>
 
         {/* Ações rápidas (Editar/Eliminar) - Normalmente visíveis em hover ou para admin */}
-        <div className="costume-card__image-actions">
+        {isAdmin && (<div className="costume-card__image-actions">
           <button 
             className="icon-btn edit-btn-overlay" 
             title="Editar"
@@ -31,7 +31,7 @@ import './CostumeCard.css';
             ✎
           </button>
           <button className="icon-btn delete-btn-overlay" title="Eliminar" onClick={onDelete}>🗑️</button>
-        </div>
+        </div>)} 
       </div>
 
       {/* Conteúdo do Cartão */}
@@ -66,3 +66,4 @@ import './CostumeCard.css';
 };
 
 export default CostumeCard;
+

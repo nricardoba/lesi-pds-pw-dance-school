@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlus } from "lucide-react";
-import { registerRequest } from "../services/api";
+import { registerRequest } from "../services/auth";
 
 const Register = () => {
   const [name, setName] = useState("");

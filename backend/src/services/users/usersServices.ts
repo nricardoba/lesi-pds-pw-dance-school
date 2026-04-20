@@ -29,6 +29,20 @@ export const listUsersService = async () => {
     include: {
       userType: true,
       studentNumber: true,
+      userNIF: true,
+      userAddress: {
+        include: {
+          address: {
+            include: {
+              postalCodeRel: {
+                include: {
+                  locality: true
+                }
+              }
+            }
+          }
+        }
+      },
       userContact: {
         include: {
           contact: {
@@ -54,6 +68,19 @@ export const getUserByIdService = async (params: unknown) => {
       userType: true,
       studentNumber: true,
       userNIF: true,
+      userAddress: {
+        include: {
+          address: {
+            include: {
+              postalCodeRel: {
+                include: {
+                  locality: true
+                }
+              }
+            }
+          }
+        }
+      },
       userContact: {
         include: {
           contact: {

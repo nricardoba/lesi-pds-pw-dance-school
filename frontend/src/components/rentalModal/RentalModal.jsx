@@ -1,6 +1,6 @@
 import './RentalModal.css';
 
-const RentalModal = ({ isOpen, onClose, costume, onSave }) => {
+const RentalModal = ({ isOpen, onClose, costume, onSave, students = [] }) => {
   if (!isOpen || !costume) return null;
 
   const handleModalClick = (e) => {
@@ -11,18 +11,19 @@ const RentalModal = ({ isOpen, onClose, costume, onSave }) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     
+    // Convert to number for safety
+    const studentId = parseInt(formData.get('studentId'), 10);
+
     const rentalData = {
-      id: Date.now(),
+      // Backend vai ignorar estes, mas mantemos caso precisemos no frontend
       costumeName: costume.title,
-      studentName: formData.get('student'),
+      studentId: studentId,
       startDate: formData.get('startDate'),
       endDate: formData.get('endDate'),
-      price: parseFloat(formData.get('price')),
-      status: 'Ativo'
+      price: parseFloat(formData.get('price'))
     };
 
     onSave(rentalData);
-    onClose();
   };
 
   return (
@@ -38,11 +39,13 @@ const RentalModal = ({ isOpen, onClose, costume, onSave }) => {
           
           <div className="form-group full-width">
             <label>Aluno</label>
-            <select name="student" defaultValue="" required>
+            <select name="studentId" defaultValue="" required>
               <option value="" disabled>Selecionar aluno</option>
-              <option value="Mariana Silva">Mariana Silva</option>
-              <option value="Beatriz Oliveira">Beatriz Oliveira</option>
-              <option value="João Costa">João Costa</option>
+              {students.map(std => (
+                <option key={std.userId || std.id} value={std.userId || std.id}>
+                  {std.userName || std.name}
+                </option>
+              ))}
             </select>
           </div>
 

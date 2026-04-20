@@ -21,14 +21,6 @@ export const addUserAddressService = async (params: unknown, body: unknown) => {
   const existingUser = await prisma.user.findUnique({ where: { userId: id } });
   if (!existingUser) throw new AppError("Utilizador não encontrado.", 404);
 
-  // Removar a flag de "principal" de outras moradas, se esta morada nova for para ser a principal
-  if (isMainAddress) {
-    await prisma.userAddress.updateMany({
-      where: { userId: id },
-      data: { isMainAddress: false },
-    });
-  }
-
   // 1. Encontrar ou criar Localidade
   let locality = await prisma.locality.findFirst({
     where: { localityName: { equals: localityName, mode: "insensitive" } },
@@ -66,7 +58,46 @@ export const addUserAddressService = async (params: unknown, body: unknown) => {
   });
 
   if (existingUserAddress) {
-    throw new AppError("Esta morada já está associada ao utilizador.", 409);
+    if (isMainAddress && !existingUserAddress.isMainAddress) {
+      await prisma.userAddress.updateMany({
+        where: { userId: id },
+        data: { isMainAddress: false },
+      });
+      return prisma.userAddress.update({
+        where: { userId_streetId: { userId: id, streetId: address.streetId } },
+        data: { isMainAddress: true },
+        include: {
+          address: {
+            include: {
+              postalCodeRel: {
+                include: { locality: true }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    return prisma.userAddress.findUnique({
+      where: { userId_streetId: { userId: id, streetId: address.streetId } },
+      include: {
+        address: {
+          include: {
+            postalCodeRel: {
+              include: { locality: true }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Se não existir essa morada (mas outra for main), remove flag das anteriores
+  if (isMainAddress) {
+    await prisma.userAddress.updateMany({
+      where: { userId: id },
+      data: { isMainAddress: false },
+    });
   }
 
   // 5. Criar a associação UserAddress
