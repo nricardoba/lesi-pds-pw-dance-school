@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 /* descomentar para amostrar login e testar autenticação e no main.jsx tambem */
-/*
+
 import { AuthProvider } from './context/AuthContext';  //conection to back end  
 import ProtectedRoute from './components/ProtectedRoute'; //conection to back end
-*/
-import { useAuth, AuthProvider } from "./contexts/AuthContext"; // Simulação de autenticação com base em papéis (roles)
+
+//import { useAuth, AuthProvider } from "./contexts/AuthContext"; // Simulação de autenticação com base em papéis (roles)
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Register from './pages/Register';
@@ -20,15 +20,6 @@ import CoachingsPage from "./pages/CoachingsPage";
 import ClassTemplatesPage from "./pages/ClassTemplatesPage";
 import TeacherSchedulePage from "./pages/TeacherSchedulePage";
 import ScheduleApprovalsPage from "./pages/ScheduleApprovalsPage";
-
-const ProtectedRoute = ({ children }) => {
-  const { role } = useAuth();
-  if (role === 'student') {
-    return <Navigate to="/" replace />;
-  }
-  return children;
-};
-
 
 function App() {
   return (

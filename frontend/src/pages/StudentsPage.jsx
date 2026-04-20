@@ -1,22 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../pagesCss/StudentsPage.css';
 import StudentModal from '../components/studentModal/StudentModal';
+import { apiClient } from '../services/api';
+import { useAuth } from '../context/useAuth';
 
 const StudentsPage = () => {
+  const { token, user } = useAuth();
+  const isAdmin = user?.user_type_desc === 'Admin';
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [studentToDelete, setStudentToDelete] = useState(null);
+  
+  const [students, setStudents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Dados simulados baseados na tua imagem
-  const [students, setStudents] = useState([
-    { id: 1, name: 'Mariana Silva', email: 'mariana@email.com', phone: '921111111', guardianName: 'Helena Silva', guardianPhone: '961111111', birthdate: '2010-05-15', avatarColor: '#E0E7FF' },
-    { id: 2, name: 'João Costa', email: 'joao@email.com', phone: '922222222', guardianName: 'Pedro Costa', guardianPhone: '962222222', birthdate: '2008-08-20', avatarColor: '#E0E7FF' },
-    { id: 3, name: 'Beatriz Oliveira', email: 'beatriz@email.com', phone: '923333333', guardianName: 'Carla Oliveira', guardianPhone: '963333333', birthdate: '2012-01-10', avatarColor: '#E0E7FF' },
-    { id: 4, name: 'Miguel Ferreira', email: 'miguel@email.com', phone: '924444444', guardianName: 'Ana Ferreira', guardianPhone: '964444444', birthdate: '2011-11-25', avatarColor: '#EDE9FE' },
-    { id: 5, name: 'Sara Rodrigues', email: 'sara@email.com', phone: '925555555', guardianName: 'Rui Rodrigues', guardianPhone: '965555555', birthdate: '2009-03-30', avatarColor: '#E0E7FF' },
-    { id: 6, name: 'Tiago Almeida', email: 'tiago@email.com', phone: '926666666', guardianName: 'Marta Almeida', guardianPhone: '966666666', birthdate: '2013-07-12', avatarColor: '#EDE9FE' },
-  ]);
+  const fetchStudents = async () => {
+    try {
+      setIsLoading(true);
+      // Chama a listagem de utilizadores do backend
+      const data = await apiClient('/users', { token });
+      
+      // Filtra apenas os alunos (assume que o Backend usa 'Student' ou 'Aluno' no userTypeDesc)
+      const studentsOnly = data.filter(u => 
+        u.userType?.userTypeDesc?.toLowerCase() === 'student' || 
+        u.userType?.userTypeDesc?.toLowerCase() === 'aluno'
+      );
+      
+      // Mapeamento para o formato do Frontend
+      const formattedStudents = studentsOnly.map(u => {
+        // Encontrar emails e telemóveis nos contactos do utilizador
+        const emailContact = u.userContact?.find(
+          c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'email'
+        );
+        const phoneContact = u.userContact?.find(
+          c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'telemóvel' || 
+               c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone'
+        );
+
+        return {
+          id: u.userId,
+          name: u.userName,
+          email: emailContact?.contact?.contactValue || '',
+          phone: phoneContact?.contact?.contactValue || '',
+          guardianName: '-',  // Será implementado futuramente
+          guardianPhone: '-', // Será implementado futuramente
+          birthdate: u.userBirthDate ? u.userBirthDate.split('T')[0] : '', // Formatar para YYYY-MM-DD
+          avatarColor: '#E0E7FF' // Podes gerar dinamicamente se quiseres
+        };
+      });
+
+      setStudents(formattedStudents);
+    } catch (error) {
+      console.error('Erro a carregar alunos:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Carrega os alunos ao abrir a página
+  useEffect(() => {
+    if (token) fetchStudents();
+  }, [token]);
 
   // Função para extrair as iniciais (ex: "Mariana Silva" -> "MS")
   const getInitials = (name) => {
@@ -42,12 +88,9 @@ const StudentsPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveStudent = (studentData) => {
-    if (editingStudent) {
-      setStudents(students.map(s => s.id === studentData.id ? studentData : s));
-    } else {
-      setStudents([...students, studentData]);
-    }
+  const handleSaveStudent = async (studentData) => {
+    // Quando guardamos (Criar/Editar) no Modal, recarregamos a lista da BD
+    await fetchStudents();
   };
 
   const handleAskDeleteStudent = (student) => {
@@ -58,21 +101,30 @@ const StudentsPage = () => {
     setStudentToDelete(null);
   };
 
-  const handleConfirmDeleteStudent = () => {
-    if (!studentToDelete) {
-      return;
-    }
+  const handleConfirmDeleteStudent = async () => {
+    if (!studentToDelete) return;
 
-    setStudents(students.filter((student) => student.id !== studentToDelete.id));
-    setStudentToDelete(null);
+    try {
+      // Exemplo de delete no backend (caso implementes o DELETE /users/:id)
+      // await apiClient(`/users/${studentToDelete.id}`, { method: 'DELETE', token });
+      
+      // Ou alternativamente apenas meter inativo (soft delete) usando PUT /users/:id
+      await apiClient(`/users/${studentToDelete.id}`, { 
+        method: 'PUT', 
+        token, 
+        body: { userIsActive: false } 
+      });
+
+      setStudentToDelete(null);
+      await fetchStudents(); // Re-fetch
+    } catch (error) {
+      console.error('Erro a remover aluno:', error);
+    }
   };
 
   const getContactValue = (student, type) => {
-    if (type === 'email') {
-      return student.email || student.contacts?.find((c) => c.type === 'email')?.value || '-';
-    }
-
-    return student.phone || student.contacts?.find((c) => c.type === 'phone')?.value || '-';
+    if (type === 'email') return student.email || '-';
+    return student.phone || '-';
   };
 
   return (
@@ -83,9 +135,11 @@ const StudentsPage = () => {
           <h1 className="page-title">Alunos</h1>
           <p className="page-subtitle">{students.length} alunos registados</p>
         </div>
-        <button className="btn-primary" onClick={handleOpenNewStudent}>
-          + Novo Aluno
-        </button>
+        {isAdmin && (
+          <button className="btn-primary" onClick={handleOpenNewStudent}>
+            + Novo Aluno
+          </button>
+        )}
       </header>
 
       {/* Barra de Pesquisa */}
@@ -100,7 +154,9 @@ const StudentsPage = () => {
         />
       </div>
 
-      {/* Tabela de Alunos */}
+      {isLoading ? (
+         <div style={{ textAlign: 'center', marginTop: '2rem' }}>A carregar alunos...</div>
+      ) : (
       <div className="table-container">
         {/* Cabeçalho da Tabela */}
         <div className="table-header">
@@ -150,20 +206,24 @@ const StudentsPage = () => {
 
               {/* Coluna 5: Ações */}
               <div className="td-col col-actions">
-                <button 
-                  className="action-btn edit-btn" 
-                  title="Editar"
-                  onClick={() => handleEditStudent(student)}
-                >
-                  ✎
-                </button>
-                <button
-                  className="action-btn delete-btn"
-                  title="Eliminar"
-                  onClick={() => handleAskDeleteStudent(student)}
-                >
-                  🗑️
-                </button>
+                {isAdmin && (
+                  <>
+                    <button 
+                      className="action-btn edit-btn" 
+                      title="Editar"
+                      onClick={() => handleEditStudent(student)}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      className="action-btn delete-btn"
+                      title="Eliminar"
+                      onClick={() => handleAskDeleteStudent(student)}
+                    >
+                      🗑️
+                    </button>
+                  </>
+                )}
               </div>
 
             </div>
@@ -174,11 +234,13 @@ const StudentsPage = () => {
           )}
         </div>
       </div>
+      )}
       <StudentModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         initialData={editingStudent} 
         onSave={handleSaveStudent} 
+        token={token}
       />
 
       {studentToDelete && (
