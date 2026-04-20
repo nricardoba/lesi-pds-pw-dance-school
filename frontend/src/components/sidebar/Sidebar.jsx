@@ -22,6 +22,10 @@ const Sidebar = () => {
       !['/salas', '/alunos', '/modalidades', '/templates-aulas', '/professores'].includes(item.path)
     );
   }
+  
+   if (role === 'teacher') {
+    menuItems.splice(2, 0, { path: '/horario-professor', name: 'Meu Horário', icon: '🧭' });
+  }
 
   return (
     <aside className="sidebar">
