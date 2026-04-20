@@ -29,6 +29,20 @@ export const listUsersService = async () => {
     include: {
       userType: true,
       studentNumber: true,
+      userNIF: true,
+      userAddress: {
+        include: {
+          address: {
+            include: {
+              postalCodeRel: {
+                include: {
+                  locality: true
+                }
+              }
+            }
+          }
+        }
+      },
       userContact: {
         include: {
           contact: {
@@ -54,6 +68,19 @@ export const getUserByIdService = async (params: unknown) => {
       userType: true,
       studentNumber: true,
       userNIF: true,
+      userAddress: {
+        include: {
+          address: {
+            include: {
+              postalCodeRel: {
+                include: {
+                  locality: true
+                }
+              }
+            }
+          }
+        }
+      },
       userContact: {
         include: {
           contact: {
@@ -75,7 +102,7 @@ export const getUserByIdService = async (params: unknown) => {
 
 export const getUsersByIdsService = async (userIds: number[]) => {
   return prisma.user.findMany({
-    where: { userId: { in: userIds } } ,
+    where: { userId: { in: userIds } },
     select: { userId: true },
   });
 };
