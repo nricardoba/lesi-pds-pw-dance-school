@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AppError } from './appError';
+import { AppError } from '../../src/utils/appError';
 
 describe('AppError Utility', () => {
 
