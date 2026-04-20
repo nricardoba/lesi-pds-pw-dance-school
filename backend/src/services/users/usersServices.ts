@@ -29,6 +29,15 @@ export const listUsersService = async () => {
     include: {
       userType: true,
       studentNumber: true,
+      userContact: {
+        include: {
+          contact: {
+            include: {
+              contactType: true,
+            }
+          }
+        }
+      }
     },
     orderBy: {
       userId: "asc",
