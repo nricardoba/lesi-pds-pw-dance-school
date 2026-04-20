@@ -1,6 +1,6 @@
 import '../pagesCss/SchedulePage.css';
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/useAuth';
 import FilteredDayClasses from '../components/filteredDayClasses/FilteredDayClasses';
 import ClassModal from '../components/classModal/ClassModal';
 import {
