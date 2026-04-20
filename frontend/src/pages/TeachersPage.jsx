@@ -1,46 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TeacherModal from '../components/teacherModal/TeacherModal';
 import '../pagesCss/TeachersPage.css';
+import { getUsers } from '../services/users';
+import { useAuth } from '../context/useAuth';
 
 const TeachersPage = () => {
+  const { token, user } = useAuth();
+  const isAdmin = user?.user_type_desc === 'Admin';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
+  const [teachers, setTeachers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  const fetchTeachers = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getUsers(token);
+      
+      const teachersOnly = data.filter(u => 
+        u.userType?.userTypeDesc?.toLowerCase() === 'teacher' || 
+        u.userType?.userTypeDesc?.toLowerCase() === 'professor' ||
+        u.userType?.userTypeDesc?.toLowerCase() === 'professora'
+      );
+      
+      const formattedTeachers = teachersOnly.map(u => {
+        const emailContact = u.userContact?.find(
+          c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'email'
+        );
+        const phoneContact = u.userContact?.find(
+          c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'telemóvel' || 
+               c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone'
+        );
 
-  const [teachers, setTeachers] = useState([
-    {
-      user_id: 1,
-      name: 'Sofia Martins',
-      bio: '15 anos de experiência em ballet cl...',
-      email: 'sofia@entartes.pt',
-      phone: '912345678',
-      specialties: ['Ballet', 'Contemporâneo'],
-      classesCount: 0,
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
-    },
-    {
-      user_id: 2,
-      name: 'Ricardo Santos',
-      bio: 'Campeão nacional de hip hop 2020',
-      email: 'ricardo@entartes.pt',
-      phone: '913456789',
-      specialties: ['Hip Hop', 'Street Dance'],
-      classesCount: 0,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
-    },
-    {
-      user_id: 3,
-      name: 'Ana Ferreira',
-      bio: 'Formação no Royal Ballet',
-      email: 'ana@entartes.pt',
-      phone: '914567890',
-      specialties: ['Jazz', 'Dança Moderna'],
-      classesCount: 0,
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+        return {
+          user_id: u.userId,
+          name: u.userName,
+          bio: 'Sem biografia disponível', // Pode vir de outro campo no futuro
+          email: emailContact?.contact?.contactValue || '',
+          phone: phoneContact?.contact?.contactValue || '',
+          specialties: [], // Ainda a implementar a lógica de especialidades ou ler das qualificações
+          classesCount: 0,
+          avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.userName) + '&background=random'
+        };
+      });
+
+      setTeachers(formattedTeachers);
+    } catch (error) {
+      console.error('Erro ao carregar professores:', error);
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
 
   const filteredTeachers = teachers.filter(teacher => 
     teacher.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -57,11 +74,8 @@ const TeachersPage = () => {
   };
 
   const handleSaveTeacher = (teacherData) => {
-    if (editingTeacher) {
-      setTeachers(teachers.map(t => t.user_id === teacherData.user_id ? teacherData : t));
-    } else {
-      setTeachers([...teachers, teacherData]);
-    }
+    fetchTeachers(); // Recarrega a lista
+    setIsModalOpen(false);
   };
 
   const handleAskDeleteTeacher = (teacher) => {
@@ -72,11 +86,12 @@ const TeachersPage = () => {
     setTeacherToDelete(null);
   };
 
-  const handleConfirmDeleteTeacher = () => {
-    if (!teacherToDelete) {
-      return;
-    }
-
+  const handleConfirmDeleteTeacher = async () => {
+    if (!teacherToDelete) return;
+    
+    // Futura implementação de remoção no backend aqui
+    // await deleteUser(teacherToDelete.user_id, token);
+    
     setTeachers(teachers.filter((teacher) => teacher.user_id !== teacherToDelete.user_id));
     setTeacherToDelete(null);
   };
