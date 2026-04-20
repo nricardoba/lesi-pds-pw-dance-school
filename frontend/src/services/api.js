@@ -10,51 +10,62 @@ const handleResponse = async (res) => {
   return data;
 };
 
-export const loginRequest = async (email, password) => {
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+// Cliente genérico para evitar a repetição de código em todas as páginas
+export const apiClient = async (endpoint, { method = 'GET', body, token, customHeaders = {} } = {}) => {
+  const headers = {
+    "Content-Type": "application/json",
+    ...customHeaders,
+  };
 
+  // Se for passado um token, adiciona aos cabeçalhos automaticamente
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const config = {
+    method,
+    headers,
+  };
+
+  if (body) {
+    config.body = JSON.stringify(body);
+  }
+
+  const res = await fetch(`${API_URL}${endpoint}`, config);
   return handleResponse(res);
 };
 
+export const loginRequest = async (email, password) => {
+  return apiClient('/auth/login', {
+    method: 'POST',
+    body: { email, password }
+  });
+};
+
 export const registerRequest = async (userName, email, password) => {
-  const res = await fetch(`${API_URL}/auth/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  return apiClient('/auth/register', {
+    method: 'POST',
+    body: {
       userName,
       email,
       password,
       userTypeId: 2, //TODO: futuramente implementar a possibilidade de escolher o tipo de utilizador
       userIsActive: true,
-    }),
+    }
   });
-
-  return handleResponse(res);
 };
 
- export const forgotPasswordRequest = async (email) => {
-  const res = await fetch(`${API_URL}/auth/forgot-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
+export const forgotPasswordRequest = async (email) => {
+  return apiClient('/auth/forgot-password', {
+    method: 'POST',
+    body: { email }
   });
-  return handleResponse(res);
-}; 
+};
 
 /* export const resetPasswordRequest = async (token, password) => {
-  const res = await fetch(`${API_URL}/auth/reset-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, password }),
+  return apiClient('/auth/reset-password', {
+    method: 'POST',
+    body: { token, password }
   });
-  return handleResponse(res);
 };
- */ /* Futuramente implementar estas funcionalidades de forgot password e reset password */
+*/ /* Futuramente implementar estas funcionalidades de forgot password e reset password */
