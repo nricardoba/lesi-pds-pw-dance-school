@@ -1,23 +1,24 @@
 import { useAuth } from '../../context/useAuth';
+import { useNavigate } from 'react-router-dom';
 import './Header.css';
 
 const Header = () => {
-  const { role, setRole } = useAuth();
+  const { role, setRole, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
   <header className="header">
       <div className="header__actions">
-        <select 
-          className="header__action-btn header__action-btn--direcao" 
-          value={role} 
-          onChange={(e) => setRole(e.target.value)}
+        <button 
+          onClick={handleLogout}
+          style={{ backgroundColor: '#ef4444', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.375rem', fontWeight: 'bold' }}
         >
-          <option value="admin">Direção</option>
-          <option value="teacher">Professor</option>
-          <option value="student">Aluno</option>
-        </select>
-        <button className="header__action-btn header__action-btn--notif">
-          <span className="header__notif-icon">🔔</span>        
+          Logout
         </button>
       </div>
     </header>

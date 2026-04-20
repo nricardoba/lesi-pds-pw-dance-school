@@ -1,5 +1,5 @@
-
-.rooms-page {
+﻿
+.studios-page {
   display: flex;
   flex-direction: column;
 }
@@ -31,7 +31,7 @@
   background-color: #F8FAFC;
 }
 
-.rooms-cards-container {
+.studios-cards-container {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;

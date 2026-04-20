@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../pagesCss/StudentsPage.css';
 import StudentModal from '../components/studentModal/StudentModal';
-import { apiClient } from '../services/api';
+import { getUsers, updateUser } from '../services/users';
 import { useAuth } from '../context/useAuth';
 
 const StudentsPage = () => {
@@ -20,7 +20,7 @@ const StudentsPage = () => {
     try {
       setIsLoading(true);
       // Chama a listagem de utilizadores do backend
-      const data = await apiClient('/users', { token });
+      const data = await getUsers(token);
       
       // Filtra apenas os alunos (assume que o Backend usa 'Student' ou 'Aluno' no userTypeDesc)
       const studentsOnly = data.filter(u => 
@@ -39,19 +39,29 @@ const StudentsPage = () => {
                c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone'
         );
 
+        // Encontrar a morada
+        const mainAddress = u.userAddress?.find(a => a.isMainAddress)?.address || u.userAddress?.[0]?.address;
+
         return {
           id: u.userId,
           name: u.userName,
           email: emailContact?.contact?.contactValue || '',
           phone: phoneContact?.contact?.contactValue || '',
+          nif: u.userNIF?.userNif || '',
+          student_number: u.studentNumber?.studentNumber || '',
+          user_start_date: u.userStartDate ? u.userStartDate.split('T')[0] : '',
           guardianName: '-',  // Será implementado futuramente
           guardianPhone: '-', // Será implementado futuramente
           birthdate: u.userBirthDate ? u.userBirthDate.split('T')[0] : '', // Formatar para YYYY-MM-DD
-          avatarColor: '#E0E7FF' // Podes gerar dinamicamente se quiseres
+          avatarColor: '#E0E7FF', // Podes gerar dinamicamente se quiseres
+          isActive: u.userIsActive,
+          addressStr: mainAddress ? `${mainAddress.streetName || ''}${mainAddress.postalCodeRel?.locality?.localityName ? ', ' + mainAddress.postalCodeRel.locality.localityName : ''}` : '-'
         };
       });
 
-      setStudents(formattedStudents);
+      // Se precisares, podes omitir utilizadores inativos da listagem:
+      const activeStudents = formattedStudents.filter(u => u.isActive !== false);
+      setStudents(activeStudents);
     } catch (error) {
       console.error('Erro a carregar alunos:', error);
     } finally {
@@ -105,15 +115,8 @@ const StudentsPage = () => {
     if (!studentToDelete) return;
 
     try {
-      // Exemplo de delete no backend (caso implementes o DELETE /users/:id)
-      // await apiClient(`/users/${studentToDelete.id}`, { method: 'DELETE', token });
-      
-      // Ou alternativamente apenas meter inativo (soft delete) usando PUT /users/:id
-      await apiClient(`/users/${studentToDelete.id}`, { 
-        method: 'PUT', 
-        token, 
-        body: { userIsActive: false } 
-      });
+      // Mete inativo (soft delete) usando PUT /users/:id
+      await updateUser(studentToDelete.id, { userIsActive: false }, token);
 
       setStudentToDelete(null);
       await fetchStudents(); // Re-fetch
@@ -162,7 +165,8 @@ const StudentsPage = () => {
         <div className="table-header">
           <div className="th-col">ALUNO</div>
           <div className="th-col">CONTACTO</div>
-          <div className="th-col">ENCARREGADO</div>
+          <div className="th-col">MORADA</div>
+          <div className="th-col" style={{ display: 'none' }}>ENCARREGADO</div>
           <div className="th-col text-right">AÇÕES</div>
         </div>
 
@@ -192,8 +196,15 @@ const StudentsPage = () => {
                 </div>
               </div>
 
-              {/* Coluna 3: Encarregado */}
-              <div className="td-col col-guardian">
+              {/* Coluna 3: Morada */}
+              <div className="td-col col-address">
+                <div className="info-item">
+                  <span className="info-icon">📍</span> {student.addressStr && student.addressStr !== '-' ? student.addressStr : 'Sem morada'}
+                </div>
+              </div>
+
+              {/* Coluna 4: Encarregado (Escondido) */}
+              <div className="td-col col-guardian" style={{ display: 'none' }}>
                 <div className="info-item">
                   <span className="info-icon">👤</span> {student.guardianName}
                 </div>
@@ -204,7 +215,7 @@ const StudentsPage = () => {
 
            
 
-              {/* Coluna 5: Ações */}
+              {/* Coluna Ações */}
               <div className="td-col col-actions">
                 {isAdmin && (
                   <>

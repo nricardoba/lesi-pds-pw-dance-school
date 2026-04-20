@@ -3,7 +3,7 @@ import StatsCards from "../components/statsCards/StatsCards";
 import Schedule from "../components/schedule/Schedule";
 import TeacherHomePage from "./TeacherHomePage";
 import StudentHomePage from "./StudentHomePage";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 const HomePage = () => {
   const { role } = useAuth();

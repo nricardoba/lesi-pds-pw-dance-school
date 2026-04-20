@@ -3,6 +3,7 @@ import { checkRole } from "../middlewares/checkRole";
 import { USER_ROLES } from "../utils/permissions";
 import * as InventoryController from "../controllers/inventoryController";
 import { upload } from "../middlewares/upload";
+import { ensureAuth } from "../middlewares/ensureAuth";
 
 // ============================================================================
 // CHARACTERISTICS ROUTER
@@ -48,7 +49,7 @@ export const itemsRouter = Router();
 
 itemsRouter.get(
     "/",
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
+    ensureAuth,
     InventoryController.listItemsController,
 );
 itemsRouter.get("/:id", InventoryController.getItemByIdController);
@@ -75,7 +76,7 @@ export const rentalsRouter = Router();
 
 rentalsRouter.get(
     "/",
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
+    ensureAuth,
     InventoryController.listRentalsController,
 );
 rentalsRouter.get(

@@ -6,7 +6,7 @@ const Sidebar = () => {
   const { user } = useAuth();
   
   // A role vem de user.user_type_desc e vem do backend (ex: "Admin", "Teacher", "Student")
-  const role = user?.user_type_desc;
+  const role = user?.user_type_desc?.toLowerCase();
 
   // Lista de todos os itens do menu com os respetivos caminhos (rotas)
   let menuItems = [
@@ -15,22 +15,21 @@ const Sidebar = () => {
     { path: '/coachings', name: 'Coachings', icon: '✨' },
     { path: '/figurinos', name: 'Figurinos', icon: '👗' },
     { path: '/professores', name: 'Professores', icon: '👨‍🏫' },
-    { path: '/salas', name: 'Salas', icon: '🏢' },
+    { path: '/estudios', name: 'Estúdios', icon: '🏢' },
     { path: '/alunos', name: 'Alunos', icon: '👥' },
     { path: '/templates-aulas', name: 'Templates de Aulas', icon: '▶' },
   ];
 
-   if (role === 'Admin') {
+   if (role === 'admin') {
     menuItems.push({ path: '/aprovacao-horarios', name: 'Aprovação Horários', icon: '✅' });
   }
 
-  if (role === 'Student') {
-    menuItems = menuItems.filter(item => 
-      !['/salas', '/modalidades', '/templates-aulas', '/professores'].includes(item.path)
-    );
+  if (role === 'student' || role === 'aluno') {
+    const allowedForStudent = ['/dashboard', '/horario', '/coachings', '/figurinos', '/professores'];
+    menuItems = menuItems.filter(item => allowedForStudent.includes(item.path));
   }
   
-   if (role === 'Teacher') {
+   if (role === 'teacher' || role === 'professor') {
     menuItems.splice(2, 0, { path: '/horario-professor', name: 'Meu Horário', icon: '🧭' });
   }
 

@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../pagesCss/CostumesPage.css';
 import CostumeCard from '../components/costumeCard/CostumeCard';
 import CostumeModal from '../components/costumeModal/CostumeModal';
 import RentalItem from '../components/rentalItem/RentalItem';
 import RentalModal from '../components/rentalModal/RentalModal';
 
+import { getItems, getRentals, createRental, returnRental } from '../services/inventory';
+import { getUsers } from '../services/users';
+import { useAuth } from '../context/useAuth';
+
 const CostumesPage = () => {
+  const { token, user } = useAuth();
+  const isAdmin = user?.user_type_desc === 'Admin';
+
   const [activeTab, setActiveTab] = useState('figurinos');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('todos');
@@ -18,30 +25,77 @@ const CostumesPage = () => {
   const [rentingCostume, setRentingCostume] = useState(null);
   const [costumeToDelete, setCostumeToDelete] = useState(null);
 
-  // Dados dos Figurinos
-  const [costumes, setCostumes] = useState([
-    {
-      id: 1, title: 'Tutu Branco Clássico', category: 'Ballet', size: 'M', condition: 'Novo', color: 'Branco', price: 25.00, lateFee: 2.50, isRental: true, stock: 3, status: 'Disponível', actionText: 'Alugar', image: 'https://images.unsplash.com/photo-1516477287754-526bf3b11874?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: 2, title: 'Tutu Azul Royal', category: 'Ballet', size: 'S', condition: 'Usado', color: 'Azul', price: 30.00, lateFee: 3.00, isRental: true, stock: 2, status: 'Disponível', actionText: 'Alugar', image: 'https://images.unsplash.com/photo-1542139414-06109e44d32a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: 3, title: 'Fato Hip Hop Preto', category: 'Hip Hop', size: 'L', condition: 'Novo', color: 'Preto', price: 45.00, lateFee: 0, isRental: false, stock: 5, status: 'Disponível', actionText: 'Alugar', image: 'https://images.unsplash.com/photo-1535597407571-0814ce3683f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: 4, title: 'Maillot Jazz Rosa', category: 'Jazz', size: 'M', condition: 'Usado', color: 'Rosa', price: 15.00, lateFee: 1.50, isRental: true, stock: 4, status: 'Disponível', actionText: 'Alugar', image: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    },
-    {
-      id: 5, title: 'Vestido Contemporâneo', category: 'Contemporâneo', size: 'S', condition: 'Novo', color: 'Rosa', price: 20.00, lateFee: 2.00, isRental: true, stock: 0, status: 'Alugado', actionText: 'Indisponível', image: 'https://images.unsplash.com/photo-1518834107812-67b0b7c58434?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    }
-  ]);
+  const [costumes, setCostumes] = useState([]);
+  const [activeRentals, setActiveRentals] = useState([]);
+  const [students, setStudents] = useState([]); // Array de alunos para o modal
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Dados dos Alugueres Ativos
-  const [activeRentals , setActiveRentals] = useState([
-    { id: 1, costumeName: 'Vestido Contemporâneo', studentName: 'Mariana Silva', startDate: '2026-01-10', endDate: '2026-01-20', price: 20.00, status: 'Ativo' },
-    { id: 2, costumeName: 'Tutu Branco Clássico', studentName: 'Beatriz Oliveira', startDate: '2025-12-15', endDate: '2025-12-30', price: 25.00, status: 'Atrasado' }
-  ]);
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      
+      const [itemsData, rentalsData, usersData] = await Promise.all([
+        getItems(token),
+        getRentals(token),
+        getUsers(token)
+      ]);
+
+      // Filtrar apenas utilizadores do tipo "Student" ou "Aluno"
+      const studentsOnly = usersData.filter(u => 
+        u.userType?.userTypeDesc?.toLowerCase() === 'student' || 
+        u.userType?.userTypeDesc?.toLowerCase() === 'aluno'
+      );
+      setStudents(studentsOnly);
+
+      // Mapeamento dos Items do Backend para 'costumes' no Frontend
+      const formattedItems = itemsData.map(item => {
+        const chars = item.itemCharacteristics || {};
+        const cat = chars.category?.categoryName || 'Desconhecida';
+        const isRental = true; // Assumido se houver preço associado ou logicamente
+        
+        return {
+          id: item.itemId,
+          title: chars.itemCharacteristicsName || 'Sem nome',
+          category: cat,
+          size: chars.size?.sizeName || 'N/A',
+          condition: item.itemCondition?.itemConditionName || 'Novo',
+          color: chars.color?.colorName || 'N/A',
+          price: Number(item.schoolItem?.rentFee) || 0,
+          lateFee: 2.50, // Pode vir de configurações globais futuramente
+          isRental: isRental,
+          stock: 1, // Atualmente é uma unidade por item tracking
+          status: 'Disponível', // Determinado consoante o estado de aluguer atual
+          actionText: 'Alugar',
+          image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150'
+        };
+      });
+
+      // Mapeamento dos Alugueres
+      const formattedRentals = rentalsData.map(rental => {
+        return {
+          id: rental.rentalId,
+          costumeName: rental.item?.itemCharacteristics?.itemCharacteristicsName || 'Figurino desconhecido',
+          studentName: rental.user?.userName || 'Aluno desconhecido',
+          startDate: rental.rentalStartDate ? rental.rentalStartDate.split('T')[0] : '',
+          endDate: rental.rentalEndDate ? rental.rentalEndDate.split('T')[0] : '',
+          price: Number(rental.rentalAmount) || 0,
+          status: rental.rentalIsReturned ? 'Concluído' : 'Ativo'
+        };
+      });
+
+      setCostumes(formattedItems);
+      setActiveRentals(formattedRentals);
+
+    } catch (error) {
+      console.error('Erro ao carregar dados dos figurinos/alugueres:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) fetchData();
+  }, [token]);
 
   // A LÓGICA DE FILTRAGEM COMPLETA (Isto faz os filtros funcionarem)
   const filteredCostumes = costumes.filter(costume => {
@@ -74,9 +128,41 @@ const CostumesPage = () => {
     setRentingCostume(costume);
     setIsRentalModalOpen(true);
   };
-  const handleSaveRental = (rentalData) => {
-    setActiveRentals([...activeRentals, rentalData]);
-    
+
+  const handleSaveRental = async (rentalData) => {
+    try {
+      if (!rentalData.studentId) {
+        alert("Por favor selecione um aluno válido.");
+        return;
+      }
+      
+      const payload = {
+        userId: Number(rentalData.studentId),
+        itemId: rentingCostume.id, // O ID do item guardado na pág
+        rentDateStart: new Date(rentalData.startDate).toISOString(),
+        rentDateEnd: new Date(rentalData.endDate).toISOString()
+      };
+
+      await createRental(payload, token);
+      
+      // Recarrega tudo para atualizar estados do item e as tabs de Rentals
+      fetchData(); 
+      setIsRentalModalOpen(false);
+
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao criar aluguer.");
+    }
+  };
+
+  const handleReturnRental = async (rentalId) => {
+    try {
+      await returnRental(rentalId, token);
+      fetchData(); // Atualiza a lista
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao devolver o equipamento.");
+    }
   };
 
   const handleSaveCostume = (costumeData) => {
@@ -113,9 +199,9 @@ const CostumesPage = () => {
           <h1 className="page-title">Figurinos</h1>
           <p className="page-subtitle">Gestão de aluguer e venda de figurinos</p>
         </div>
-        <button className="btn-primary" onClick={handleOpenNewCostume}>
+        {isAdmin && (<button className="btn-primary" onClick={handleOpenNewCostume}>
           + Novo Figurino
-        </button>
+        </button>)}
       </header>
 
       {/* TABS REFEITAS PARA SEREM CAIXAS CINZENTAS COMO NA FOTO */}
@@ -178,7 +264,7 @@ const CostumesPage = () => {
 
           <div className="costumes-grid">
             {filteredCostumes.map(costume => (
-                <CostumeCard 
+                <CostumeCard isAdmin={isAdmin} 
                   key={costume.id} 
                   costume={costume} 
                   onEdit={() => handleEditCostume(costume)} 
@@ -196,7 +282,7 @@ const CostumesPage = () => {
           <h3 className="section-title">Alugueres Ativos</h3>
           <div className="rentals-list">
             {activeRentals.map(rental => (
-              <RentalItem key={rental.id} rental={rental} />
+              <RentalItem key={rental.id} rental={rental} onReturn={handleReturnRental} />
             ))}
           </div>
         </div>
@@ -212,6 +298,7 @@ const CostumesPage = () => {
         isOpen={isRentalModalOpen}
         onClose={() => setIsRentalModalOpen(false)}
         costume={rentingCostume}
+        students={students}
         onSave={handleSaveRental}
       />
 

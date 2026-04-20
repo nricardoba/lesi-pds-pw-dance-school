@@ -10,8 +10,8 @@ import * as UsersController from '../controllers/usersController';
 export const usersRouter = Router();
 
 // Usando o nosso checkRole fundido (ele já faz a validação do token internamente)
-usersRouter.get('/', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), UsersController.listUsersController);
-usersRouter.get('/:id', checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]), UsersController.getUserByIdController);
+usersRouter.get('/', ensureAuth, UsersController.listUsersController);
+usersRouter.get('/:id', ensureAuth, UsersController.getUserByIdController);
 usersRouter.post('/', checkRole([USER_ROLES.ADMIN]), UsersController.createUserController);
 usersRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.updateUserController);
 

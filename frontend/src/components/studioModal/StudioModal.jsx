@@ -1,6 +1,6 @@
-import './RoomModal.css';
+﻿import './StudioModal.css';
 
-const RoomModal = ({ isOpen, onClose, initialData, onSave }) => {
+const StudioModal = ({ isOpen, onClose, initialData, onSave }) => {
   if (!isOpen) return null;
 
   const handleModalClick = (e) => {
@@ -8,14 +8,14 @@ const RoomModal = ({ isOpen, onClose, initialData, onSave }) => {
   };
 
   const isEditing = !!initialData;
-  const modalTitle = isEditing ? 'Editar Sala' : 'Nova Sala';
-  const submitButtonText = isEditing ? 'Guardar' : 'Criar Sala';
+  const modalTitle = isEditing ? 'Editar Estúdio' : 'Novo Estúdio';
+  const submitButtonText = isEditing ? 'Guardar' : 'Criar Estúdio';
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     
-    const roomData = {
+    const studioData = {
       id: isEditing ? initialData.id : Date.now(),
       studio_name: formData.get('name'),
       studio_max_capacity: parseInt(formData.get('capacity'), 10),
@@ -24,7 +24,7 @@ const RoomModal = ({ isOpen, onClose, initialData, onSave }) => {
       notes: formData.get('notes')
     };
 
-    onSave(roomData);
+    onSave(studioData);
     onClose();
   };
 
@@ -40,7 +40,7 @@ const RoomModal = ({ isOpen, onClose, initialData, onSave }) => {
         <form className="modal-form" onSubmit={handleSubmit}>
           
           <div className="form-group full-width">
-            <label>Nome da Sala</label>
+            <label>Nome do Estúdio</label>
             <input name="name" type="text" defaultValue={isEditing ? (initialData.studio_name || initialData.name) : ''} required />
           </div>
 
@@ -76,4 +76,4 @@ const RoomModal = ({ isOpen, onClose, initialData, onSave }) => {
   );
 };
 
-export default RoomModal;
+export default StudioModal;
