@@ -73,6 +73,13 @@ export const getUserByIdService = async (params: unknown) => {
   return user;
 };
 
+export const getUsersByIdsService = async (userIds: number[]) => {
+  return prisma.user.findMany({
+    where: { userId: { in: userIds } },
+    select: { userId: true },
+  });
+};
+
 export const createUserService = async (body: unknown) => {
   const {
     userName,

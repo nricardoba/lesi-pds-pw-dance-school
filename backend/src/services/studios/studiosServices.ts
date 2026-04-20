@@ -12,6 +12,15 @@ const updateStudioSchema = z.object({
   studioMaxCapacity: z.coerce.number().int().optional(),
 });
 
+export const getAvailableStudiosService = async (modalityId: number) => {
+  if (!modalityId) throw new AppError("modalityId é obrigatório.", 400);
+
+  return prisma.studioModality.findMany({
+    where: { modalityId },
+    include: { studio: true, modality: true },
+  });
+};
+
 export const listStudiosService = async () => {
   return prisma.studio.findMany({ orderBy: { studioId: 'asc' } });
 };
