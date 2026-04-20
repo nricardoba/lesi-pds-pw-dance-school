@@ -1,9 +1,5 @@
 # Git Branch and Merge
 
-***Este ficheiro tem de ser melhorado, passar para inglês e fazer uma revisão.***
-
----
-
 ## 1. Atualizar a branch principal (main)
 
 #### 1.1. Mudar para a branch principal
@@ -55,17 +51,17 @@ git commit -m "Update main.c"
 ```
 git push -u origin new-branch-name
 ```
-*Nota: Nas próximas vezes que quiseres enviar alterações nesta mesma branch, basta escreveres apenas `git push`.*
+*Nota: Nas próximas vezes que quiser enviar alterações nesta mesma branch, basta escrever apenas `git push`.*
 
 ---
 
 ## 5. Criar o Pull Request e fazer o Merge
 
 #### 5.1. Fazer Pull Request no GitHub
-No título do Pull Request devem descrever o que foi feito no âmbito desta branch. Se pretenderem podem adicionar uma descrição, mas é opcional.
+No título do Pull Request deve descrever o que foi feito no âmbito desta branch. Se pretender pode adicionar uma descrição, mas é opcional.
 
 #### 5.2. Fazer Merge no GitHub
-*Importante: Ao fazer merge não devem alterar o título do mesmo, devem manter o título gerado pelo GitHub, ficando alguma coisa assim:*
+*Importante: Ao fazer merge não deve alterar o título do mesmo, devem manter o título gerado pelo GitHub, ficando alguma coisa assim:*
 ```
 Merge pull request #1 from ricanudo/create-database
 ```
