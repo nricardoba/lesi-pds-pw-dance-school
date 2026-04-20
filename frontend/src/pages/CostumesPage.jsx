@@ -201,7 +201,7 @@ const CostumesPage = () => {
         </div>
         {isAdmin && (<button className="btn-primary" onClick={handleOpenNewCostume}>
           + Novo Figurino
-        </button>
+        </button>)}
       </header>
 
       {/* TABS REFEITAS PARA SEREM CAIXAS CINZENTAS COMO NA FOTO */}
