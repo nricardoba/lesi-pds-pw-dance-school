@@ -5,7 +5,7 @@ const Schedule = () => {
     {
       id: 1,
       time: '18:00',
-      title: 'Hip Hop AvanÃ§ado',
+      title: 'Hip Hop Avançado',
       instructor: 'Ricardo Santos',
       room: 'Sala Hip Hop',
       category: 'Hip Hop',
@@ -17,7 +17,7 @@ const Schedule = () => {
     <section className="schedule-container">
       <div className="schedule-header">
         <h3 className="schedule-title">Aulas de Hoje</h3>
-        <a href="/horario" className="schedule-link">Ver horÃ¡rio &gt;</a>
+        <a href="/horario" className="schedule-link">Ver horario &gt;</a>
       </div>
 
       <div className="schedule-list">
@@ -30,7 +30,7 @@ const Schedule = () => {
             <div className="class-info">
               <h4 className="class-name">{item.title}</h4>
               <p className="class-details">
-                {item.instructor} â€¢ {item.room}
+                {item.instructor} na {item.room}
               </p>
             </div>
 
