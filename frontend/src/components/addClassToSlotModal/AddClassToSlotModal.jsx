@@ -10,7 +10,7 @@ const AddClassToSlotModal = ({ isOpen, onClose, slotData, studios, onSave }) => 
     e.preventDefault();
     const formData = new FormData(e.target);
     
-    // Aqui podes depois ligar à tua lógica real de gravar a aula
+  
     const assignmentData = {
       studioId: parseInt(formData.get('studioId')),
       day: slotData.day,

@@ -17,7 +17,7 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
     note: ''
   });
 
-  const [maxDuration, setMaxDuration] = useState(120); // 2 hours max default
+  const [maxDuration, setMaxDuration] = useState(120);
   const [scheduleClasses, setScheduleClasses] = useState([]);
 
   useEffect(() => {
