@@ -7,15 +7,12 @@ export const loginRequest = async (email, password) => {
   });
 };
 
-export const registerRequest = async (userName, email, password) => {
-  return apiClient('/auth/register', {
+export const registerRequest = async (email, password) => {
+  return apiClient('/auth/setup-credentials', {
     method: 'POST',
     body: {
-      userName,
       email,
       password,
-      userTypeId: 3, //TODO: futuramente implementar a possibilidade de escolher o tipo de utilizador
-      userIsActive: true,
     }
   });
 };
