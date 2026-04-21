@@ -10,7 +10,10 @@ const userContactParamsSchema = z.object({
 const userContactBodySchema = z.object({
   contactValue: z.string().trim().min(3),
   contactTypeId: z.coerce.number().int().positive(),
-  isMainContact: z.boolean().default(false),
+  isMainContact: z.preprocess((val) => {
+    if (typeof val === "string") return val.toLowerCase() === "true";
+    return Boolean(val);
+  }, z.boolean()).default(false),
 });
 
 export const addUserContactService = async (params: unknown, body: unknown) => {
