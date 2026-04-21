@@ -128,10 +128,10 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         const phone = formData.get('phone');
         
         if (email) {
-          try { await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); } catch(e) {}
+          try { await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); } catch (e) { console.error(e); }
         }
         if (phone) {
-          try { await addUserContact(createdOrUpdatedUserId, { contactValue: phone, contactTypeId: 1, isMainContact: true }, token); } catch(e) {}
+          try { await addUserContact(createdOrUpdatedUserId, { contactValue: phone, contactTypeId: 1, isMainContact: true }, token); } catch (e) { console.error(e); }
         }
 
         // Adicionar / Atualizar Morada
@@ -161,10 +161,10 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         
         // Adicionar os contactos do Estudante recém criado
         if (email) {
-          try { await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); } catch(e) {}
+          try { await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); } catch (e) { console.error(e); }
         }
         if (phone) {
-          try { await addUserContact(createdOrUpdatedUserId, { contactValue: phone, contactTypeId: 1, isMainContact: true }, token); } catch(e) {}
+          try { await addUserContact(createdOrUpdatedUserId, { contactValue: phone, contactTypeId: 1, isMainContact: true }, token); } catch (e) { console.error(e); }
         }
 
         // Adicionar Morada

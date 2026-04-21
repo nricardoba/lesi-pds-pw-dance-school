@@ -125,11 +125,6 @@ const StudentsPage = () => {
     }
   };
 
-  const getContactValue = (student, type) => {
-    if (type === 'email') return student.email || '-';
-    return student.phone || '-';
-  };
-
   return (
     <div className="students-page">
       {/* Cabeçalho */}
@@ -189,10 +184,10 @@ const StudentsPage = () => {
               {/* Coluna 2: Contacto */}
               <div className="td-col col-contact">
                 <div className="info-item">
-                  <span className="info-icon">✉️</span> {getContactValue(student, 'email')}
+                  <span className="info-icon">✉️</span> {student.email || '-'}
                 </div>
                 <div className="info-item">
-                  <span className="info-icon">📞</span> {getContactValue(student, 'phone')}
+                  <span className="info-icon">📞</span> {student.phone || '-'}
                 </div>
               </div>
 
