@@ -20,6 +20,11 @@ const registerSchema = z.object({
   phoneNumber: z.string().trim().optional(),
 });
 
+const setupCredentialsSchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(6),
+});
+
 export const loginService = async (body: unknown) => {
   const parsedBody = loginSchema.safeParse(body);
 
@@ -220,4 +225,49 @@ export const registerService = async (body: unknown) => {
       user_type_desc: result?.userType.userTypeDesc,
     },
   };
+};
+
+export const setupCredentialsService = async (body: unknown) => {
+  const parsedBody = setupCredentialsSchema.safeParse(body);
+
+  if (!parsedBody.success) {
+    throw new AppError("Dados inválidos.", 400);
+  }
+
+  const { email, password } = parsedBody.data;
+
+  const existingContact = await prisma.contact.findFirst({
+    where: { contactValue: email },
+    include: { userContact: true },
+  });
+
+  if (!existingContact) {
+    throw new AppError("Este email não está registado no sistema. Contacte a escola.", 404);
+  }
+
+  const userContactRecord = existingContact.userContact[0];
+
+  if (!userContactRecord) {
+    throw new AppError("Este email não está associado a nenhum utilizador.", 404);
+  }
+
+  const existingCredential = await prisma.userCredential.findUnique({
+    where: { userContactId: userContactRecord.userContactId },
+  });
+
+  if (existingCredential) {
+    throw new AppError("Este utilizador já possui credenciais de acesso.", 409);
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const newCredential = await prisma.userCredential.create({
+    data: {
+      userId: userContactRecord.userId,
+      userContactId: userContactRecord.userContactId,
+      userCredentialPasswordHash: passwordHash,
+    },
+  });
+
+  return { message: "Credenciais criadas com sucesso." };
 };

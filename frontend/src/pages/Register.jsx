@@ -4,7 +4,6 @@ import { UserPlus } from "lucide-react";
 import { registerRequest } from "../services/auth";
 
 const Register = () => {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,7 +20,7 @@ const Register = () => {
   }
 
   try {
-    await registerRequest(name, email, password);
+    await registerRequest(email, password);
     navigate("/login");
   } catch (error) {
     setErro(error.message || "Erro de ligação ao servidor");
@@ -46,29 +45,19 @@ const Register = () => {
         </div>
         <div className="border shadow-xl rounded-xl bg-white p-8">
           <h1 className="text-2xl font-semibold text-top text-gray-800 mb-2">
-            Criar Conta
+            Criar palavra-passe para a sua conta
           </h1>
           <p className="text-gray-500 text-sm mb-4">
-            Preencha os dados para começar
+            Preencha os dados para poder acessar a sua conta.
           </p>
-
+          <p className="text-gray-500 text-sm mb-4">
+                      Se não tem conta por favor contacte a Ent'Artes para criar uma conta para si.
+          </p>
           {erro && (
             <p className="text-red-500 text-sm text-center mb-4">{erro}</p>
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col">
-              <p className="text-gray-700 text-sm font-medium mb-2">
-                Nome Completo
-              </p>
-              <input
-                type="text"
-                placeholder="Nome Completo"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
             <div className="flex flex-col">
               <p className="text-gray-700 text-sm font-medium mb-2">Email</p>
               <input
