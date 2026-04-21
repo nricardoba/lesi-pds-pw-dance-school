@@ -45,12 +45,14 @@ const Register = () => {
         </div>
         <div className="border shadow-xl rounded-xl bg-white p-8">
           <h1 className="text-2xl font-semibold text-top text-gray-800 mb-2">
-            Criar Conta
+            Criar palavra-passe para a sua conta
           </h1>
           <p className="text-gray-500 text-sm mb-4">
-            Preencha os dados para começar
+            Preencha os dados para poder acessar a sua conta.
           </p>
-
+          <p className="text-gray-500 text-sm mb-4">
+                      Se não tem conta por favor contacte a Ent'Artes para criar uma conta para si.
+          </p>
           {erro && (
             <p className="text-red-500 text-sm text-center mb-4">{erro}</p>
           )}
