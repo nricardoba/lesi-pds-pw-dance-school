@@ -351,14 +351,14 @@ async function main() {
 
   console.log("✔ Inventory seed complete.");
 
-  // 9. Sincronizar sequências (Correção para IDs manuais)
+  // 9. Sincronizar sequências (Correção para IDs manuais no Postgres)
   console.log("Sincronizando sequências da base de dados...");
-  await prisma.$executeRaw`SELECT setval('user_user_id_seq', COALESCE((SELECT MAX("user_id") FROM "User"), 1));`;
-  await prisma.$executeRaw`SELECT setval('contact_contact_id_seq', COALESCE((SELECT MAX("contact_id") FROM "Contact"), 1));`;
   try {
-    await prisma.$executeRaw`SELECT setval('user_contact_user_contact_id_seq', COALESCE((SELECT MAX("user_contact_id") FROM "UserContact"), 1));`;
+    await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"User"', 'user_id'), coalesce(max(user_id), 0) + 1, false) FROM "User"`);
+    await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"Contact"', 'contact_id'), coalesce(max(contact_id), 0) + 1, false) FROM "Contact"`);
+    await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"User_Contact"', 'user_contact_id'), coalesce(max(user_contact_id), 0) + 1, false) FROM "User_Contact"`);
   } catch (e) {
-    // Ignorar se a sequência do UserContact não existir
+    console.warn("Aviso ao tentar sincronizar as sequências ID:", e);
   }
   console.log("✔ Sequências sincronizadas.");
 
