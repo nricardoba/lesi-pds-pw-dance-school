@@ -27,7 +27,7 @@ const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
       lateFee: parseFloat(formData.get('lateFee') || 0),
       image: formData.get('image'),
       description: formData.get('description'),
-      status: 'Disponível' // Simplificado sem stock
+      status: 'Disponível'
     };
 
     onSave(costumeData);

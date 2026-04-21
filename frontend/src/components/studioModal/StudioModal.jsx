@@ -19,7 +19,7 @@ const StudioModal = ({ isOpen, onClose, initialData, onSave }) => {
       id: isEditing ? initialData.id : Date.now(),
       studio_name: formData.get('name'),
       studio_max_capacity: parseInt(formData.get('capacity'), 10),
-      // Transforma a string de modalidades num array
+      // Modalidades armazenadas como array, mas input é string separada por vírgula
       modalities: formData.get('modalities') ? formData.get('modalities').split(',').map(item => item.trim()).filter(Boolean) : [],
       notes: formData.get('notes')
     };
