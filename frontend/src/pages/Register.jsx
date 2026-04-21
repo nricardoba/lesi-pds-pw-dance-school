@@ -4,7 +4,6 @@ import { UserPlus } from "lucide-react";
 import { registerRequest } from "../services/auth";
 
 const Register = () => {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,7 +20,7 @@ const Register = () => {
   }
 
   try {
-    await registerRequest(name, email, password);
+    await registerRequest(email, password);
     navigate("/login");
   } catch (error) {
     setErro(error.message || "Erro de ligação ao servidor");
@@ -57,18 +56,6 @@ const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col">
-              <p className="text-gray-700 text-sm font-medium mb-2">
-                Nome Completo
-              </p>
-              <input
-                type="text"
-                placeholder="Nome Completo"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
             <div className="flex flex-col">
               <p className="text-gray-700 text-sm font-medium mb-2">Email</p>
               <input

@@ -5,5 +5,6 @@ const router = Router();
 
 router.post('/login', AuthController.loginController);
 router.post('/register', AuthController.registerController);
+router.post('/setup-credentials', AuthController.setupCredentialsController);
 
 export default router;
