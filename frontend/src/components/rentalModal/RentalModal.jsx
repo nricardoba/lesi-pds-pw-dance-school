@@ -11,11 +11,11 @@ const RentalModal = ({ isOpen, onClose, costume, onSave, students = [] }) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     
-    // Convert to number for safety
+  
     const studentId = parseInt(formData.get('studentId'), 10);
 
     const rentalData = {
-      // Backend vai ignorar estes, mas mantemos caso precisemos no frontend
+      // Backend ignorara estes, mas mantemos caso precisemos no frontend
       costumeName: costume.title,
       studentId: studentId,
       startDate: formData.get('startDate'),
