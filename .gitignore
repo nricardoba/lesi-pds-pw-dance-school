@@ -1,6 +1,12 @@
 # Rule: sorted alphabetically
 
 # ================================
+# Build outputs
+# ================================
+
+backend/uploads/
+
+# ================================
 # Cache and temp files
 # ================================
 
@@ -50,8 +56,3 @@ logs/
 
 # macOS
 .DS_Store
-
-# ================================
-# Build outputs
-# ================================
-backend/uploads/
