@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './TeacherModal.css';
+import { readExtraFeesFromStorage, writeExtraFeesToStorage } from '../../utils/scheduleStorage';
 
 const SPECIALTY_OPTIONS = ['Ballet', 'Contemporâneo', 'Hip Hop', 'Street Dance', 'Jazz', 'Dança Moderna'];
 
@@ -7,6 +8,10 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave }) => {
   const specialtiesRef = useRef(null);
   const [specialtiesOpen, setSpecialtiesOpen] = useState(false);
   const [selectedSpecialties, setSelectedSpecialties] = useState(initialData?.specialties || []);
+  
+  // Extra fee state
+  const [extraFeeCost, setExtraFeeCost] = useState('');
+  const [extraFeeReason, setExtraFeeReason] = useState('');
 
   useEffect(() => {
     if (!isOpen) {
@@ -15,6 +20,16 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave }) => {
 
     setSelectedSpecialties(initialData?.specialties || []);
     setSpecialtiesOpen(false);
+
+    const allFees = readExtraFeesFromStorage();
+    const existingFee = allFees.find(f => f.teacher === initialData?.name);
+    if (existingFee) {
+      setExtraFeeCost(existingFee.cost.toString());
+      setExtraFeeReason(existingFee.reason);
+    } else {
+      setExtraFeeCost('');
+      setExtraFeeReason('');
+    }
   }, [initialData, isOpen]);
 
   useEffect(() => {
@@ -61,10 +76,11 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave }) => {
     e.preventDefault();
 
     const formData = new FormData(e.target);
+    const teacherName = formData.get('name');
 
     const teacherData = {
       user_id: isEditing ? initialData.user_id : Date.now(),
-      name: formData.get('name'),
+      name: teacherName,
       email: formData.get('email'),
       phone: formData.get('phone'),
       specialties: selectedSpecialties,
@@ -73,6 +89,24 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave }) => {
       bio: formData.get('bio') || ''
     };
     
+    // Save extra fee logic
+    let allFees = readExtraFeesFromStorage();
+    // remove previous entries for this teacher name (or the old name if edited)
+    if (isEditing && initialData?.name) {
+      allFees = allFees.filter(f => f.teacher !== initialData.name);
+    }
+    allFees = allFees.filter(f => f.teacher !== teacherName); // remove any existing just in case
+
+    if (extraFeeCost && extraFeeReason) {
+      allFees.push({
+        id: Date.now(),
+        teacher: teacherName,
+        reason: extraFeeReason,
+        cost: parseFloat(extraFeeCost)
+      });
+    }
+    writeExtraFeesToStorage(allFees);
+
     onSave(teacherData);
     onClose();
   };
@@ -139,6 +173,30 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave }) => {
               placeholder="https://..." 
               defaultValue={isEditing ? initialData.avatar : ''}
             />
+          </div>
+
+          <div className="form-grid-2 mt-16">
+            <div className="form-group">
+              <label>Custo Extra Coaching (€) <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>(Opcional)</span></label>
+              <input 
+                name="extraFeeCost" 
+                type="number" 
+                step="0.01" 
+                value={extraFeeCost} 
+                onChange={(e) => setExtraFeeCost(e.target.value)} 
+                placeholder="Ex: 15" 
+              />
+            </div>
+            <div className="form-group">
+              <label>Motivo do Custo Extra <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>(Opcional)</span></label>
+              <input 
+                name="extraFeeReason" 
+                type="text" 
+                value={extraFeeReason} 
+                onChange={(e) => setExtraFeeReason(e.target.value)} 
+                placeholder="Ex: Deslocação Intercidades" 
+              />
+            </div>
           </div>
 
           <div className="form-group full-width mt-16">
