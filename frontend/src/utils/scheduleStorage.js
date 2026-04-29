@@ -38,3 +38,11 @@ export const readCoachingsFromStorage = () => {
 export const writeCoachingsToStorage = (coachings) => {
   localStorage.setItem(COACHINGS_STORAGE_KEY, JSON.stringify(coachings));
 };
+
+export const readExtraFeesFromStorage = () => {
+  return safeJsonParse(localStorage.getItem('extraFees'), []);
+};
+
+export const writeExtraFeesToStorage = (fees) => {
+  localStorage.setItem('extraFees', JSON.stringify(fees));
+};

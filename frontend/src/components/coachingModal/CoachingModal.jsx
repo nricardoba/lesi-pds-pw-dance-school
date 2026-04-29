@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './CoachingModal.css';
 import { useAuth } from '../../context/useAuth';
-import { readScheduleClassesFromStorage } from '../../utils/scheduleStorage';
+import { readScheduleClassesFromStorage, readExtraFeesFromStorage } from '../../utils/scheduleStorage';
 
 const CoachingModal = ({ isOpen, onClose, onSave }) => {
   const { role } = useAuth();
+  const [extraFees, setExtraFees] = useState([]);
   
   const [formData, setFormData] = useState({
     student: role === 'student' ? 'Estudante Atual' : '',
@@ -23,6 +24,7 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
   useEffect(() => {
     if (isOpen) {
       setScheduleClasses(readScheduleClassesFromStorage());
+      setExtraFees(readExtraFeesFromStorage());
     }
   }, [isOpen]);
 
@@ -77,6 +79,21 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
       }
     }
   }, [formData.date, formData.time, formData.teacher, scheduleClasses]);
+
+  const shouldApplyExtraFee = React.useMemo(() => {
+    if (!formData.teacher || !formData.date) return false; // Don't show fee until both are picked
+    
+    const daysOfWeekStr = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
+    const targetDate = new Date(formData.date);
+    const dayName = daysOfWeekStr[targetDate.getDay()];
+    
+    const isAtSchool = scheduleClasses.some(c => 
+      c.instructor === formData.teacher && 
+      (c.classDate === formData.date || c.day === dayName)
+    );
+
+    return !isAtSchool;
+  }, [formData.teacher, formData.date, scheduleClasses]);
 
   if (!isOpen) return null;
 
@@ -147,6 +164,16 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
                 <option value="Ricardo Santos">Ricardo Santos</option>
                 <option value="Ana Ferreira">Ana Ferreira</option>
               </select>
+              {shouldApplyExtraFee && extraFees.some(f => f.teacher === formData.teacher) && (
+                <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '4px', fontSize: '0.8rem', color: '#92400E' }}>
+                  {extraFees.filter(f => f.teacher === formData.teacher).map(f => (
+                    <div key={f.id}>
+                      <strong>Custo Extra (Deslocação):</strong> +{f.cost}€<br/>
+                      <strong>Motivo:</strong> {f.reason}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="form-group">
