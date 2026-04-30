@@ -4,12 +4,13 @@ import { useAuth } from '../../context/useAuth';
 import { readScheduleClassesFromStorage, readExtraFeesFromStorage } from '../../utils/scheduleStorage';
 
 const CoachingModal = ({ isOpen, onClose, onSave }) => {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const [extraFees, setExtraFees] = useState([]);
   
   const [formData, setFormData] = useState({
-    student: role === 'student' ? 'Estudante Atual' : '',
+    student: role === 'student' ? (user?.user_name || 'Estudante Atual') : '',
     teacher: '',
+    schoolYear: '',
     coachingType: 'Solo',
     danceType: 'Ballet',
     date: '',
@@ -108,6 +109,10 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if(!formData.student || !formData.teacher || !formData.date || !formData.time || !formData.duration || !formData.schoolYear) {
+      alert("Tem que preencher todos os campos");
+      return;
+    }
     if (onSave) {
       onSave(formData);
     }
@@ -147,6 +152,23 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
             </div>
 
             <div className="form-group">
+              <label>Ano Letivo</label>
+              <select 
+                name="schoolYear" 
+                value={formData.schoolYear} 
+                onChange={handleChange} 
+                required
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
+              >
+                <option value="" disabled>Selecionar</option>
+                <option value="2025/2026">2025/2026</option>
+                <option value="2026/2027">2026/2027</option>
+                <option value="2027/2028">2027/2028</option>
+              </select>
+            </div>
+
+            <div className="form-group">
               <label>Tipo de Dança</label>
               <select name="danceType" value={formData.danceType} onChange={handleChange} required>
                 <option value="Ballet">Ballet</option>
@@ -178,12 +200,28 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
 
             <div className="form-group">
               <label>Data Proposta</label>
-              <input type="date" name="date" value={formData.date} onChange={handleChange} required />
+              <input 
+                type="date" 
+                name="date" 
+                value={formData.date} 
+                onChange={handleChange} 
+                required 
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
+              />
             </div>
 
             <div className="form-group">
               <label>Hora Proposta</label>
-              <input type="time" name="time" value={formData.time} onChange={handleChange} required />
+              <input 
+                type="time" 
+                name="time" 
+                value={formData.time} 
+                onChange={handleChange} 
+                required 
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
+              />
             </div>
 
             <div className="form-group">

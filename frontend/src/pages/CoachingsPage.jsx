@@ -9,7 +9,7 @@ import {
 } from '../utils/scheduleStorage';
 
 const CoachingsPage = () => {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   
   // Estrutura das colunas do Kanban
   const columns = [
@@ -54,6 +54,7 @@ const CoachingsPage = () => {
       rawTime: newCoaching.time,
       duration: newCoaching.duration,
       note: newCoaching.note,
+      schoolYear: newCoaching.schoolYear,
       coachingType: newCoaching.coachingType,
       danceType: newCoaching.danceType
     };
@@ -134,6 +135,7 @@ const CoachingsPage = () => {
         start: startDec,
         duration: durationDec,
         name: `Coaching (${targetCoaching.student})`,
+        schoolYear: targetCoaching.schoolYear,
         instructor: targetCoaching.teacher,
         room: selectedRoom,
         level: 'Personalizado',
@@ -171,8 +173,13 @@ const CoachingsPage = () => {
 
       <div className="kanban-board">
         {columns.map(col => {
+          // Se for estudante só vê os seus próprios pedidos, caso contrário vê todos
+          const visibleCoachings = role === 'student'
+            ? coachings.filter(c => c.student === user?.user_name)
+            : coachings;
+
           // Filtra os cartões para a coluna atual
-          const colItems = coachings.filter(item => item.status === col.status);
+          const colItems = visibleCoachings.filter(item => item.status === col.status);
 
           return (
             <div key={col.id} className="kanban-column">
