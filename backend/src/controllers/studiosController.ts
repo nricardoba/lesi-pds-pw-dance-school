@@ -11,6 +11,7 @@ import {
   
   // => MODALITIES
   listModalitiesService,
+  getModalityByIdService,
   createModalityService,
   updateModalityService,
   deleteModalityService,
@@ -59,6 +60,11 @@ export const deleteStudioController = catchAsync(async (req: Request, res: Respo
 
 export const listModalitiesController = catchAsync(async (_req: Request, res: Response) => {
   const data = await listModalitiesService();
+  return res.json(data);
+});
+
+export const getModalityByIdController = catchAsync(async (req: Request, res: Response) => {
+  const data = await getModalityByIdService(req.params);
   return res.json(data);
 });
 
