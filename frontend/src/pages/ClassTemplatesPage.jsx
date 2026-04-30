@@ -103,6 +103,10 @@ const ClassTemplatesPage = () => {
 
             <div className="class-template-card__details">
               <div className="detail-row">
+                <span className="detail-label">Ano Letivo:</span>
+                <span className="detail-value">{template.schoolYear || 'Não definido'}</span>
+              </div>
+              <div className="detail-row">
                 <span className="detail-label">Professor/a:</span>
                 <span className="detail-value">{template.instructor}</span>
               </div>
