@@ -20,6 +20,7 @@ studiosRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), StudiosController.de
 export const modalitiesRouter = Router();
 
 modalitiesRouter.get('/', StudiosController.listModalitiesController);
+modalitiesRouter.get('/:id', StudiosController.getModalityByIdController);
 modalitiesRouter.post('/', checkRole([USER_ROLES.ADMIN]), StudiosController.createModalityController);
 modalitiesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), StudiosController.updateModalityController);
 modalitiesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), StudiosController.deleteModalityController);
