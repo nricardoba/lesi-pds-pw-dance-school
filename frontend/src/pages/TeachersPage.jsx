@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TeacherModal from '../components/teacherModal/TeacherModal';
 import '../pagesCss/TeachersPage.css';
-import { getUsers } from '../services/users';
+import { getUsers, updateUser } from '../services/users';
 import { useAuth } from '../context/useAuth';
 
 const TeachersPage = () => {
@@ -43,11 +43,13 @@ const TeachersPage = () => {
           phone: phoneContact?.contact?.contactValue || '',
           specialties: [], // Ainda a implementar a lógica de especialidades ou ler das qualificações
           classesCount: 0,
+          isActive: u.userIsActive,
           avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.userName) + '&background=random'
         };
       });
 
-      setTeachers(formattedTeachers);
+      const activeTeachers = formattedTeachers.filter(u => u.isActive !== false);
+      setTeachers(activeTeachers);
     } catch (error) {
       console.error('Erro ao carregar professores:', error);
     } finally {
@@ -89,11 +91,15 @@ const TeachersPage = () => {
   const handleConfirmDeleteTeacher = async () => {
     if (!teacherToDelete) return;
 
-    // Futura implementação de remoção no backend aqui
-    // await deleteUser(teacherToDelete.user_id, token);
+    try {
+      // Soft delete no backend
+      await updateUser(teacherToDelete.user_id, { userIsActive: false }, token);
 
-    setTeachers(teachers.filter((teacher) => teacher.user_id !== teacherToDelete.user_id));
-    setTeacherToDelete(null);
+      setTeacherToDelete(null);
+      await fetchTeachers();
+    } catch (error) {
+      console.error('Erro ao remover professor:', error);
+    }
   };
 
   return (
@@ -206,6 +212,7 @@ const TeachersPage = () => {
         onClose={() => setIsModalOpen(false)}
         initialData={editingTeacher}
         onSave={handleSaveTeacher}
+        token={token}
       />
 
       {teacherToDelete && (
