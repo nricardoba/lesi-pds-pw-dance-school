@@ -34,9 +34,9 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
       getUserById(initialData.user_id, token)
         .then((data) => {
           if (!active) return;
+          
           const emailContact = data.userContact?.find(c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'email');
-          const phoneContact = data.userContact?.find(c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'telemóvel' || c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone');
-
+          const phoneContact = data.userContact?.find(c => ['telemóvel', 'phone'].includes(c.contact?.contactType?.contactTypeDesc?.toLowerCase()));
           const mainAddress = data.userAddress?.find(a => a.isMainAddress)?.address || data.userAddress?.[0]?.address;
 
           setTeacherData({
@@ -65,7 +65,6 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
       setTeacherData(initialData || null);
     }
 
-
     setSelectedSpecialties(initialData?.specialties || []);
     setSpecialtiesOpen(false);
 
@@ -78,7 +77,9 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
       setExtraFeeCost('');
       setExtraFeeReason('');
     }
-  }, [initialData, isOpen]);
+
+    return () => { active = false; };
+  }, [initialData, isOpen, token]);
 
   useEffect(() => {
     const handleDocumentMouseDown = (event) => {
@@ -128,13 +129,11 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
     const formData = new FormData(e.target);
     const teacherName = formData.get('name');
 
-    const teacherUserTypeId = 2; // Teacher in backend
-
     const payload = {
       userName: teacherName,
       userBirthDate: formData.get('birthdate') || null,
       userStartDate: formData.get('user_start_date') || null,
-      userTypeId: teacherUserTypeId,
+      userTypeId: 2, // Tipo utilizador professor
       userIsActive: true,
       userNif: formData.get('nif') || undefined,
     };
@@ -196,8 +195,11 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
           try { 
             await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); 
             
+            // Criar password automático: <prof@dataNascimento>
+            // Ex: dataNascimento="2010-01-13" -> password: "prof@20100113"
             let birthStr = '12345678';
             if (payload.userBirthDate) {
+              // Converte "YYYY-MM-DD" para "YYYYMMDD"
               birthStr = payload.userBirthDate.replace(/-/g, '');
             }
             const autoPassword = `prof@${birthStr}`;
@@ -245,7 +247,7 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
       }
       writeExtraFeesToStorage(allFees);
 
-      onSave(); // We no longer pass teacherData as the parent re-fetches
+      onSave(); 
       onClose();
     } catch (err) {
       console.error(err);
@@ -306,16 +308,15 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
             </div>
             <div className="form-group">
               <label>Telefone</label>
-              <input name="phone" type="tel" defaultValue={teacherData ? teacherData.phone : ''} />
+              <input name="phone" type="tel" defaultValue={teacherData ? teacherData.phone : ''} required />
             </div>
           </div>
           
           <div className="form-group">
-            <label>NIF</label>
-            <input name="nif" type="text" defaultValue={teacherData?.nif || ''} placeholder="Ex: 123456789" />
+            <label>NIF (Opcional)</label>
+            <input name="nif" type="text" defaultValue={teacherData?.nif || ''} />
           </div>
           
-          {/* SECÇÃO DE MORADA */}
           <div className="form-group full-width mt-16">
             <h4 style={{ margin: '0 0 10px 0', color: '#334155' }}>Morada</h4>
             <div className="form-grid-2" style={{ marginBottom: '10px' }}>
