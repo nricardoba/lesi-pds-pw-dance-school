@@ -8,6 +8,7 @@ import {
   addUserAddress,
   getUserById
 } from '../../services/users';
+import { registerRequest } from '../../services/auth';
 import './StudentModal.css';
 
 const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
@@ -161,7 +162,25 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         
         // Adicionar os contactos do Estudante recém criado
         if (email) {
-          try { await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); } catch (e) { console.error(e); }
+          try { 
+            await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); 
+            
+            // Criar password automática: Número de Aluno + "@" + Data de Nascimento (YYYYMMDD)
+            // Exemplo: Número: "a12345", Data Nasc: "2010-05-12" -> Password: "a12345@20100512"
+            const studentNum = payload.studentNumber || 'aluno';
+            
+            let birthStr = '12345678'; // Fallback de segurança
+            if (payload.userBirthDate) {
+              // Converte "YYYY-MM-DD" para "YYYYMMDD"
+              birthStr = payload.userBirthDate.replace(/-/g, '');
+            }
+            
+            const autoPassword = `${studentNum}@${birthStr}`;
+            
+            await registerRequest(email, autoPassword);
+          } catch (e) { 
+            console.error(e); 
+          }
         }
         if (phone) {
           try { await addUserContact(createdOrUpdatedUserId, { contactValue: phone, contactTypeId: 1, isMainContact: true }, token); } catch (e) { console.error(e); }
@@ -238,8 +257,8 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
               <input name="student_number" type="text" defaultValue={isEditing ? studentData.student_number : ''} required />
             </div>
             <div className="form-group">
-              <label>NIF</label>
-              <input name="nif" type="text" defaultValue={isEditing ? studentData.nif : ''} required />
+              <label>NIF (Opcional)</label>
+              <input name="nif" type="text" defaultValue={isEditing ? studentData.nif : ''} />
             </div>
           </div>
 
