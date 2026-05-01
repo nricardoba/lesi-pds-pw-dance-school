@@ -183,6 +183,7 @@ model Modality {
   modalityName      String           @unique @map("modality_name") @db.VarChar
   modalityHourlyFee Decimal          @map("modality_hourly_fee") @db.Decimal(10, 2)
   studioModality    StudioModality[]
+  userModality      UserModality[]
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
@@ -298,6 +299,7 @@ model User {
   userContact        UserContact[]
   userCredential     UserCredential?
   userItem           UserItem[]
+  userModality       UserModality[]
   userNIF            UserNIF?
 }
 
@@ -370,6 +372,18 @@ model UserItem {
   user   User @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("User_Item")
+}
+
+model UserModality {
+  userModalityId Int @id @default(autoincrement()) @map("user_modality_id")
+  userId         Int @map("user_id")
+  modalityId     Int @map("modality_id")
+
+  user     User     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  modality Modality @relation(fields: [modalityId], references: [modalityId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, modalityId], map: "User_Modality_user_id_modality_id_idx")
+  @@map("User_Modality")
 }
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
