@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Address {
   streetId      Int           @id @default(autoincrement()) @map("street_id")
   streetName    String        @map("street_name") @db.VarChar
@@ -22,7 +21,6 @@ model Category {
   itemCharacteristics ItemCharacteristics[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Class {
   classId            Int                  @id @default(autoincrement()) @map("class_id")
   schoolYearId       Int                  @map("school_year_id")
@@ -40,7 +38,6 @@ model Class {
   userClass          UserClass[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ClassExtraFee {
   classExtraFeeId       Int                 @id @default(autoincrement()) @map("class_extra_fee_id")
   classExtraFeeValue    Decimal             @map("class_extra_fee_value") @db.Decimal(10, 2)
@@ -69,7 +66,6 @@ model ClassStatus {
   @@map("Class_Status")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ClassStatusHistory {
   classStatusHistoryId   Int         @id @default(autoincrement()) @map("class_status_history_id")
   classId                Int         @map("class_id")
@@ -89,7 +85,6 @@ model Color {
   itemCharacteristics ItemCharacteristics[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Contact {
   contactId     Int           @id @default(autoincrement()) @map("contact_id")
   contactValue  String        @map("contact_value") @db.VarChar
@@ -114,7 +109,6 @@ model DanceType {
   @@map("Dance_Type")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model Item {
   itemId                Int                 @id @default(autoincrement()) @map("item_id")
   itemCharacteristicsId Int                 @map("item_characteristics_id")
@@ -125,7 +119,6 @@ model Item {
   userItem              UserItem?
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ItemCharacteristics {
   itemCharacteristicsId        Int                            @id @default(autoincrement()) @map("item_characteristics_id")
   itemCharacteristicsName      String                         @map("item_characteristics_name") @db.VarChar
@@ -142,7 +135,6 @@ model ItemCharacteristics {
   @@map("Item_Characteristics")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ItemCharacteristicsDanceType {
   itemCharacteristicsId Int                 @map("item_characteristics_id")
   danceTypeId           Int                 @map("dance_type_id")
@@ -161,7 +153,6 @@ model ItemCondition {
   @@map("Item_Condition")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ItemImage {
   itemImageId           Int                 @id @default(autoincrement()) @map("item_image_id")
   itemCharacteristicsId Int                 @map("item_characteristics_id")
@@ -186,7 +177,6 @@ model Modality {
   userModality      UserModality[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model PostalCode {
   postalCode String    @id @map("postal_code") @db.VarChar
   localityId Int       @map("locality_id")
@@ -196,7 +186,6 @@ model PostalCode {
   @@map("Postal_Code")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model RentItem {
   rentId            Int        @id @default(autoincrement()) @map("rent_id")
   itemId            Int        @map("item_id")
@@ -211,7 +200,6 @@ model RentItem {
   @@map("Rent_Item")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model ScheduleVacancy {
   scheduleVacancyId         Int        @id @default(autoincrement()) @map("schedule_vacancy_id")
   userId                    Int        @map("user_id")
@@ -225,7 +213,6 @@ model ScheduleVacancy {
   @@map("Schedule_Vacancy")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model SchoolItem {
   itemId   Int        @id @map("item_id")
   rentFee  Decimal    @map("rent_fee") @db.Decimal(10, 2)
@@ -252,7 +239,6 @@ model Size {
   itemCharacteristics ItemCharacteristics[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model StudentNumber {
   userId        Int    @id @map("user_id")
   studentNumber String @unique @map("student_number") @db.VarChar
@@ -268,7 +254,6 @@ model Studio {
   studioModality    StudioModality[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model StudioModality {
   studioModalityId Int      @id @default(autoincrement()) @map("studio_modality_id")
   studioId         Int      @map("studio_id")
@@ -281,7 +266,6 @@ model StudioModality {
   @@map("Studio_Modality")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model User {
   userId             Int                  @id @default(autoincrement()) @map("user_id")
   userName           String               @map("user_name") @db.VarChar
@@ -303,7 +287,6 @@ model User {
   userNIF            UserNIF?
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model UserAddress {
   userAddressId Int     @id @default(autoincrement()) @map("user_address_id")
   userId        Int     @map("user_id")
@@ -316,7 +299,6 @@ model UserAddress {
   @@map("User_Address")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model UserClass {
   classId         Int            @map("class_id")
   userId          Int            @map("user_id")
@@ -338,7 +320,6 @@ model UserClassRole {
   @@map("User_Class_Role")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model UserContact {
   userContactId  Int             @id @default(autoincrement()) @map("user_contact_id")
   userId         Int             @map("user_id")
@@ -352,7 +333,6 @@ model UserContact {
   @@map("User_Contact")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model UserCredential {
   userId                     Int         @id @map("user_id")
   userContactId              Int         @unique @map("user_contact_id")
@@ -364,7 +344,6 @@ model UserCredential {
   @@map("User_Credential")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model UserItem {
   itemId Int  @id @map("item_id")
   userId Int  @map("user_id")
@@ -386,7 +365,6 @@ model UserModality {
   @@map("User_Modality")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model UserNIF {
   userId  Int    @id @map("user_id")
   userNif String @unique @map("user_nif") @db.VarChar
