@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './CoachingModal.css';
 import { useAuth } from '../../context/useAuth';
-import { readScheduleClassesFromStorage, readExtraFeesFromStorage } from '../../utils/scheduleStorage';
 import { apiClient } from '../../services/apiClient';
 import { getUsers } from '../../services/users';
 import { requestCoachingRequest } from '../../services/classes';
@@ -9,7 +8,7 @@ import { listClassesRequest } from '../../services/classes';
 
 const CoachingModal = ({ isOpen, onClose, onSave }) => {
   const { role, user, token } = useAuth();
-  const [extraFees, setExtraFees] = useState([]);
+  //const [extraFees, setExtraFees] = useState([]);
 
   const [formData, setFormData] = useState({
     studentId: role === 'student' ? (user?.user_name || 'Estudante Atual') : '',
@@ -50,17 +49,6 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
 
 
   useEffect(() => {
-    if (isOpen) {
-      // Se ainda usas o storage, carrega apenas uma vez ao abrir
-      const storedClasses = readScheduleClassesFromStorage();
-      const storedFees = readExtraFeesFromStorage();
-
-      setScheduleClasses(storedClasses);
-      setExtraFees(storedFees);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
     if (isOpen && token) {
       // Em vez de storage, agora carregamos da API para validar conflitos reais
       listClassesRequest(token).then(setScheduleClasses).catch(console.error);
@@ -92,7 +80,7 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
     return availableMinutes;
   }, [formData.date, formData.time, formData.teacherId, scheduleClasses]);
 
-  const shouldApplyExtraFee = React.useMemo(() => {
+  /**const shouldApplyExtraFee = React.useMemo(() => {
     if (!formData.teacher || !formData.date) return false; // Don't show fee until both are picked
 
     const daysOfWeekStr = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
@@ -105,7 +93,7 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
     );
 
     return !isAtSchool;
-  }, [formData.teacher, formData.date, scheduleClasses]);
+  }, [formData.teacher, formData.date, scheduleClasses]);*/
 
   if (!isOpen) return null;
 
@@ -232,7 +220,7 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
                   <option key={t.userId} value={t.userId}>{t.userName}</option>
                 ))}
               </select>
-              {shouldApplyExtraFee && extraFees.some(f => f.teacherId === formData.teacherId) && (
+              {/* {shouldApplyExtraFee && extraFees.some(f => f.teacherId === formData.teacherId) && (
                 <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '4px', fontSize: '0.8rem', color: '#92400E' }}>
                   {extraFees.filter(f => f.teacher === formData.teacher).map(f => (
                     <div key={f.id}>
@@ -241,7 +229,7 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
                     </div>
                   ))}
                 </div>
-              )}
+              )*/}
             </div>
 
             <div className="form-group">
