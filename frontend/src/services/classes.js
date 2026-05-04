@@ -16,3 +16,19 @@ export const createClassRequest = async (classData, token) => {
     token
   });
 };
+
+export const requestCoachingRequest = async (coachingData, token) => {
+  return apiClient('/coachings/request', {
+    method: 'POST',
+    body: coachingData,
+    token
+  });
+};
+
+export const confirmCoachingRequest = async (classId, studioId, token) => {
+  return apiClient(`/coachings/${classId}/confirm`, {
+    method: 'PATCH',
+    body: { studio_id: studioId },
+    token
+  });
+};
