@@ -13,5 +13,5 @@ function required(name: string): string {
 export const env = {
   PORT: Number(process.env.PORT ?? 3333),
   JWT_SECRET: required('JWT_SECRET'),
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '100s', 
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '1h', 
 };
