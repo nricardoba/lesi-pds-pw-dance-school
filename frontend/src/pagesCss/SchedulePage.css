@@ -221,13 +221,114 @@
   background-color: #EBF3F6; /* Cor azul claro da imagem */
   border: 1px solid #D1E1E8;
   border-radius: 8px;
-  padding: 10px;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   z-index: 3;
+  cursor: pointer;
 }
+
+.class-card_menu {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  z-index: 60;
+}
+
+.class-card_menu button {
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  text-align: left;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.class-card_menu button:hover {
+  background: #F1F5F9;
+}
+
+.class-card_menu button.delete {
+  color: #DC2626;
+}
+
+.class-card_menu button.delete:hover {
+  background: #FEE2E2;
+}
+
+.class-card_schedule__title, 
+.class-card_schedule__details {
+  margin: 0;
+  padding: 0;
+}
+
+.class-card_schedule__title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 2px;
+}
+
+.class-card_schedule__details {
+  display: none;
+  font-size: 11px;
+  color: #64748B;
+  margin-bottom: 1px;
+}
+
+.class-card-hover-expand:hover .class-card_schedule__title {
+  white-space: normal;
+  overflow: visible;
+}
+
+.class-card-hover-expand:hover .class-card_schedule__details {
+  display: block;
+  white-space: normal;
+  overflow: visible;
+}
+
+.daily-view-container__header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.daily-view-container__back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background: #CE7B91;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 10px;
+  line-height: 1.5;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.daily-view-container__back-btn:hover {
+  background: #b8667d;
+  border-color: #b8667d;
+  box-shadow: 0 2px 8px rgba(184, 102, 125, 0.25);
+}
+
 
 .class-card_schedule__actions {
   display: flex;
@@ -263,6 +364,8 @@
   justify-content: space-between;
   align-items: center;
   margin-top: 6px;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .class-level {
@@ -661,3 +764,4 @@
 .react-datepicker-popper {
   z-index: 30;
 }
+

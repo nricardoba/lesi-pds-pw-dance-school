@@ -1,17 +1,26 @@
 .days-tabs {
   display: flex;
   align-items: stretch;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
-  margin: 24px 0;
+  margin: 24px auto;
   padding: 8px;
   background-color: #ffffff;
   border: 1px solid #E2E8F0;
   border-radius: 18px;
-  width: fit-content;
+  width: max-content;
   max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.days-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.days-tabs::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 4px;
 }
 
 .day-tab {
