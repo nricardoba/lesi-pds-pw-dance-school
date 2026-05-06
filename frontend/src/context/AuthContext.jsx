@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AuthContext } from './AuthContextCreate';
+import { apiClient } from '../services/apiClient';
 
 const getStoredJson = (key) => {
+
   try {
     const value = localStorage.getItem(key);
     return value ? JSON.parse(value) : null;
@@ -53,7 +55,35 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
   };
+useEffect(() => {
+  const handleUnauthorized = () => {
+    logout();
+  };
 
+  window.addEventListener("auth:unauthorized", handleUnauthorized);
+
+  return () => {
+    window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  };
+}, []);
+
+useEffect(() => {
+  if (token) {
+    apiClient('/auth/verify', { token }).catch(() => {
+    });
+  }
+}, [token]);
+
+useEffect(() => {
+  if (!token) return;
+
+  const interval = setInterval(() => {
+    apiClient('/auth/verify', { token }).catch(() => {
+    });
+  }, 10000);
+
+  return () => clearInterval(interval);
+}, [token]);
   return (
     <AuthContext.Provider value={{ token, user, role, login, logout }}>
       {children}
