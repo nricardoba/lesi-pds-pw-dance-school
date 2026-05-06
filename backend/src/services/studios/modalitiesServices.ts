@@ -16,6 +16,17 @@ export const listModalitiesService = async () => {
   return prisma.modality.findMany({ orderBy: { modalityId: 'asc' } });
 };
 
+export const getModalityByIdService = async (params: unknown) => {
+  const { id } = idSchema.parse(params);
+  const modality = await prisma.modality.findUnique({
+    where: { modalityId: id },
+  });
+  if (!modality) {
+    throw new AppError("Modalidade não encontrada.", 404);
+  }
+  return modality;
+};
+
 export const createModalityService = async (body: unknown) => {
   const { modalityName, modalityHourlyFee } = createModalitySchema.parse(body);
   return prisma.modality.create({

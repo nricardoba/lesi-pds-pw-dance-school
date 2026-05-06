@@ -38,7 +38,7 @@ const CoachingCard = ({ data, onAccept, onReject, hideActions }) => {
         </div>
       )}
 
-      {!hideActions && data.status === 'Pendente' && (
+      {!hideActions && data.status === 'Agendada' && (
         <div className="coaching-card__actions" style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
           <button 
             onClick={onAccept}

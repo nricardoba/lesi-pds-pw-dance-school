@@ -88,6 +88,12 @@ const ClassModal = ({
     // Converter "10:30" de volta para 10.5 para o calendário funcionar
     const startTimeStr = formData.get('startTime');
     const endTimeStr = formData.get('endTime');
+    
+    if(!startTimeStr || !endTimeStr || !formData.get('schoolYear')) {
+      alert("Tem que preencher todos os campos");
+      return;
+    }
+
     const startParts = startTimeStr.split(':');
     const endParts = endTimeStr.split(':');
     const startDec = parseInt(startParts[0]) + parseInt(startParts[1]) / 60;
@@ -97,6 +103,7 @@ const ClassModal = ({
     const baseData = {
       id: isEditing ? initialData.id : Date.now(),
       name: formData.get('name'),
+      schoolYear: formData.get('schoolYear'),
       room: formData.get('room'),
       category: formData.get('category'),
       instructor: selectedTeacher,
@@ -132,13 +139,42 @@ const ClassModal = ({
         <form key={isEditing ? initialData.id : (prefillData ? 'prefill' : 'new')} className="modal-form" onSubmit={handleSubmit}>
           <div className="form-group full-width">
             <label>Nome da Aula</label>
-            <input name="name" type="text" defaultValue={effectiveData?.name || ''} required />
+            <input 
+              name="name" 
+              type="text" 
+              defaultValue={effectiveData?.name || ''} 
+              required 
+              onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+              onInput={(e) => e.target.setCustomValidity('')}
+            />
           </div>
 
           <div className="form-grid">
             <div className="form-group">
+              <label>Ano Letivo</label>
+              <select 
+                name="schoolYear" 
+                defaultValue={effectiveData?.schoolYear || ''} 
+                required
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
+              >
+                <option value="" disabled>Selecionar</option>
+                <option value="2025/2026">2025/2026</option>
+                <option value="2026/2027">2026/2027</option>
+                <option value="2027/2028">2027/2028</option>
+              </select>
+            </div>
+
+            <div className="form-group">
               <label>Sala</label>
-              <select name="room" defaultValue={effectiveData?.room || ''} required>
+              <select 
+                name="room" 
+                defaultValue={effectiveData?.room || ''} 
+                required
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
+              >
                 <option value="" disabled>Selecionar</option>
                 <option value="Sala Ballet">Sala Ballet</option>
                 <option value="Sala Principal">Sala Principal</option>
@@ -172,6 +208,8 @@ const ClassModal = ({
                   setTeacherError('');
                 }}
                 required
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
                 {DANCE_STYLES.map((style) => (
@@ -192,6 +230,8 @@ const ClassModal = ({
                 disabled={!selectedStyle || availableTeachers.length === 0}
                 title={!selectedStyle ? 'Seleciona primeiro o estilo de dança' : ''}
                 required
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
                 {availableTeachers.map((teacher) => (

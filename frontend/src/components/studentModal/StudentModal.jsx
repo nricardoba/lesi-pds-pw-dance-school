@@ -8,6 +8,7 @@ import {
   addUserAddress,
   getUserById
 } from '../../services/users';
+import { registerRequest } from '../../services/auth';
 import './StudentModal.css';
 
 const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
@@ -20,15 +21,12 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
     let active = true;
     if (isOpen && initialData?.id) {
       setIsLoading(true);
-      // Busca os detalhes completos do aluno (que incluem NIF e Contacts na API)
       getUserById(initialData.id, token)
         .then((data) => {
           if (!active) return;
-          // Extrai emails e tlm do array de contactos
+          
           const emailContact = data.userContact?.find(c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'email');
-          const phoneContact = data.userContact?.find(c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'telemóvel' || c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone');
-
-          // Extrai a morada se existir
+          const phoneContact = data.userContact?.find(c => ['telemóvel', 'phone'].includes(c.contact?.contactType?.contactTypeDesc?.toLowerCase()));
           const mainAddress = data.userAddress?.find(a => a.isMainAddress)?.address || data.userAddress?.[0]?.address;
 
           setStudentData({
@@ -58,7 +56,6 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
           if (active) setIsLoading(false);
         });
     } else {
-      // É uma criação ou fecho
       setStudentData(initialData || null);
     }
     return () => { active = false; };
@@ -80,15 +77,11 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
     setError(null);
     
     const formData = new FormData(e.target);
-    
-    const studentUserTypeId = 3; 
-
-    // Valores do formulário base
     const payload = {
       userName: formData.get('name'),
       userBirthDate: formData.get('birthdate') || null,
       userStartDate: formData.get('user_start_date') || null,
-      userTypeId: studentUserTypeId,
+      userTypeId: 3, // Tipo utilizador aluno
       userIsActive: true,
       studentNumber: formData.get('student_number') || undefined,
       userNif: formData.get('nif') || undefined,
@@ -98,7 +91,6 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
       let createdOrUpdatedUserId;
 
       if (isEditing) {
-        // --- ATUALIZAR ---
         await updateUser(studentData.id, { 
           userName: payload.userName, 
           userBirthDate: payload.userBirthDate, 
@@ -106,7 +98,6 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         }, token);
         createdOrUpdatedUserId = studentData.id;
         
-        // Atualizar NIF e Student Number se disponíveis ou alterados
         if (payload.userNif) {
           try {
             await updateUserNif(createdOrUpdatedUserId, { userNif: payload.userNif.toString() }, token);
@@ -114,7 +105,6 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
             console.error('Failed to update NIF', nifErr);
           }
         }
-        
         if (payload.studentNumber) {
           try {
             await updateStudentNumber(createdOrUpdatedUserId, { studentNumber: payload.studentNumber.toString() }, token);
@@ -152,7 +142,6 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
           }
         }
       } else {
-        // --- CRIAR NOVO ---
         const response = await createUser(payload, token);
         createdOrUpdatedUserId = response.userId;
         
@@ -161,7 +150,25 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         
         // Adicionar os contactos do Estudante recém criado
         if (email) {
-          try { await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); } catch (e) { console.error(e); }
+          try { 
+            await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); 
+            
+            // Criar password automático: <numeroAluno@dataNascimento>
+            // Ex: numeroAluno="a12345" , dataNascimento="2010-01-13" -> password: "a12345@20100113"
+            const studentNum = payload.studentNumber || 'aluno';
+            
+            let birthStr = '12345678'; // Fallback de segurança
+            if (payload.userBirthDate) {
+              // Converte "YYYY-MM-DD" para "YYYYMMDD"
+              birthStr = payload.userBirthDate.replace(/-/g, '');
+            }
+            
+            const autoPassword = `${studentNum}@${birthStr}`;
+            
+            await registerRequest(email, autoPassword);
+          } catch (e) { 
+            console.error(e); 
+          }
         }
         if (phone) {
           try { await addUserContact(createdOrUpdatedUserId, { contactValue: phone, contactTypeId: 1, isMainContact: true }, token); } catch (e) { console.error(e); }
@@ -186,7 +193,6 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         }
       }
 
-      // Finalizado sem erros
       onSave(); 
       onClose();
     } catch (err) {
@@ -226,7 +232,6 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
           
           {error && <div className="error-message" style={{color: 'red', marginBottom: '15px'}}>{error}</div>}
 
-          {/* --- DADOS DO ALUNO --- */}
           <div className="form-group full-width">
             <label>Nome do Aluno</label>
             <input name="name" type="text" defaultValue={isEditing ? studentData.name : ''} required />
@@ -238,8 +243,8 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
               <input name="student_number" type="text" defaultValue={isEditing ? studentData.student_number : ''} required />
             </div>
             <div className="form-group">
-              <label>NIF</label>
-              <input name="nif" type="text" defaultValue={isEditing ? studentData.nif : ''} required />
+              <label>NIF (Opcional)</label>
+              <input name="nif" type="text" defaultValue={isEditing ? studentData.nif : ''} />
             </div>
           </div>
 
@@ -265,7 +270,6 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
             </div>
           </div>
 
-          {/* --- DADOS DO ENCARREGADO --- */}
           <div style={{ display: 'none' }}>
             <h3 className="section-divider">Encarregado de Educação</h3>
 
@@ -288,17 +292,17 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
 
           <div className="form-group full-width mt-16">
             <label>Rua / Morada</label>
-            <input name="street" type="text" defaultValue={isEditing ? (studentData.address?.street || studentData.address) : ''} />
+            <input name="street" type="text" defaultValue={isEditing ? (studentData.address?.street || studentData.address) : ''} placeholder="Nome da rua, nº, porta" />
           </div>
           
           <div className="form-grid-2">
             <div className="form-group">
               <label>Código Postal</label>
-              <input name="postalCode" type="text" defaultValue={isEditing ? studentData.address?.postalCode : ''} />
+              <input name="postalCode" type="text" defaultValue={isEditing ? studentData.address?.postalCode : ''} placeholder="Ex: 4000-123" />
             </div>
             <div className="form-group">
               <label>Localidade</label>
-              <input name="locality" type="text" defaultValue={isEditing ? studentData.address?.locality : ''} />
+              <input name="locality" type="text" defaultValue={isEditing ? studentData.address?.locality : ''} placeholder="Ex: Porto" />
             </div>
           </div>
 
