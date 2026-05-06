@@ -1,13 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './ClassModal.css';
-
-const DANCE_STYLES = ['Ballet', 'Contemporâneo', 'Hip Hop', 'Street Dance', 'Jazz', 'Dança Moderna'];
-
-const TEACHERS = [
-  { name: 'Sofia Martins', specialties: ['Ballet', 'Contemporâneo'] },
-  { name: 'Ricardo Santos', specialties: ['Hip Hop', 'Street Dance'] },
-  { name: 'Ana Ferreira', specialties: ['Jazz', 'Dança Moderna'] }
-];
+import { useAuth } from '../../context/useAuth';
+import { getUsers } from '../../services/users';
+import { getModalities } from '../../services/modalities';
+import { getScheduleVacancies } from '../../services/scheduleVacancies';
+import { getStudios } from '../../services/studios';
 
 const DAY_BY_INDEX = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
 
@@ -26,6 +23,7 @@ const ClassModal = ({
   prefillData = null,
   forceCreateMode = false
 }) => {
+  const { token } = useAuth();
   const handleModalClick = (e) => e.stopPropagation();
 
   const isTemplateMode = mode === 'template';
@@ -37,9 +35,41 @@ const ClassModal = ({
   const submitButtonText = isTemplateMode
     ? (isEditing ? 'Guardar Template' : 'Criar Template')
     : (isEditing ? 'Guardar' : 'Criar Aula');
+  
   const [selectedStyle, setSelectedStyle] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [teacherError, setTeacherError] = useState('');
+  const [isRecurrent, setIsRecurrent] = useState(false);
+
+  const [teachers, setTeachers] = useState([]);
+  const [modalities, setModalities] = useState([]);
+  const [studios, setStudios] = useState([]);
+  const [vacancies, setVacancies] = useState([]);
+
+  useEffect(() => {
+    if (!isOpen || !token) return;
+
+    const fetchData = async () => {
+      try {
+        const [usersData, modalitiesData, studiosData, vacanciesData] = await Promise.all([
+          getUsers(token),
+          getModalities(token),
+          getStudios(token),
+          getScheduleVacancies(token)
+        ]);
+
+        const professors = usersData.filter(u => u.userType?.userTypeDesc === 'Professor');
+        setTeachers(professors);
+        setModalities(modalitiesData);
+        setStudios(studiosData);
+        setVacancies(vacanciesData);
+      } catch (err) {
+        console.error("Failed to load modal data:", err);
+      }
+    };
+
+    fetchData();
+  }, [isOpen, token]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -48,22 +78,29 @@ const ClassModal = ({
 
     setSelectedStyle(effectiveData?.category || '');
     setSelectedTeacher(effectiveData?.instructor || '');
+    setIsRecurrent(effectiveData?.classRecurrence || false);
     setTeacherError('');
   }, [isOpen, effectiveData]);
 
   const availableTeachers = useMemo(() => {
     if (!selectedStyle) {
-      return [];
+      return teachers;
     }
 
-    return TEACHERS.filter((teacher) =>
-      teacher.specialties.some((specialty) => specialty.toLowerCase() === selectedStyle.toLowerCase())
+    return teachers.filter((teacher) =>
+      teacher.userModality?.some((um) => um.modality?.modalityName === selectedStyle)
     );
-  }, [selectedStyle]);
+  }, [selectedStyle, teachers]);
+
+  const availableStyles = useMemo(() => {
+    if (!selectedTeacher) return modalities.map(m => m.modalityName);
+    const teacher = teachers.find(t => t.userId.toString() === selectedTeacher);
+    if (!teacher) return modalities.map(m => m.modalityName);
+    return teacher.userModality?.map(m => m.modality?.modalityName) || [];
+  }, [selectedTeacher, modalities, teachers]);
 
   if (!isOpen) return null;
 
-  // Função para converter hora decimal (ex: 10.5) para formato de input (ex: "10:30")
   const formatTimeForInput = (decimalTime) => {
     if (decimalTime === undefined || isNaN(decimalTime)) return "10:00";
     const h = Math.floor(decimalTime);
@@ -85,7 +122,6 @@ const ClassModal = ({
       return;
     }
 
-    // Converter "10:30" de volta para 10.5 para o calendário funcionar
     const startTimeStr = formData.get('startTime');
     const endTimeStr = formData.get('endTime');
     
@@ -106,14 +142,15 @@ const ClassModal = ({
       schoolYear: formData.get('schoolYear'),
       room: formData.get('room'),
       category: formData.get('category'),
-      instructor: selectedTeacher,
+      instructor: selectedTeacher, // It's userId now, we might need to change backend mapped form
       class_time_start: formData.get('startTime'),
       class_time_end: formData.get('endTime'),
-      start: startDec, // mantido para o calendário se necessário
-      duration: duration >= 1 ? duration : 1, // evita cartões demasiado pequenos no horário
+      start: startDec,
+      duration: duration >= 1 ? duration : 1,
       level: formData.get('level'),
       maxStudents: Number(formData.get('maxStudents')),
-      occupancy: isEditing ? effectiveData.occupancy : `0/${formData.get('maxStudents')}`
+      occupancy: isEditing ? effectiveData.occupancy : `0/${formData.get('maxStudents')}`,
+      classRecurrence: isRecurrent,
     };
 
     const classData = isTemplateMode
@@ -160,9 +197,8 @@ const ClassModal = ({
                 onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
-                <option value="2025/2026">2025/2026</option>
-                <option value="2026/2027">2026/2027</option>
-                <option value="2027/2028">2027/2028</option>
+                <option value="1">2025/2026</option>
+                <option value="2">2026/2027</option>
               </select>
             </div>
 
@@ -176,14 +212,14 @@ const ClassModal = ({
                 onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
-                <option value="Sala Ballet">Sala Ballet</option>
-                <option value="Sala Principal">Sala Principal</option>
-                <option value="Sala Hip Hop">Sala Hip Hop</option>
+                {studios.map(studio => (
+                  <option key={studio.studioId} value={studio.studioId}>{studio.studioName}</option>
+                ))}
               </select>
             </div>
 
             <div className="form-group">
-              <label>Data da Aula (ex.: 20/04/2027)</label>
+              <label>Data da Aula</label>
               {!isTemplateMode && (
                 <input
                   name="classDate"
@@ -198,24 +234,17 @@ const ClassModal = ({
             </div>
 
             <div className="form-group">
-              <label>Estilo de Dança</label>
-              <select
-                name="category"
-                value={selectedStyle}
-                onChange={(e) => {
-                  setSelectedStyle(e.target.value);
-                  setSelectedTeacher('');
-                  setTeacherError('');
-                }}
-                required
-                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
-                onInput={(e) => e.target.setCustomValidity('')}
-              >
-                <option value="" disabled>Selecionar</option>
-                {DANCE_STYLES.map((style) => (
-                  <option key={style} value={style}>{style}</option>
-                ))}
-              </select>
+              <label>Recorrente</label>
+              <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <input
+                  name="recurrence"
+                  type="checkbox"
+                  checked={isRecurrent}
+                  onChange={(e) => setIsRecurrent(e.target.checked)}
+                  style={{ width: '20px', height: '20px' }}
+                />
+                <span style={{ marginLeft: '10px' }}>Sim</span>
+              </div>
             </div>
 
             <div className="form-group">
@@ -227,23 +256,42 @@ const ClassModal = ({
                   setSelectedTeacher(e.target.value);
                   setTeacherError('');
                 }}
-                disabled={!selectedStyle || availableTeachers.length === 0}
-                title={!selectedStyle ? 'Seleciona primeiro o estilo de dança' : ''}
+                disabled={availableTeachers.length === 0}
                 required
                 onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
                 onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
                 {availableTeachers.map((teacher) => (
-                  <option key={teacher.name} value={teacher.name}>{teacher.name}</option>
+                  <option key={teacher.userId} value={teacher.userId}>{teacher.userName}</option>
                 ))}
               </select>
-              {selectedStyle && availableTeachers.length === 0 && (
+              {availableTeachers.length === 0 && (
                 <p className="form-help form-help--warning">
-                  Tens de adicionar o estilo "{selectedStyle}" a um professor/a ou criar um novo professor/a.
+                  Tens de adicionar o estilo selecionado a um professor/a ou criar um novo professor/a.
                 </p>
               )}
               {teacherError && <p className="form-help form-help--error">{teacherError}</p>}
+            </div>
+
+            <div className="form-group">
+              <label>Estilo de Dança</label>
+              <select
+                name="category"
+                value={selectedStyle}
+                onChange={(e) => {
+                  setSelectedStyle(e.target.value);
+                  setTeacherError('');
+                }}
+                required
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
+              >
+                <option value="" disabled>Selecionar</option>
+                {availableStyles.map((styleName, idx) => (
+                  <option key={idx} value={styleName}>{styleName}</option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
@@ -283,7 +331,6 @@ const ClassModal = ({
 
             <div className="form-group">
               <label>Máx. Alunos</label>
-              {/* Extrai o max alunos do campo occupancy "3/15" -> "15" */}
               <input
                 name="maxStudents"
                 type="number"

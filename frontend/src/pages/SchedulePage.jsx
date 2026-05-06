@@ -1,174 +1,109 @@
 import '../pagesCss/SchedulePage.css';
 import React, { useEffect, useState } from 'react';
+import { registerLocale } from 'react-datepicker';
+import { pt } from 'date-fns/locale';
+import { isSameWeek, getISODay } from 'date-fns';
+import WeekNavigator from '../components/weekNavigator/WeekNavigator';
+import DaysTabs from '../components/daysTabs/DaysTabs';
 import { useAuth } from '../context/useAuth';
 import FilteredDayClasses from '../components/filteredDayClasses/FilteredDayClasses';
 import ClassModal from '../components/classModal/ClassModal';
-import { createClassRequest } from '../services/classes';
+import { createClassRequest, listClassesRequest } from '../services/classes';
 import {
   readClassTemplatesFromStorage,
   readScheduleClassesFromStorage,
   writeScheduleClassesToStorage
 } from '../utils/scheduleStorage';
+import {
+  WEEK_DAYS_META,
+  pad2,
+  formatDateForInput,
+  buildWeekFromDate,
+  getDateFromIso,
+  toHourDecimal,
+  decimalToHourString,
+  buildDayClassesLayout
+} from '../utils/scheduleUtils';
+
+registerLocale('pt', pt);
 
 
-const WEEK_DAYS_META = [
-  { day: 'SEGUNDA', short: 'SEG' },
-  { day: 'TERÇA', short: 'TER' },
-  { day: 'QUARTA', short: 'QUA' },
-  { day: 'QUINTA', short: 'QUI' },
-  { day: 'SEXTA', short: 'SEX' },
-  { day: 'SÁBADO', short: 'SÁB' },
-  { day: 'DOMINGO', short: 'DOM' }
-];
 
-const pad2 = (value) => String(value).padStart(2, '0');
-
-const formatDateForInput = (date) => {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-};
-
-const getMondayOfWeek = (inputDate) => {
-  const date = new Date(inputDate);
-  date.setHours(12, 0, 0, 0);
-
-  const day = date.getDay();
-  const offset = day === 0 ? -6 : 1 - day;
-  date.setDate(date.getDate() + offset);
-
-  return date;
-};
-
-const buildWeekFromDate = (inputDate) => {
-  const monday = getMondayOfWeek(inputDate);
-
-  return WEEK_DAYS_META.map((meta, index) => {
-    const fullDate = new Date(monday);
-    fullDate.setDate(monday.getDate() + index);
-
-    return {
-      ...meta,
-      date: String(fullDate.getDate()),
-      fullDate
-    };
-  });
-};
-
-const getDateFromIso = (isoDate) => new Date(`${isoDate}T12:00:00`);
-
-const toHourDecimal = (hourString) => {
-  const [h = '0', m = '0'] = String(hourString || '08:00').split(':');
-  return parseInt(h, 10) + parseInt(m, 10) / 60;
-};
-
-const decimalToHourString = (decimalHour) => {
-  const safeValue = Number.isFinite(decimalHour) ? decimalHour : 8;
-  const h = Math.floor(safeValue);
-  const m = Math.round((safeValue - h) * 60);
-  return `${pad2(h)}:${pad2(m)}`;
-};
-
-const buildDayClassesLayout = (dayClasses) => {
-  const sortedClasses = [...dayClasses].sort((a, b) => {
-    if (a.start === b.start) {
-      return b.duration - a.duration;
-    }
-
-    return a.start - b.start;
-  });
-
-  const layoutMap = {};
-  let active = [];
-  let clusterIds = [];
-  let clusterMaxColumns = 0;
-
-  const finalizeCluster = () => {
-    if (!clusterIds.length) {
-      return;
-    }
-
-    clusterIds.forEach((classId) => {
-      layoutMap[classId].columns = clusterMaxColumns;
-    });
-
-    clusterIds = [];
-    clusterMaxColumns = 0;
-  };
-
-  sortedClasses.forEach((classItem) => {
-    const classStart = classItem.start;
-
-    active = active.filter((activeItem) => activeItem.end > classStart);
-
-    if (!active.length) {
-      finalizeCluster();
-    }
-
-    const usedColumns = new Set(active.map((activeItem) => activeItem.column));
-    let selectedColumn = 0;
-
-    while (usedColumns.has(selectedColumn)) {
-      selectedColumn += 1;
-    }
-
-    layoutMap[classItem.id] = {
-      column: selectedColumn,
-      columns: 1
-    };
-
-    clusterIds.push(classItem.id);
-
-    active.push({
-      end: classItem.start + classItem.duration,
-      column: selectedColumn,
-      id: classItem.id
-    });
-
-    clusterMaxColumns = Math.max(clusterMaxColumns, active.length);
-  });
-
-  finalizeCluster();
-
-  return layoutMap;
-};
 
 
 const SchedulePage = () => {
-  const { role } = useAuth();
+  const { role, token, user } = useAuth();
   const daysOfWeek = ['SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO', 'DOMINGO'];
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
   const [referenceDate, setReferenceDate] = useState(() => new Date());
+  const getWeekDayClass = (date) => {
+    if (!referenceDate) return '';
 
-  // Dados das aulas reproduzidos a partir da tua imagem (com alguns extras para testar)
+    const sameWeek = isSameWeek(date, referenceDate, { weekStartsOn: 1 });
+
+    if (!sameWeek) return '';
+
+    const isoDay = getISODay(date); // 1 = segunda, 7 = domingo
+
+    if (isoDay === 1) return 'week-bar week-bar-start';
+    if (isoDay === 7) return 'week-bar week-bar-end';
+
+    return 'week-bar week-bar-middle';
+  };
+
+  // Dados das aulas
   const [classesData, setClassesData] = useState(() => {
-    const storedClasses = readScheduleClassesFromStorage();
-    if (storedClasses.length > 0) {
-      return storedClasses;
-    }
-
-    const baseClasses = [
-      { id: 1, day: 'TERÇA', start: 8, duration: 1.5, name: 'ballet', instructor: 'Ricardo Santos', room: 'Sala Ballet', level: 'Intermédio', category: 'Ballet', occupancy: '0/10' },
-      { id: 2, day: 'SEGUNDA', start: 10, duration: 1.5, name: 'Ballet Iniciante', instructor: 'Sofia Martins', room: 'Sala Ballet', level: 'Iniciante', category: 'Ballet', occupancy: '3/15' },
-      { id: 3, day: 'SÁBADO', start: 10, duration: 1.5, name: 'Dança Moderna', instructor: 'Ana Ferreira', room: 'Sala Principal', level: 'Intermédio', category: 'Modern Jazz', occupancy: '4/20' },
-      { id: 4, day: 'SEGUNDA', start: 14, duration: 1.5, name: 'ballet', instructor: 'Ricardo Santos', room: 'Sala Ballet', level: 'Intermédio', category: 'Ballet', occupancy: '0/15' },
-      { id: 5, day: 'TERÇA', start: 14, duration: 1.5, name: 'ballet', instructor: 'Ricardo Santos', room: 'Sala Ballet', level: 'Intermédio', category: 'Ballet', occupancy: '0/15' },
-      { id: 6, day: 'QUARTA', start: 14, duration: 1.5, name: 'Ballet Intermédio', instructor: 'Sofia Martins', room: 'Sala Ballet', level: 'Intermédio', category: 'Ballet', occupancy: '3/15' },
-      { id: 7, day: 'TERÇA', start: 16, duration: 1.5, name: 'Hip Hop Kids', instructor: 'Ricardo Santos', room: 'Sala Hip Hop', level: 'Iniciante', category: 'Hip Hop', occupancy: '3/20' },
-      { id: 8, day: 'SEGUNDA', start: 16, duration: 1.5, name: 'Dança Contemporânea', instructor: 'Pedro Silva', room: 'Sala Principal', level: 'Avançado', category: 'Contemporânea', occupancy: '5/25' },
-      { id: 9, day: 'SEGUNDA', start: 18, duration: 1.5, name: 'Hip Hop Senior', instructor: 'Marta Ferreira', room: 'Sala Hip Hop', level: 'Avançado', category: 'Hip Hop', occupancy: '2/10' }
-    ];
-
-    const initialWeek = buildWeekFromDate(new Date());
-
-    return baseClasses.map((classItem) => {
-      const weekDay = initialWeek.find((dayMeta) => dayMeta.day === classItem.day);
-
-      return {
-        ...classItem,
-        classDate: weekDay ? formatDateForInput(weekDay.fullDate) : formatDateForInput(new Date())
-      };
-    });
+    return readScheduleClassesFromStorage();
   });
+
+  useEffect(() => {
+    // Fetch classes from backend on component mount
+    const fetchClasses = async () => {
+      try {
+        if (token) {
+          const fetchedClasses = await listClassesRequest(token);
+
+          // Map backend format to frontend format
+          const mappedClasses = fetchedClasses.map((backendClass) => {
+            const startDate = new Date(backendClass.classDateStart);
+            const endDate = new Date(backendClass.classDateEnd);
+
+            const startDec = startDate.getHours() + startDate.getMinutes() / 60;
+            const endDec = endDate.getHours() + endDate.getMinutes() / 60;
+            const duration = endDec - startDec;
+
+            const dayOfWeekIndex = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1; // 0=SEG, 6=DOM
+            const dayName = WEEK_DAYS_META[dayOfWeekIndex]?.day || 'SEGUNDA';
+
+            const instructor = backendClass.userClass?.find(uc => uc.userClassRole?.userClassRoleName === 'Professor')?.user?.userName || 'Sem professor';
+
+            return {
+              id: backendClass.classId,
+              day: dayName,
+              start: startDec,
+              duration: duration > 0 ? duration : 1.5,
+              name: backendClass.studioModality?.modality?.modalityName || 'Aula',
+              instructor: instructor,
+              room: backendClass.studioModality?.studio?.studioDesignation || 'Estúdio',
+              level: 'Geral', // Hardcoded as there is no level in DB directly easily accessible
+              category: backendClass.studioModality?.modality?.modalityName || 'Geral',
+              occupancy: `${backendClass.userClass?.length || 0}/20`,
+              classDate: formatDateForInput(startDate)
+            };
+          });
+
+          if (mappedClasses.length > 0) {
+            setClassesData(mappedClasses);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    };
+
+    fetchClasses();
+  }, [token]);
 
   useEffect(() => {
     writeScheduleClassesToStorage(classesData);
@@ -199,7 +134,6 @@ const SchedulePage = () => {
   const weekRangeLabel = `${pad2(weekStart.getDate())}/${pad2(weekStart.getMonth() + 1)} - ${pad2(weekEnd.getDate())}/${pad2(weekEnd.getMonth() + 1)}`;
   const currentWeekForSchedule = currentWeek.filter((weekDay) => daysOfWeek.includes(weekDay.day));
 
-  const { token, user } = useAuth(); // <--- OBTENÇÃO DO TOKEN DO AUTHCONTEXT
   const currentWeekDates = new Set(currentWeek.map((weekDay) => formatDateForInput(weekDay.fullDate)));
   const classesInCurrentWeek = classesData.filter((classItem) => classItem.classDate && currentWeekDates.has(classItem.classDate));
 
@@ -299,15 +233,15 @@ const SchedulePage = () => {
 
     const endDec = startDec + duration;
     const isConflict = classesData.some(c => {
-        if (c.classDate !== templateTargetSlot.classDate || c.room !== selectedTemplate.room) return false;
-        const cStart = Number(c.start);
-        const cEnd = cStart + Number(c.duration);
-        return (startDec < cEnd && endDec > cStart);
+      if (c.classDate !== templateTargetSlot.classDate || c.room !== selectedTemplate.room) return false;
+      const cStart = Number(c.start);
+      const cEnd = cStart + Number(c.duration);
+      return (startDec < cEnd && endDec > cStart);
     });
 
     if (isConflict) {
-        setTemplateError(`A sala "${selectedTemplate.room}" não está disponível para este horário e duração.`);
-        return;
+      setTemplateError(`A sala "${selectedTemplate.room}" não está disponível para este horário e duração.`);
+      return;
     }
 
     const classFromTemplate = {
@@ -337,22 +271,49 @@ const SchedulePage = () => {
         setClassesData((prevData) => prevData.map((c) => c.id === classData.id ? classData : c));
       } else {
         // Integração real com o backend //
+        const startHourStr = classData.class_time_start || decimalToHourString(classData.start);
+        const endHourStr = classData.class_time_end || decimalToHourString(classData.start + classData.duration);
+
         const backendClassFormat = {
           schoolYearId: 1, // Fixado ou vindo do map (Ex: Ano Letivo 2025/2026) dependendo da config
-          classDateStart: `${classData.classDate}T${classData.class_time_start}:00.000Z`, 
-          classDateEnd: `${classData.classDate}T${classData.class_time_end}:00.000Z`,
+          classDateStart: `${classData.classDate}T${startHourStr}:00.000Z`,
+          classDateEnd: `${classData.classDate}T${endHourStr}:00.000Z`,
           classRecurrence: false,
           studioModalityId: 1, // Depende do mapeamento Estúdio <-> Modalidade na DB 
           classFinalFee: 20.00,
           classStatusId: 1 // Status: 1="Agendada"
         };
 
-        if(token) {
-          // await createClassRequest(backendClassFormat, token);
-          // (descomentar na integração final com a DB real preenchida com as salas/modalidades exatas)
-        }
+        if (token) {
+          const newClass = await createClassRequest(backendClassFormat, token);
 
-        setClassesData((prevData) => [...prevData, classData]);
+          // Re-map the created class roughly to frontend state, or just add classData
+          const startDate = new Date(newClass.classDateStart || backendClassFormat.classDateStart);
+          const endDate = new Date(newClass.classDateEnd || backendClassFormat.classDateEnd);
+          const startDec = startDate.getHours() + startDate.getMinutes() / 60;
+          const endDec = endDate.getHours() + endDate.getMinutes() / 60;
+          const duration = endDec - startDec;
+          const dayOfWeekIndex = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
+          const dayName = WEEK_DAYS_META[dayOfWeekIndex]?.day || 'SEGUNDA';
+
+          const mappedClass = {
+            id: newClass.classId || Math.random(),
+            day: dayName,
+            start: startDec,
+            duration: duration > 0 ? duration : 1.5,
+            name: classData.name || 'Nova Aula',
+            instructor: classData.instructor || 'Sem professor',
+            room: classData.room || 'Estúdio 1',
+            level: classData.level || 'Geral',
+            category: classData.category || 'Geral',
+            occupancy: '0/20',
+            classDate: classData.classDate
+          };
+
+          setClassesData((prevData) => [...prevData, mappedClass]);
+        } else {
+          setClassesData((prevData) => [...prevData, classData]);
+        }
       }
 
       if (classData.classDate) {
@@ -384,13 +345,7 @@ const SchedulePage = () => {
     setClassToDelete(null);
   };
 
-  const handleWeekDateChange = (event) => {
-    if (!event.target.value) {
-      return;
-    }
 
-    setReferenceDate(new Date(`${event.target.value}T12:00:00`));
-  };
 
   const goToPreviousWeek = () => {
     const prevWeek = new Date(referenceDate);
@@ -434,49 +389,21 @@ const SchedulePage = () => {
       </header>
 
       {/* Filtros e Controlos de Vista */}
-      <div className="schedule-page__filters" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div className="filter-dropdown">
-          <span className="filter-icon">📅</span> {/* Ícone de calendário */}
-          <select 
-            value={selectedDay}
-            onChange={(e) => {
-              setSelectedDay(e.target.value);
-              // Quando escolhe "Todos os dias" estando na vista diária, podemos manter,
-              // mas normalmente a vista diária mostra um dia específico.
-            }}
-            className="day-select"
-          >
-            {viewMode === 'weekly' && <option value="Todos os dias">Todos os dias</option>}
-            {daysOfWeek.map(day => (
-              <option key={day} value={day}>{day}</option>
-            ))}
-          </select>
-        </div>
-
+      <div className="flex justify-end items-center schedule-page__filters">
         {/* View Toggle */}
-        <div className="view-toggle" style={{ display: 'flex', gap: '8px', backgroundColor: '#F3F4F6', padding: '4px', borderRadius: '8px' }}>
-          <button 
+        <div className="flex gap-2 p-1 bg-gray-100 rounded-lg view-toggle">
+          <button
             onClick={() => { setViewMode('weekly'); setSelectedDay('Todos os dias'); }}
-            style={{ 
-              padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s',
-              backgroundColor: viewMode === 'weekly' ? 'white' : 'transparent', 
-              boxShadow: viewMode === 'weekly' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', 
-              color: viewMode === 'weekly' ? '#111827' : '#6B7280' 
-            }}
+            className={`px-4 py-1.5 border-none rounded cursor-pointer font-medium transition-all duration-200 ${viewMode === 'weekly' ? 'bg-white shadow-sm text-gray-900' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
           >
             Vista Semanal
           </button>
-          <button 
-            onClick={() => { 
-              setViewMode('daily'); 
-              if (selectedDay === 'Todos os dias') setSelectedDay('SEGUNDA'); 
+          <button
+            onClick={() => {
+              setViewMode('daily');
+              if (selectedDay === 'Todos os dias') setSelectedDay('SEGUNDA');
             }}
-            style={{ 
-              padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s',
-              backgroundColor: viewMode === 'daily' ? 'white' : 'transparent', 
-              boxShadow: viewMode === 'daily' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', 
-              color: viewMode === 'daily' ? '#111827' : '#6B7280' 
-            }}
+            className={`px-4 py-1.5 border-none rounded cursor-pointer font-medium transition-all duration-200 ${viewMode === 'daily' ? 'bg-white shadow-sm text-gray-900' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
           >
             Vista Diária
           </button>
@@ -484,357 +411,280 @@ const SchedulePage = () => {
       </div>
 
       {/* Calendar Picker Strip */}
-      <div className="calendar-picker-strip" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={goToPreviousWeek}
-            style={{ padding: '8px 12px', borderRadius: '12px', border: '1px solid #E5E7EB', backgroundColor: 'white', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}
-          >
-            ←
-          </button>
+      <WeekNavigator
+        referenceDate={referenceDate}
+        setReferenceDate={setReferenceDate}
+        monthLabel={monthLabel}
+        weekRangeLabel={weekRangeLabel}
+        getWeekDayClass={getWeekDayClass}
+      />
 
-          <label style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #E5E7EB', backgroundColor: 'white', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: '#374151', position: 'relative' }}>
-            <span style={{ color: '#F97316' }}>📅</span>
-            <span style={{ textTransform: 'capitalize' }}>{monthLabel}</span>
-            <span style={{ color: '#6B7280' }}>{weekRangeLabel}</span>
-            <input
-              type="date"
-              value={formatDateForInput(referenceDate)}
-              onChange={handleWeekDateChange}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-              aria-label="Selecionar data para mudar a semana"
-            />
-          </label>
-
-          <button
-            type="button"
-            onClick={goToNextWeek}
-            style={{ padding: '8px 12px', borderRadius: '12px', border: '1px solid #E5E7EB', backgroundColor: 'white', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}
-          >
-            →
-          </button>
-        </div>
-      </div>
-
-      {/* Days Strip */}
-      <div className="days-strip" style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'space-between', padding: '8px', backgroundColor: 'white', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
-        {viewMode === 'weekly' && (
-          <button
-            onClick={() => setSelectedDay('Todos os dias')}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '8px 14px',
-              borderRadius: '12px',
-              border: 'none',
-              cursor: 'pointer',
-              minWidth: '90px',
-              transition: 'all 0.2s',
-              backgroundColor: selectedDay === 'Todos os dias' ? '#1A1A1A' : 'transparent',
-              color: selectedDay === 'Todos os dias' ? 'white' : '#9CA3AF'
-            }}
-          >
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px' }}>
-              TODOS
-            </span>
-            <span style={{ fontSize: '0.95rem', fontWeight: selectedDay === 'Todos os dias' ? 600 : 500 }}>
-              Dias
-            </span>
-          </button>
-        )}
-
-        {(viewMode === 'daily' ? currentWeek : currentWeekForSchedule).map((dayObj) => {
-          const isSelected = selectedDay === dayObj.day;
-
-          return (
-            <button
-              key={dayObj.day}
-              onClick={() => setSelectedDay(dayObj.day)}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '8px 14px',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: 'pointer',
-                minWidth: '70px',
-                transition: 'all 0.2s',
-                backgroundColor: isSelected ? '#1A1A1A' : 'transparent',
-                color: isSelected ? 'white' : '#9CA3AF'
-              }}
-            >
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '4px' }}>
-                {dayObj.short}
-              </span>
-              <span style={{ fontSize: '1.1rem', fontWeight: isSelected ? 600 : 400 }}>
-                {dayObj.date}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <DaysTabs
+        viewMode={viewMode}
+        selectedDay={selectedDay}
+        onSelectDay={setSelectedDay}
+        currentWeek={currentWeek}
+        currentWeekForSchedule={currentWeekForSchedule}
+      />
 
       {/* Conteúdo da Página com base na vista selecionada */}
       {viewMode === 'daily' ? (
-        <div className="daily-view-container" style={{ marginTop: '8px' }}>
+        <div className="mt-2 daily-view-container">
 
           {filteredClasses.length > 0 ? (
-            <FilteredDayClasses 
-              day={selectedDay} 
-              classes={filteredClasses.sort((a, b) => a.start - b.start)} 
+            <FilteredDayClasses
+              day={selectedDay}
+              classes={filteredClasses.sort((a, b) => a.start - b.start)}
               onEditClass={handleEditClass}
               onDeleteClass={role === 'admin' ? handleAskDeleteClass : undefined}
               role={role}
             />
           ) : (
-            <div style={{ textAlign: 'center', padding: '40px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
-              <p style={{ color: '#6B7280', fontSize: '1.125rem' }}>Sem aulas agendadas para {selectedDay.toLowerCase()}.</p>
+            <div className="text-center p-10 bg-white rounded-lg border border-gray-200">
+              <p className="text-gray-500 text-lg">Sem aulas agendadas para {selectedDay.toLowerCase()}.</p>
             </div>
           )}
         </div>
       ) : (
-        <div className="calendar-container" style={{ marginTop: '8px' }} onClick={() => setActiveSlotMenu(null)}>
+        <div className="mt-2 calendar-container" onClick={() => setActiveSlotMenu(null)}>
           {/* Cabeçalho dos Dias */}
           <div className="calendar-header">
-          <div className="time-column-header">HORA</div>
-          {daysToRender.map(day => (
-            <div key={day} className="day-column-header">{day}</div>
-          ))}
-        </div>
-
-        {/* Corpo do Calendário */}
-        <div className="calendar-body">
-          {/* Coluna das Horas */}
-          <div className="time-column">
-            {hours.map(hour => (
-              <div key={hour} className="time-slot">{hour}</div>
+            <div className="time-column-header">HORA</div>
+            {daysToRender.map(day => (
+              <div key={day} className="day-column-header">{day}</div>
             ))}
           </div>
 
-          {/* Colunas dos Dias (onde os cartões vão encaixar) */}
-          <div className="days-grid">
-            {/* Linhas horizontais de fundo (guias das horas) */}
-            <div className="grid-lines">
-              {hours.map(hour => <div key={`line-${hour}`} className="grid-line"></div>)}
+          {/* Corpo do Calendário */}
+          <div className="calendar-body">
+            {/* Coluna das Horas */}
+            <div className="time-column">
+              {hours.map(hour => (
+                <div key={hour} className="time-slot">{hour}</div>
+              ))}
             </div>
 
-            {/* Cartões das Aulas */}
-            {daysToRender.map(day => {
-              const dayClasses = classesInCurrentWeek.filter((classItem) => classItem.day === day);
-              const dayLayoutMap = getDayLayoutMap(day);
-
-              return (
-              <div key={`col-${day}`} className="day-column">
-                <div className="calendar-slots-layer">
-                  {hours.map((hour) => {
-                    const slotStart = toHourDecimal(hour);
-                    const hasClassInSlot = dayClasses.some((classItem) => {
-                      const classStart = Number(classItem.start);
-                      const classEnd = classStart + Number(classItem.duration);
-                      return classStart < slotStart + 1 && classEnd > slotStart;
-                    });
-
-                    const isMenuOpen =
-                      activeSlotMenu?.day === day &&
-                      activeSlotMenu?.hour === hour;
-
-                    const slotInfo = {
-                      day,
-                      hour,
-                      classDate: getIsoDateForDay(day)
-                    };
-
-                    return (
-                      <div key={`${day}-${hour}`} className="calendar-slot-row">
-                        {role === 'admin' && !hasClassInSlot && (
-                          <button
-                            type="button"
-                            className={`calendar-slot-trigger ${isMenuOpen ? 'active' : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveSlotMenu(isMenuOpen ? null : { day, hour, classDate: slotInfo.classDate });
-                            }}
-                            title="Adicionar aula neste slot"
-                          >
-                            +
-                          </button>
-                        )}
-
-                        {role === 'admin' && isMenuOpen && !hasClassInSlot && (
-                          <div className="slot-menu-schedule" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              type="button"
-                              onClick={() => openNewClassFromSlot(slotInfo)}
-                            >
-                              + Nova Aula
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openTemplatePickerFromSlot(slotInfo)}
-                            >
-                              ▶ Usar Template
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {dayClasses
-                  .map(classItem => {
-                    const overlapLayout = dayLayoutMap[classItem.id] || { column: 0, columns: 1 };
-
-                    return (
-                    <div
-                      key={classItem.id}
-                      className="class-card_schedule"
-                      style={calculatePosition(classItem.start, classItem.duration, overlapLayout)}
-                    >
-                      {role === 'admin' && (
-                        <div className="class-card_schedule__actions">
-                          <button
-                            type="button"
-                            className="class-card_schedule__delete-btn"
-                            title="Eliminar aula"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAskDeleteClass(classItem);
-                            }}
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      )}
-                      <h4 className="class-card_schedule__title">{classItem.name}</h4>
-                      <p className="class-card_schedule__details">Professor: {classItem.instructor}</p>
-                      <p className="class-card_schedule__details">Sala: {classItem.room}</p>
-                      <div className="class-card_schedule__footer">
-                        <span className={`class-level level-${classItem.level.toLowerCase()}`}>
-                          {classItem.level}
-                        </span>
-                        <span className="class-occupancy">👥 {classItem.occupancy}</span>
-                      </div>
-                    </div>
-                  )})}
+            {/* Colunas dos Dias (onde os cartões vão encaixar) */}
+            <div className="days-grid">
+              {/* Linhas horizontais de fundo (guias das horas) */}
+              <div className="grid-lines">
+                {hours.map(hour => <div key={`line-${hour}`} className="grid-line"></div>)}
               </div>
-              );
-            })}
+
+              {/* Cartões das Aulas */}
+              {daysToRender.map(day => {
+                const dayClasses = classesInCurrentWeek.filter((classItem) => classItem.day === day);
+                const dayLayoutMap = getDayLayoutMap(day);
+
+                return (
+                  <div key={`col-${day}`} className="day-column">
+                    <div className="calendar-slots-layer">
+                      {hours.map((hour) => {
+                        const slotStart = toHourDecimal(hour);
+                        const hasClassInSlot = dayClasses.some((classItem) => {
+                          const classStart = Number(classItem.start);
+                          const classEnd = classStart + Number(classItem.duration);
+                          return classStart < slotStart + 1 && classEnd > slotStart;
+                        });
+
+                        const isMenuOpen =
+                          activeSlotMenu?.day === day &&
+                          activeSlotMenu?.hour === hour;
+
+                        const slotInfo = {
+                          day,
+                          hour,
+                          classDate: getIsoDateForDay(day)
+                        };
+
+                        return (
+                          <div key={`${day}-${hour}`} className="calendar-slot-row">
+                            {role === 'admin' && !hasClassInSlot && (
+                              <button
+                                type="button"
+                                className={`calendar-slot-trigger ${isMenuOpen ? 'active' : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveSlotMenu(isMenuOpen ? null : { day, hour, classDate: slotInfo.classDate });
+                                }}
+                                title="Adicionar aula neste slot"
+                              >
+                                +
+                              </button>
+                            )}
+
+                            {role === 'admin' && isMenuOpen && !hasClassInSlot && (
+                              <div className="slot-menu-schedule" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  type="button"
+                                  onClick={() => openNewClassFromSlot(slotInfo)}
+                                >
+                                  + Nova Aula
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openTemplatePickerFromSlot(slotInfo)}
+                                >
+                                  ▶ Usar Template
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {dayClasses
+                      .map(classItem => {
+                        const overlapLayout = dayLayoutMap[classItem.id] || { column: 0, columns: 1 };
+
+                        return (
+                          <div
+                            key={classItem.id}
+                            className="class-card_schedule"
+                            style={calculatePosition(classItem.start, classItem.duration, overlapLayout)}
+                          >
+                            {role === 'admin' && (
+                              <div className="class-card_schedule__actions">
+                                <button
+                                  type="button"
+                                  className="class-card_schedule__delete-btn"
+                                  title="Eliminar aula"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAskDeleteClass(classItem);
+                                  }}
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            )}
+                            <h4 className="class-card_schedule__title">{classItem.name}</h4>
+                            <p className="class-card_schedule__details">Professor: {classItem.instructor}</p>
+                            <p className="class-card_schedule__details">Sala: {classItem.room}</p>
+                            <div className="class-card_schedule__footer">
+                              <span className={`class-level level-${classItem.level.toLowerCase()}`}>
+                                {classItem.level}
+                              </span>
+                              <span className="class-occupancy">👥 {classItem.occupancy}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
       )}
-      
-      <ClassModal 
-      isOpen={isModalOpen} 
-      onClose={() => {
-        setIsModalOpen(false);
-        setEditingClass(null);
-        setPrefillClass(null);
-        setForceCreateMode(false);
-      }} 
-      initialData={editingClass}
-      prefillData={prefillClass}
-      forceCreateMode={forceCreateMode}
-      preferredClassDate={preferredClassDate}
-      onSave={handleSaveClass}
-    />
 
-    {isTemplatePickerOpen && (
-      <div className="delete-confirm-overlay" onClick={() => { setIsTemplatePickerOpen(false); setTemplateTargetSlot(null); }}>
-        <div className="delete-confirm-card" onClick={(e) => e.stopPropagation()}>
-          <h3 className="delete-confirm-title">Escolher template</h3>
-          <p className="delete-confirm-text">
-            Seleciona um template para criar aula no slot {templateTargetSlot?.day} {templateTargetSlot?.hour}.
-          </p>
+      <ClassModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingClass(null);
+          setPrefillClass(null);
+          setForceCreateMode(false);
+        }}
+        initialData={editingClass}
+        prefillData={prefillClass}
+        forceCreateMode={forceCreateMode}
+        preferredClassDate={preferredClassDate}
+        onSave={handleSaveClass}
+      />
 
-          <div className="template-list-modal">
-            {templateOptions.length === 0 && (
-              <p className="delete-confirm-text">Ainda nao existem templates guardados.</p>
+      {isTemplatePickerOpen && (
+        <div className="delete-confirm-overlay" onClick={() => { setIsTemplatePickerOpen(false); setTemplateTargetSlot(null); }}>
+          <div className="delete-confirm-card" onClick={(e) => e.stopPropagation()}>
+            <h3 className="delete-confirm-title">Escolher template</h3>
+            <p className="delete-confirm-text">
+              Seleciona um template para criar aula no slot {templateTargetSlot?.day} {templateTargetSlot?.hour}.
+            </p>
+
+            <div className="template-list-modal">
+              {templateOptions.length === 0 && (
+                <p className="delete-confirm-text">Ainda nao existem templates guardados.</p>
+              )}
+
+              {templateOptions.map((template) => (
+                <button
+                  type="button"
+                  key={template.id}
+                  className={`template-option-btn ${selectedTemplate?.id === template.id ? 'selected' : ''}`}
+                  style={{ border: selectedTemplate?.id === template.id ? '2px solid #F97316' : '' }}
+                  onClick={() => setSelectedTemplate(template)}
+                >
+                  <strong>{template.name}</strong>
+                  <span>{template.category} • {template.instructor}</span>
+                </button>
+              ))}
+            </div>
+
+            {selectedTemplate && (
+              <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Duração (horas):</label>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0.5"
+                  max="8"
+                  value={templateDuration}
+                  onChange={(e) => {
+                    setTemplateDuration(e.target.value);
+                    setTemplateError('');
+                  }}
+                  style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+                {templateError && <p style={{ color: 'red', fontSize: '0.875rem', margin: 0 }}>{templateError}</p>}
+              </div>
             )}
 
-            {templateOptions.map((template) => (
+            <div className="delete-confirm-actions" style={{ marginTop: '16px' }}>
               <button
                 type="button"
-                key={template.id}
-                className={`template-option-btn ${selectedTemplate?.id === template.id ? 'selected' : ''}`}
-                style={{ border: selectedTemplate?.id === template.id ? '2px solid #F97316' : '' }}
-                onClick={() => setSelectedTemplate(template)}
-              >
-                <strong>{template.name}</strong>
-                <span>{template.category} • {template.instructor}</span>
-              </button>
-            ))}
-          </div>
-
-          {selectedTemplate && (
-            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Duração (horas):</label>
-              <input 
-                type="number" 
-                step="0.5" 
-                min="0.5" 
-                max="8" 
-                value={templateDuration} 
-                onChange={(e) => {
-                  setTemplateDuration(e.target.value);
-                  setTemplateError('');
+                className="delete-cancel-btn"
+                onClick={() => {
+                  setIsTemplatePickerOpen(false);
+                  setTemplateTargetSlot(null);
                 }}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} 
-              />
-              {templateError && <p style={{ color: 'red', fontSize: '0.875rem', margin: 0 }}>{templateError}</p>}
+              >
+                Fechar
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={!selectedTemplate}
+                onClick={handleUseTemplateInSlot}
+                style={{ padding: '10px 16px', borderRadius: '4px', border: 'none', backgroundColor: !selectedTemplate ? '#ccc' : '#F97316', color: 'white', cursor: !selectedTemplate ? 'not-allowed' : 'pointer' }}
+              >
+                Comfirmar e Criar
+              </button>
             </div>
-          )}
-
-          <div className="delete-confirm-actions" style={{ marginTop: '16px' }}>
-            <button
-              type="button"
-              className="delete-cancel-btn"
-              onClick={() => {
-                setIsTemplatePickerOpen(false);
-                setTemplateTargetSlot(null);
-              }}
-            >
-              Fechar
-            </button>
-            <button
-              type="button"
-              className="btn-primary"
-              disabled={!selectedTemplate}
-              onClick={handleUseTemplateInSlot}
-              style={{ padding: '10px 16px', borderRadius: '4px', border: 'none', backgroundColor: !selectedTemplate ? '#ccc' : '#F97316', color: 'white', cursor: !selectedTemplate ? 'not-allowed' : 'pointer' }}
-            >
-              Comfirmar e Criar
-            </button>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
-    {classToDelete && (
-      <div className="delete-confirm-overlay" onClick={handleCancelDeleteClass}>
-        <div className="delete-confirm-card" onClick={(e) => e.stopPropagation()}>
-          <h3 className="delete-confirm-title">Remover aula</h3>
-          <p className="delete-confirm-text">
-            Tens a certeza que queres remover <strong>{classToDelete.name}</strong> do horário?
-          </p>
-          <div className="delete-confirm-actions">
-            <button type="button" className="delete-cancel-btn" onClick={handleCancelDeleteClass}>
-              Cancelar
-            </button>
-            <button type="button" className="delete-confirm-btn" onClick={handleConfirmDeleteClass}>
-              Remover
-            </button>
+      {classToDelete && (
+        <div className="delete-confirm-overlay" onClick={handleCancelDeleteClass}>
+          <div className="delete-confirm-card" onClick={(e) => e.stopPropagation()}>
+            <h3 className="delete-confirm-title">Remover aula</h3>
+            <p className="delete-confirm-text">
+              Tens a certeza que queres remover <strong>{classToDelete.name}</strong> do horário?
+            </p>
+            <div className="delete-confirm-actions">
+              <button type="button" className="delete-cancel-btn" onClick={handleCancelDeleteClass}>
+                Cancelar
+              </button>
+              <button type="button" className="delete-confirm-btn" onClick={handleConfirmDeleteClass}>
+                Remover
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
+
   );
 };
 

@@ -255,20 +255,8 @@
   background: #FEE2E2;
 }
 
-.class-card_schedule__title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1E293B;
-  text-transform: capitalize;
-}
 
-.class-card_schedule__details {
-  margin: 3px 0 0 0;
-  font-size: 11px;
-  color: #64748B;
-  line-height: 1.25;
-}
+
 
 .class-card_schedule__footer {
   display: flex;
@@ -418,3 +406,258 @@
   background: #f8fafc;
 }
 
+.week-picker-wrapper {
+  position: relative;
+}
+
+.week-picker-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.week-picker-button:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.week-picker-icon {
+  font-size: 1.25rem;
+  color: #f97316;
+}
+
+.week-picker-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.week-picker-month {
+  text-transform: capitalize;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.1;
+}
+
+.week-picker-range {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.react-datepicker {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  font-family: inherit;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.react-datepicker__header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.react-datepicker__current-month {
+  font-weight: 600;
+  color: #111827;
+}
+
+.react-datepicker__day-name {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #111827;
+  color: white;
+  border-radius: 999px;
+}
+
+.react-datepicker__day:hover {
+  border-radius: 999px;
+}
+
+.react-datepicker-popper {
+  z-index: 20;
+}
+
+.custom-week-calendar .react-datepicker__day {
+  border-radius: 0;
+  margin: 0;
+}
+
+.custom-week-calendar .week-bar {
+  background-color: #2f6ea5;
+  color: white;
+}
+
+.custom-week-calendar .week-bar:hover {
+  background-color: #2f6ea5;
+  color: white;
+}
+
+.custom-week-calendar .week-bar-start {
+  background-color: #2f6ea5;
+  color: white;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.custom-week-calendar .week-bar-middle {
+  background-color: #2f6ea5;
+  color: white;
+}
+
+.custom-week-calendar .week-bar-end {
+  background-color: #2f6ea5;
+  color: white;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.custom-week-calendar .react-datepicker__day--keyboard-selected {
+  background-color: transparent;
+  color: inherit;
+}
+
+.custom-week-calendar .react-datepicker__day--selected {
+  background-color: transparent;
+  color: inherit;
+}
+.custom-week-calendar {
+  border: 1px solid #d9d9df;
+  border-radius: 14px;
+  overflow: hidden;
+  font-family: inherit;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.custom-week-calendar .react-datepicker__month-container {
+  background: #fff;
+}
+
+.custom-week-calendar .react-datepicker__header {
+  background: #f8f8fb;
+  border-bottom: 1px solid #e7e7ee;
+  padding-top: 12px;
+}
+
+.custom-week-calendar .react-datepicker__current-month {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 10px;
+  text-transform: lowercase;
+}
+
+.custom-week-calendar .react-datepicker__day-name {
+  color: #111;
+  font-weight: 700;
+  font-size: 0.95rem;
+  width: 2.2rem;
+  line-height: 2.2rem;
+  margin: 0.15rem;
+}
+
+.custom-week-calendar .react-datepicker__day {
+  width: 2.2rem;
+  line-height: 2.2rem;
+  margin: 0.15rem;
+  border-radius: 999px;
+  color: #111;
+  transition: all 0.2s ease;
+}
+
+/* remover estilos default estranhos */
+.custom-week-calendar .react-datepicker__day--keyboard-selected,
+.custom-week-calendar .react-datepicker__day--selected {
+  background: transparent;
+  color: inherit;
+}
+
+/* semana selecionada */
+.custom-week-calendar .week-bar,
+.custom-week-calendar .week-bar-start,
+.custom-week-calendar .week-bar-middle,
+.custom-week-calendar .week-bar-end {
+  background: #2f6ea5;
+  color: #fff;
+}
+
+/* início da barra */
+.custom-week-calendar .week-bar-start {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* meio da barra */
+.custom-week-calendar .week-bar-middle {
+  border-radius: 0;
+}
+
+/* fim da barra */
+.custom-week-calendar .week-bar-end {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* hover rosa */
+.custom-week-calendar .react-datepicker__day:hover,
+.custom-week-calendar .week-bar:hover,
+.custom-week-calendar .week-bar-start:hover,
+.custom-week-calendar .week-bar-middle:hover,
+.custom-week-calendar .week-bar-end:hover {
+  background: #f7a8c4;
+  color: #fff;
+}
+
+/* dia de hoje */
+.custom-week-calendar .react-datepicker__day--today {
+  font-weight: 700;
+  outline: 2px solid #2f6ea5;
+  outline-offset: 1px;
+}
+
+/* se hoje estiver dentro da semana azul */
+.custom-week-calendar .react-datepicker__day--today.week-bar,
+.custom-week-calendar .react-datepicker__day--today.week-bar-start,
+.custom-week-calendar .react-datepicker__day--today.week-bar-middle,
+.custom-week-calendar .react-datepicker__day--today.week-bar-end {
+  outline: 2px solid #ffffff;
+  outline-offset: -2px;
+}
+
+/* dias fora do mês atual */
+.custom-week-calendar .react-datepicker__day--outside-month {
+  color: #b8b8c2;
+}
+
+/* hover nos dias fora do mês */
+.custom-week-calendar .react-datepicker__day--outside-month:hover {
+  background: #f7a8c4;
+  color: #fff;
+}
+
+/* remover triângulo do popper */
+.react-datepicker__triangle {
+  display: none;
+}
+
+/* popper */
+.react-datepicker-popper {
+  z-index: 30;
+}
