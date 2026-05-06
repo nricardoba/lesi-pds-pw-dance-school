@@ -1,95 +1,114 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import './WeekNavigator.css';
 
+
 const WeekNavigator = ({
-  referenceDate,
-  setReferenceDate,
-  monthLabel,
-  weekRangeLabel,
-  getWeekDayClass
+    referenceDate,
+    setReferenceDate,
+    monthLabel,
+    weekRangeLabel,
+    getWeekDayClass
 }) => {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const goToPreviousWeek = () => {
-    const prevWeek = new Date(referenceDate);
-    prevWeek.setDate(prevWeek.getDate() - 7);
-    setReferenceDate(prevWeek);
-  };
+    const goToPreviousWeek = () => {
+        const prevWeek = new Date(referenceDate);
+        prevWeek.setDate(prevWeek.getDate() - 7);
+        setReferenceDate(prevWeek);
+    };
 
-  const goToNextWeek = () => {
-    const nextWeek = new Date(referenceDate);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    setReferenceDate(nextWeek);
-  };
+    const goToNextWeek = () => {
+        const nextWeek = new Date(referenceDate);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        setReferenceDate(nextWeek);
+    };
 
-  return (
-    <>
-      <div className="calendar-picker-strip">
-        <div className="calendar-picker-strip__inner">
-          <button
-            type="button"
-            onClick={goToPreviousWeek}
-            aria-label="Semana anterior"
-            className="calendar-nav-btn"
-          >
-            ←
-          </button>
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                setIsCalendarOpen(false);
+            }
+        };
 
-          <div className="week-picker-wrapper">
-            <button
-              type="button"
-              className="week-picker-button"
-              onClick={() => setIsCalendarOpen(true)}
-            >
-              <span className="week-picker-icon">📅</span>
-              <div className="week-picker-text">
-                <span className="week-picker-month">{monthLabel}</span>
-                <span className="week-picker-range">{weekRangeLabel}</span>
-              </div>
-            </button>
-          </div>
+        if (isCalendarOpen) {
+            window.addEventListener('keydown', handleKeyDown);
+        }
 
-          <button
-            type="button"
-            onClick={goToNextWeek}
-            aria-label="Próxima semana"
-            className="calendar-nav-btn"
-          >
-            →
-          </button>
-        </div>
-      </div>
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isCalendarOpen]);
 
-      {isCalendarOpen && (
-        <div
-          className="calendar-overlay"
-          onClick={() => setIsCalendarOpen(false)}
-        >
-          <div
-            className="calendar-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <DatePicker
-              selected={referenceDate}
-              onChange={(date) => {
-                if (date) {
-                  setReferenceDate(date);
-                  setIsCalendarOpen(false);
-                }
-              }}
-              inline
-              locale="pt"
-              calendarClassName="custom-week-calendar"
-              dayClassName={getWeekDayClass}
-              formatWeekDay={(nameOfDay) => nameOfDay.substring(0, 3)}
-            />
-          </div>
-        </div>
-      )}
-    </>
-  );
+    return (
+        <>
+            <div className="calendar-picker-strip">
+                <div className="calendar-picker-strip__inner">
+                    <button
+                        type="button"
+                        onClick={goToPreviousWeek}
+                        aria-label="Semana anterior"
+                        className="calendar-nav-btn"
+                    >
+                        ←
+                    </button>
+
+                    <div className="week-picker-wrapper">
+                        <button
+                            type="button"
+                            className="week-picker-button"
+                            onClick={() => setIsCalendarOpen(true)}
+                        >
+                            <span className="week-picker-icon">📅</span>
+                            <div className="week-picker-text">
+                                <span className="week-picker-month">{monthLabel}</span>
+                                <span className="week-picker-range">{weekRangeLabel}</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={goToNextWeek}
+                        aria-label="Próxima semana"
+                        className="calendar-nav-btn"
+                    >
+                        →
+                    </button>
+                </div>
+            </div>
+
+            {isCalendarOpen && (
+                <div className="calendar-overlay" onClick={() => setIsCalendarOpen(false)}>
+                    <div className="calendar-modal" onClick={(e) => e.stopPropagation()}>
+                        <DatePicker
+                            inline
+                            selected={referenceDate}
+                            openToDate={referenceDate}
+                            onChange={(date) => {
+                                if (date) {
+                                    setReferenceDate(date);
+                                    setIsCalendarOpen(false);
+                                }
+                            }}
+                            calendarClassName="custom-week-calendar"
+                            dayClassName={(date) => {
+                                const baseClass = getWeekDayClass(date);
+
+                                const isReferenceDay =
+                                    date.getFullYear() === referenceDate.getFullYear() &&
+                                    date.getMonth() === referenceDate.getMonth() &&
+                                    date.getDate() === referenceDate.getDate();
+
+                                return `${baseClass}${isReferenceDay ? ' reference-day' : ''}`.trim();
+                            }}
+                            formatWeekDay={(nameOfDay) => nameOfDay.substring(0, 3)}
+                        />
+                    </div>
+                </div>
+            )}
+        </>
+    );
 };
 
 export default WeekNavigator;

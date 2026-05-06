@@ -84,12 +84,16 @@ const ClassModal = ({
 
   const availableTeachers = useMemo(() => {
     if (!selectedStyle) {
-      return teachers;
+      return teachers.map(t => ({ ...t, isSpecialist: true }));
     }
 
-    return teachers.filter((teacher) =>
-      teacher.userModality?.some((um) => um.modality?.modalityName === selectedStyle)
-    );
+    return teachers.map((teacher) => {
+      const isSpecialist = teacher.userModality?.some((um) => um.modality?.modalityName === selectedStyle);
+      return { ...teacher, isSpecialist };
+    }).sort((a, b) => {
+      if (a.isSpecialist === b.isSpecialist) return 0;
+      return a.isSpecialist ? -1 : 1;
+    });
   }, [selectedStyle, teachers]);
 
   const availableStyles = useMemo(() => {
@@ -263,12 +267,14 @@ const ClassModal = ({
               >
                 <option value="" disabled>Selecionar</option>
                 {availableTeachers.map((teacher) => (
-                  <option key={teacher.userId} value={teacher.userId}>{teacher.userName}</option>
+                  <option key={teacher.userId} value={teacher.userId}>
+                    {teacher.userName} {!teacher.isSpecialist ? '(Não especializado)' : ''}
+                  </option>
                 ))}
               </select>
-              {availableTeachers.length === 0 && (
+              {availableTeachers.length === 0 && selectedStyle && (
                 <p className="form-help form-help--warning">
-                  Tens de adicionar o estilo selecionado a um professor/a ou criar um novo professor/a.
+                  Nenhum professor disponível.
                 </p>
               )}
               {teacherError && <p className="form-help form-help--error">{teacherError}</p>}
