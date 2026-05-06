@@ -195,9 +195,6 @@ const WeeklyCalendar = ({
                       <p className="class-card_schedule__details">Professor: {classItem.instructor}</p>
                       <p className="class-card_schedule__details">Sala: {classItem.room}</p>
                       <div className="class-card_schedule__footer">
-                        <span className={`class-level level-${classItem.level.toLowerCase()}`}>
-                          {classItem.level}
-                        </span>
                         <span className="class-occupancy">👥 {classItem.occupancy}</span>
                       </div>
                     </div>

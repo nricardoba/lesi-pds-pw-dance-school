@@ -1,11 +1,15 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 const handleResponse = async (res) => {
-  const data = await res.json();
-
   if (res.status === 401) {
     window.dispatchEvent(new Event("auth:unauthorized"));
   }
+
+  if (res.status === 204) {
+    return null;
+  }
+
+  const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
     throw new Error(data?.error?.message || "Erro na API");

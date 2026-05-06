@@ -27,10 +27,22 @@ export const useScheduleData = (token) => {
           const dayOfWeekIndex = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
           const dayName = WEEK_DAYS_META[dayOfWeekIndex]?.day || 'SEGUNDA';
 
-          const instructor =
-            backendClass.userClass?.find(
-              (uc) => uc.userClassRole?.userClassRoleName === 'Professor'
-            )?.user?.userName || 'Sem professor';
+
+          const professor = backendClass.userClass?.find((uc) =>
+            ['Professor Responsável', 'Professor Assistente'].includes(
+              uc.userClassRole?.userClassRoleDesc
+            )
+          );
+
+          const instructorId = professor?.user?.userId || '';
+          const instructorName = professor?.user?.userName || 'Sem professor';
+
+          const studentsCount =
+            backendClass.userClass?.filter(
+              (uc) => uc.userClassRole?.userClassRoleDesc === 'Aluno'
+            ).length || 0;
+
+          const studioCapacity = backendClass.studioModality?.studio?.studioMaxCapacity || 0;
 
           return {
             id: backendClass.classId,
@@ -38,12 +50,16 @@ export const useScheduleData = (token) => {
             start: startDec,
             duration: duration > 0 ? duration : 1.5,
             name: backendClass.studioModality?.modality?.modalityName || 'Aula',
-            instructor,
-            room: backendClass.studioModality?.studio?.studioDesignation || 'Estúdio',
-            level: 'Geral',
+            instructor: String(instructorId),
+            instructorName,
+            room: String(backendClass.studioModality?.studio?.studioId || ''),
+            roomName: backendClass.studioModality?.studio?.studioName || 'Estúdio',
             category: backendClass.studioModality?.modality?.modalityName || 'Geral',
-            occupancy: `${backendClass.userClass?.length || 0}/20`,
-            classDate: formatDateForInput(startDate)
+            occupancy: `${studentsCount}/${studioCapacity}`,
+            classDate: formatDateForInput(startDate),
+            schoolYear: String(
+              backendClass.schoolYearId || backendClass.schoolYear?.schoolYearId || ''
+            )
           };
         });
 
