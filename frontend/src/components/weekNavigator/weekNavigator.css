@@ -1,0 +1,191 @@
+.calendar-picker-strip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.calendar-picker-strip__inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calendar-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav-btn:hover {
+  background: #f3f4f6;
+}
+
+.week-picker-wrapper {
+  position: relative;
+}
+
+.week-picker-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.week-picker-button:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.week-picker-icon {
+  font-size: 1.25rem;
+}
+
+.week-picker-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.week-picker-month {
+  text-transform: capitalize;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.1;
+}
+
+.week-picker-range {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.calendar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 110px;
+  z-index: 1000;
+}
+
+.calendar-modal {
+  background: transparent;
+}
+
+.custom-week-calendar {
+  border: 1px solid #d9d9df;
+  border-radius: 14px;
+  overflow: hidden;
+  font-family: inherit;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  background: white;
+}
+
+.custom-week-calendar .react-datepicker__header {
+  background: #f8f8fb;
+  border-bottom: 1px solid #e7e7ee;
+  padding-top: 12px;
+}
+
+.custom-week-calendar .react-datepicker__current-month {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 10px;
+  text-transform: lowercase;
+}
+
+.custom-week-calendar .react-datepicker__day-name {
+  color: #111;
+  font-weight: 700;
+  font-size: 0.95rem;
+  width: 2.2rem;
+  line-height: 2.2rem;
+  margin: 0.15rem;
+}
+
+.custom-week-calendar .react-datepicker__day {
+  width: 2.2rem;
+  line-height: 2.2rem;
+  margin: 0.15rem;
+  border-radius: 999px;
+  color: #111;
+  transition: all 0.2s ease;
+}
+
+.custom-week-calendar .react-datepicker__day--keyboard-selected,
+.custom-week-calendar .react-datepicker__day--selected {
+  background: transparent;
+  color: inherit;
+}
+
+.custom-week-calendar .week-bar,
+.custom-week-calendar .week-bar-start,
+.custom-week-calendar .week-bar-middle,
+.custom-week-calendar .week-bar-end {
+  background: #2f6ea5;
+  color: #fff;
+}
+
+.custom-week-calendar .week-bar-start {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.custom-week-calendar .week-bar-middle {
+  border-radius: 0;
+}
+
+.custom-week-calendar .week-bar-end {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.custom-week-calendar .react-datepicker__day:hover,
+.custom-week-calendar .week-bar:hover,
+.custom-week-calendar .week-bar-start:hover,
+.custom-week-calendar .week-bar-middle:hover,
+.custom-week-calendar .week-bar-end:hover {
+  background: #f7a8c4;
+  color: #fff;
+}
+
+.custom-week-calendar .react-datepicker__day--today {
+  font-weight: 700;
+  outline: 2px solid #2f6ea5;
+  outline-offset: 1px;
+}
+
+.custom-week-calendar .react-datepicker__day--today.week-bar,
+.custom-week-calendar .react-datepicker__day--today.week-bar-start,
+.custom-week-calendar .react-datepicker__day--today.week-bar-middle,
+.custom-week-calendar .react-datepicker__day--today.week-bar-end {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+.custom-week-calendar .react-datepicker__day--outside-month {
+  color: #b8b8c2;
+}

@@ -30,6 +30,11 @@ export const listUsersService = async () => {
       userType: true,
       studentNumber: true,
       userNIF: true,
+      userModality: {
+        include: {
+          modality: true,
+        },
+      },
       userAddress: {
         include: {
           address: {
