@@ -55,16 +55,19 @@ itemsRouter.get(
 itemsRouter.get("/:id", InventoryController.getItemByIdController);
 itemsRouter.post(
     "/",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
     InventoryController.createItemController,
 );
 itemsRouter.put(
     "/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
     InventoryController.updateItemController,
 );
 itemsRouter.delete(
     "/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
     InventoryController.deleteItemController,
 );
@@ -81,21 +84,25 @@ rentalsRouter.get(
 );
 rentalsRouter.get(
     "/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
     InventoryController.getRentalByIdController,
 );
 rentalsRouter.post(
     "/",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.createRentalController,
 );
 rentalsRouter.put(
     "/:id/return",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.returnRentalController,
 );
 rentalsRouter.delete(
     "/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.deleteRentalController,
 );
@@ -108,21 +115,25 @@ export const inventoryReferencesRouter = Router();
 // --- Categories ---
 inventoryReferencesRouter.get(
     "/categories",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
     InventoryController.listCategoriesController,
 );
 inventoryReferencesRouter.post(
     "/categories",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.createCategoryController,
 );
 inventoryReferencesRouter.put(
     "/categories/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.updateCategoryController,
 );
 inventoryReferencesRouter.delete(
     "/categories/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.deleteCategoryController,
 );
@@ -130,21 +141,25 @@ inventoryReferencesRouter.delete(
 // --- Colors ---
 inventoryReferencesRouter.get(
     "/colors",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
     InventoryController.listColorsController,
 );
 inventoryReferencesRouter.post(
     "/colors",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.createColorController,
 );
 inventoryReferencesRouter.put(
     "/colors/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.updateColorController,
 );
 inventoryReferencesRouter.delete(
     "/colors/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.deleteColorController,
 );
@@ -152,21 +167,25 @@ inventoryReferencesRouter.delete(
 // --- Sizes ---
 inventoryReferencesRouter.get(
     "/sizes",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
     InventoryController.listSizesController,
 );
 inventoryReferencesRouter.post(
     "/sizes",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.createSizeController,
 );
 inventoryReferencesRouter.put(
     "/sizes/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.updateSizeController,
 );
 inventoryReferencesRouter.delete(
     "/sizes/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.deleteSizeController,
 );
@@ -174,21 +193,25 @@ inventoryReferencesRouter.delete(
 // --- Item Conditions ---
 inventoryReferencesRouter.get(
     "/item-conditions",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
     InventoryController.listItemConditionsController,
 );
 inventoryReferencesRouter.post(
     "/item-conditions",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.createItemConditionController,
 );
 inventoryReferencesRouter.put(
     "/item-conditions/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.updateItemConditionController,
 );
 inventoryReferencesRouter.delete(
     "/item-conditions/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.deleteItemConditionController,
 );
@@ -196,21 +219,25 @@ inventoryReferencesRouter.delete(
 // --- Dance Types ---
 inventoryReferencesRouter.get(
     "/dance-types",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
     InventoryController.listDanceTypesController,
 );
 inventoryReferencesRouter.post(
     "/dance-types",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.createDanceTypeController,
 );
 inventoryReferencesRouter.put(
     "/dance-types/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.updateDanceTypeController,
 );
 inventoryReferencesRouter.delete(
     "/dance-types/:id",
+    ensureAuth,
     checkRole([USER_ROLES.ADMIN]),
     InventoryController.deleteDanceTypeController,
 );
