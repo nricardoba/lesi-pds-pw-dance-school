@@ -14,7 +14,12 @@ export const globalErrorHandler = (
   }
 
   if (err.name === 'ZodError') {
-    return res.status(400).json({ error: { message: "Erro de validação.", details: err.errors } });
+    return res.status(400).json({
+      error: {
+        message: "Preencha os campos obrigatórios.",
+        details: err.errors,
+      },
+    });
   }
 
   // Capturar erros não planeados (500)

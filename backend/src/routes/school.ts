@@ -21,7 +21,7 @@ export const scheduleVacanciesRouter = Router();
 
 scheduleVacanciesRouter.get('/', ensureAuth,SchoolController.listScheduleVacanciesController);
 scheduleVacanciesRouter.get('/:id', ensureAuth,SchoolController.getScheduleVacancyByIdController);
-scheduleVacanciesRouter.get('/user/:userId', ensureAuth,SchoolController.getScheduleVacanciesByUserIdController);
-scheduleVacanciesRouter.post('/', ensureAuth,SchoolController.createScheduleVacancyController);
-scheduleVacanciesRouter.put('/:id', ensureAuth,SchoolController.updateScheduleVacancyController);
-scheduleVacanciesRouter.delete('/:id', ensureAuth,SchoolController.deleteScheduleVacancyController);
+scheduleVacanciesRouter.get('/user/:userId', ensureAuth,checkRole([USER_ROLES.ADMIN]), SchoolController.getScheduleVacanciesByUserIdController);
+scheduleVacanciesRouter.post('/', ensureAuth,checkRole([USER_ROLES.ADMIN]), SchoolController.createScheduleVacancyController);
+scheduleVacanciesRouter.put('/:id', ensureAuth,checkRole([USER_ROLES.ADMIN]), SchoolController.updateScheduleVacancyController);
+scheduleVacanciesRouter.delete('/:id', ensureAuth, checkRole([USER_ROLES.ADMIN]), SchoolController.deleteScheduleVacancyController);

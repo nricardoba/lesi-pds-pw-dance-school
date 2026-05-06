@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import FilteredDayClasses from '../components/filteredDayClasses/FilteredDayClasses';
 import ClassModal from '../components/classModal/ClassModal';
+import { createClassRequest } from '../services/classes';
 import {
   readClassTemplatesFromStorage,
   readScheduleClassesFromStorage,
@@ -197,6 +198,8 @@ const SchedulePage = () => {
   const monthLabel = new Intl.DateTimeFormat('pt-PT', { month: 'long', year: 'numeric' }).format(weekStart);
   const weekRangeLabel = `${pad2(weekStart.getDate())}/${pad2(weekStart.getMonth() + 1)} - ${pad2(weekEnd.getDate())}/${pad2(weekEnd.getMonth() + 1)}`;
   const currentWeekForSchedule = currentWeek.filter((weekDay) => daysOfWeek.includes(weekDay.day));
+
+  const { token, user } = useAuth(); // <--- OBTENÇÃO DO TOKEN DO AUTHCONTEXT
   const currentWeekDates = new Set(currentWeek.map((weekDay) => formatDateForInput(weekDay.fullDate)));
   const classesInCurrentWeek = classesData.filter((classItem) => classItem.classDate && currentWeekDates.has(classItem.classDate));
 
@@ -327,19 +330,40 @@ const SchedulePage = () => {
     setSelectedTemplate(null);
   };
 
-  const handleSaveClass = (classData) => {
-    if (editingClass) {
-      setClassesData((prevData) => prevData.map((c) => c.id === classData.id ? classData : c));
-    } else {
-      setClassesData((prevData) => [...prevData, classData]);
-    }
+  const handleSaveClass = async (classData) => {
+    try {
+      if (editingClass) {
+        // ... (Simulando editar por agora na DB local)
+        setClassesData((prevData) => prevData.map((c) => c.id === classData.id ? classData : c));
+      } else {
+        // Integração real com o backend //
+        const backendClassFormat = {
+          schoolYearId: 1, // Fixado ou vindo do map (Ex: Ano Letivo 2025/2026) dependendo da config
+          classDateStart: `${classData.classDate}T${classData.class_time_start}:00.000Z`, 
+          classDateEnd: `${classData.classDate}T${classData.class_time_end}:00.000Z`,
+          classRecurrence: false,
+          studioModalityId: 1, // Depende do mapeamento Estúdio <-> Modalidade na DB 
+          classFinalFee: 20.00,
+          classStatusId: 1 // Status: 1="Agendada"
+        };
 
-    if (classData.classDate) {
-      setReferenceDate(getDateFromIso(classData.classDate));
-    }
+        if(token) {
+          // await createClassRequest(backendClassFormat, token);
+          // (descomentar na integração final com a DB real preenchida com as salas/modalidades exatas)
+        }
 
-    if (viewMode === 'daily' && classData.day) {
-      setSelectedDay(classData.day);
+        setClassesData((prevData) => [...prevData, classData]);
+      }
+
+      if (classData.classDate) {
+        setReferenceDate(getDateFromIso(classData.classDate));
+      }
+
+      if (viewMode === 'daily' && classData.day) {
+        setSelectedDay(classData.day);
+      }
+    } catch (error) {
+      alert("Erro ao gravar no servidor: " + error.message);
     }
   };
 
