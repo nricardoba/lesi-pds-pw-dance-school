@@ -1,6 +1,10 @@
 ﻿import { useState } from 'react';
 import { isSameWeek, getISODay } from 'date-fns';
-import { createClassRequest } from '../services/classes';
+import {
+  createClassRequest,
+  updateClassRequest,
+  deleteClassRequest
+} from '../services/classes';
 import { useScheduleData } from './useScheduleData';
 import { useScheduleModals } from './useScheduleModals';
 import { readClassTemplatesFromStorage } from '../utils/scheduleStorage';
@@ -118,7 +122,7 @@ export const useScheduleState = (token, daysOfWeek) => {
       class_time_end: decimalToHourString(slotStart + 1),
       start: slotStart,
       duration: 1,
-      level: '',
+      // level: '',
       occupancy: '0/15',
       maxStudents: 15
     });
@@ -193,6 +197,27 @@ export const useScheduleState = (token, daysOfWeek) => {
   const handleSaveClass = async (classData) => {
     try {
       if (modals.editingClass) {
+        if (token) {
+          const startHourStr =
+            classData.class_time_start || decimalToHourString(classData.start);
+          const endHourStr =
+            classData.class_time_end ||
+            decimalToHourString(classData.start + classData.duration);
+
+          const backendClassFormat = {
+            schoolYearId: 1,
+            classDateStart: `${classData.classDate}T${startHourStr}:00`,
+            classDateEnd: `${classData.classDate}T${endHourStr}:00`,
+            classRecurrence: classData.recurrence || false,
+            studioModalityId: 1,
+            classFinalFee: classData.classFinalFee || 20.0,
+            classStatusId: 1
+          };
+          
+          await updateClassRequest(classData.id, backendClassFormat, token);
+          // For frontend immediate update (assuming the mapping is fine as is)
+        }
+        
         setClassesData((prevData) =>
           prevData.map((c) => (c.id === classData.id ? classData : c))
         );
@@ -239,7 +264,7 @@ export const useScheduleState = (token, daysOfWeek) => {
             name: classData.name || 'Nova Aula',
             instructor: classData.instructor || 'Sem professor',
             room: classData.room || 'Estúdio 1',
-            level: classData.level || 'Geral',
+            // level: classData.level || 'Geral',
             category: classData.category || 'Geral',
             occupancy: '0/20',
             classDate: classData.classDate
@@ -273,13 +298,21 @@ export const useScheduleState = (token, daysOfWeek) => {
     modals.setClassToDelete(null);
   };
 
-  const handleConfirmDeleteClass = () => {
+  const handleConfirmDeleteClass = async () => {
     if (!modals.classToDelete) return;
 
-    setClassesData((prevData) =>
-      prevData.filter((item) => item.id !== modals.classToDelete.id)
-    );
-    modals.setClassToDelete(null);
+    try {
+      if (token) {
+        await deleteClassRequest(modals.classToDelete.id, token);
+      }
+      setClassesData((prevData) =>
+        prevData.filter((item) => item.id !== modals.classToDelete.id)
+      );
+      modals.setClassToDelete(null);
+    } catch (error) {
+      console.error('Error deleting class:', error);
+      alert('Erro ao apagar a aula do servidor.');
+    }
   };
 
   const getDayLayoutMap = (day) => {

@@ -29,9 +29,11 @@ const FilteredDayClasses = ({ day, classes, onEditClass, onDeleteClass, role }) 
               </div>
 
               <div className="detailed-class-meta">
-                <span className={`detailed-class-level level-${classItem.level.toLowerCase()}`}>
-                  {classItem.level}
-                </span>
+                {classItem.level ? (
+                  <span className={`detailed-class-level level-${classItem.level.toLowerCase()}`}>
+                    {classItem.level}
+                  </span>
+                ) : null}
                 <span className="detailed-class-category">{classItem.category}</span>
                 <span className="detailed-class-students">👥 {classItem.occupancy} alunos</span>
               </div>
