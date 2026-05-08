@@ -154,7 +154,7 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
             await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); 
             
             // Criar password automático: <numeroAluno@dataNascimento>
-            // Ex: numeroAluno="a12345" , dataNascimento="2010-01-13" -> password: "a12345@20100113"
+            /// Ex: numeroAluno="a12345" , dataNascimento="2010-01-13" -> password: "a12345@20100113"
             const studentNum = payload.studentNumber || 'aluno';
             
             let birthStr = '12345678'; // Fallback de segurança
@@ -163,7 +163,7 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
               birthStr = payload.userBirthDate.replace(/-/g, '');
             }
             
-            const autoPassword = `${studentNum}@${birthStr}`;
+            
             
             await registerRequest(email, autoPassword);
           } catch (e) { 

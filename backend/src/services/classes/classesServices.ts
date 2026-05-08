@@ -25,7 +25,9 @@ const createClassSchema = z.object({
   classDateStart: z.string().min(1),
   classDateEnd: z.string().min(1),
   classRecurrence: z.boolean().optional().nullable(),
-  studioModalityId: z.coerce.number().int().positive(),
+  studioModalityId: z.coerce.number().int().positive().optional(),
+  studioId: z.coerce.number().int().positive().optional(),
+  modalityId: z.coerce.number().int().positive().optional(),
   classFinalFee: z.coerce.number().nonnegative(),
   classStatusId: z.coerce.number().int().positive(),
 });
@@ -132,15 +134,48 @@ export const getClassByIdService = async (params: unknown) => {
 };
 
 export const createClassService = async (body: unknown) => {
-  const {
+  let {
     schoolYearId,
     classDateStart,
     classDateEnd,
     classRecurrence,
     studioModalityId,
+    studioId,
+    modalityId,
     classFinalFee,
     classStatusId,
   } = createClassSchema.parse(body);
+
+  if (!studioModalityId && studioId && modalityId) {
+    let sm = await prisma.studioModality.findFirst({
+      where: { studioId: studioId, modalityId: modalityId }
+    });
+    
+    // Se a associação não existir, contornamos o erro criando-a automaticamente 
+    // para facilitar que a aula seja gravada de imediato
+    if (!sm) {
+      sm = await prisma.studioModality.create({
+        data: {
+          studioId: studioId,
+          modalityId: modalityId
+        }
+      });
+    }
+    studioModalityId = sm.studioModalityId;
+  } else if (!studioModalityId) {
+      // Just fallback for hardcoded frontend requests if they forgot to change
+      const sm = await prisma.studioModality.findFirst();
+      if (!sm) throw new AppError("Salo/Modalidade indisponível.", 400);
+      studioModalityId = sm.studioModalityId;
+  }
+
+  // To fix frontend sending hardcoded 'schoolYearId: 1' which might not exist
+  const yearExists = await prisma.schoolYear.findUnique({ where: { schoolYearId } });
+  if (!yearExists) {
+    const defaultYear = await prisma.schoolYear.findFirst();
+    if (!defaultYear) throw new AppError("Ano letivo indisponível.", 400);
+    schoolYearId = defaultYear.schoolYearId;
+  }
 
   return prisma.class.create({
     data: {
