@@ -34,14 +34,15 @@ const TeachersPage = () => {
           c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'telemóvel' ||
             c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone'
         );
+        
+        const teacherSpecialties = u.userModality ? u.userModality.map(um => um.modality?.modalityName) : [];
 
         return {
           user_id: u.userId,
           name: u.userName,
-          bio: 'Sem biografia disponível', // Pode vir de outro campo no futuro
           email: emailContact?.contact?.contactValue || '',
           phone: phoneContact?.contact?.contactValue || '',
-          specialties: [], // Ainda a implementar a lógica de especialidades ou ler das qualificações
+          specialties: teacherSpecialties,
           classesCount: 0,
           isActive: u.userIsActive,
           avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.userName) + '&background=random'
@@ -157,7 +158,6 @@ const TeachersPage = () => {
                   <img src={teacher.avatar} alt={teacher.name} className="prof-avatar" />
                   <div className="prof-details">
                     <span className="prof-name">{teacher.name}</span>
-                    <span className="prof-bio">{teacher.bio}</span>
                   </div>
                 </div>
 
