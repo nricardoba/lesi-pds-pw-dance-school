@@ -1,9 +1,3 @@
-Com certeza! Erros acontecem, e ter o ficheiro completo à mão ajuda a garantir que as rotas, os estados e a lógica de negócio estão todos sincronizados.
-
-Aqui está o teste de integração completo para o Fluxo de Coaching, estruturado para testar desde o pedido inicial até ao fecho pela coordenação.
-
-tests/integration/coaching.integration.spec.ts
-TypeScript
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../../src/index';
