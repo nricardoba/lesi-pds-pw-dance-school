@@ -44,8 +44,11 @@ const updateClassSchema = z.object({
   classDateEnd: z.string().min(1).optional(),
   classRecurrence: z.boolean().optional().nullable(),
   studioModalityId: z.coerce.number().int().positive().optional(),
+  studioId: z.coerce.number().int().positive().optional(),
+  modalityId: z.coerce.number().int().positive().optional(),
   classFinalFee: z.coerce.number().nonnegative().optional(),
   classStatusId: z.coerce.number().int().positive().optional(),
+  instructorId: z.coerce.number().int().positive().optional().nullable(),
 });
 
 const updateUserClassSchema = z.object({
@@ -244,7 +247,13 @@ export const updateClassService = async (params: unknown, body: unknown) => {
 
   const existingClass = await prisma.class.findUnique({
     where: { classId: id },
-    select: { classId: true },
+    include: {
+      userClass: {
+        include: {
+          userClassRole: true,
+        },
+      },
+    },
   });
 
   if (!existingClass) {
@@ -258,15 +267,11 @@ export const updateClassService = async (params: unknown, body: unknown) => {
   }
 
   if (parsedBody.classDateStart !== undefined) {
-    dataToUpdate.classDateStart = new Date(
-      parsedBody.classDateStart
-    );
+    dataToUpdate.classDateStart = new Date(parsedBody.classDateStart);
   }
 
   if (parsedBody.classDateEnd !== undefined) {
-    dataToUpdate.classDateEnd = new Date(
-      parsedBody.classDateEnd
-    );
+    dataToUpdate.classDateEnd = new Date(parsedBody.classDateEnd);
   }
 
   if (parsedBody.classRecurrence !== undefined) {
@@ -277,6 +282,26 @@ export const updateClassService = async (params: unknown, body: unknown) => {
     dataToUpdate.studioModalityId = parsedBody.studioModalityId;
   }
 
+  if (!dataToUpdate.studioModalityId && parsedBody.studioId && parsedBody.modalityId) {
+    let studioModality = await prisma.studioModality.findFirst({
+      where: {
+        studioId: parsedBody.studioId,
+        modalityId: parsedBody.modalityId,
+      },
+    });
+
+    if (!studioModality) {
+      studioModality = await prisma.studioModality.create({
+        data: {
+          studioId: parsedBody.studioId,
+          modalityId: parsedBody.modalityId,
+        },
+      });
+    }
+
+    dataToUpdate.studioModalityId = studioModality.studioModalityId;
+  }
+
   if (parsedBody.classFinalFee !== undefined) {
     dataToUpdate.classFinalFee = parsedBody.classFinalFee;
   }
@@ -285,19 +310,85 @@ export const updateClassService = async (params: unknown, body: unknown) => {
     dataToUpdate.classStatusId = parsedBody.classStatusId;
   }
 
-  return prisma.class.update({
-    where: { classId: id },
-    data: dataToUpdate,
-    include: {
-      classStatus: true,
-      schoolYear: true,
-      studioModality: {
-        include: {
-          studio: true,
-          modality: true,
+  const professorRole = await prisma.userClassRole.findFirst({
+    where: {
+      userClassRoleDesc: "Professor Responsável",
+    },
+  });
+
+  if (!professorRole) {
+    throw new AppError('Role "Professor Responsável" não encontrado na DB.', 500);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const updatedClass = await tx.class.update({
+      where: { classId: id },
+      data: dataToUpdate,
+      include: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
+          include: {
+            studio: true,
+            modality: true,
+          },
+        },
+        userClass: {
+          include: {
+            user: true,
+            userClassRole: true,
+          },
         },
       },
-    },
+    });
+
+    if (parsedBody.instructorId != null) {
+      const existingProfessorLinks = existingClass.userClass.filter(
+        (uc) =>
+          uc.userClassRole?.userClassRoleDesc === "Professor Responsável" ||
+          uc.userClassRole?.userClassRoleDesc === "Professor Assistente"
+      );
+
+      if (existingProfessorLinks.length > 0) {
+        await tx.userClass.deleteMany({
+          where: {
+            classId: id,
+            userId: {
+              in: existingProfessorLinks.map((uc) => uc.userId),
+            },
+          },
+        });
+      }
+
+      await tx.userClass.create({
+        data: {
+          classId: id,
+          userId: parsedBody.instructorId as number,
+          userClassRoleId: professorRole.userClassRoleId,
+          userValidation: false,
+        },
+      });
+    }
+
+    return tx.class.findUnique({
+      where: { classId: id },
+      include: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
+          include: {
+            studio: true,
+            modality: true,
+          },
+        },
+        userClass: {
+          include: {
+            user: true,
+            userClassRole: true,
+          },
+        },
+      },
+    });
   });
 };
 

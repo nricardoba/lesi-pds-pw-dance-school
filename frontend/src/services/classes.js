@@ -20,7 +20,7 @@ export const createClassRequest = async (classData, token) => {
 // Atualiza uma aula
 export const updateClassRequest = async (classId, classData, token) => {
   return apiClient(`/classes/${classId}`, {
-    method: 'PATCH',
+    method: 'PUT',
     body: classData,
     token
   });
