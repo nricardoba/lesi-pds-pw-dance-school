@@ -10,7 +10,7 @@ import {
   getUserById
 } from '../../services/users';
 import { registerRequest } from '../../services/auth';
-import { getModalities } from '../../services/studios';
+import { getModalities } from '../../services/modalities';
 
 const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
   const specialtiesRef = useRef(null);
