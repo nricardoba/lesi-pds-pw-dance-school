@@ -10,6 +10,7 @@ const ModalitiesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingModality, setEditingModality] = useState(null);
+  const [modalityToDelete, setModalityToDelete] = useState(null);
   const [modalities, setModalities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,16 +44,23 @@ const ModalitiesPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!isAdmin) return;
-    if (window.confirm("Tem a certeza que deseja eliminar esta modalidade?")) {
-      try {
-        await deleteModality(id, token);
-        await fetchModalities();
-      } catch (error) {
-        console.error('Erro ao eliminar modalidade:', error);
-        alert('Não foi possível eliminar a modalidade.');
-      }
+  const handleAskDelete = (modality) => {
+    setModalityToDelete(modality);
+  };
+
+  const handleCancelDelete = () => {
+    setModalityToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!isAdmin || !modalityToDelete) return;
+    try {
+      await deleteModality(modalityToDelete.modalityId || modalityToDelete.modality_id, token);
+      await fetchModalities();
+      setModalityToDelete(null);
+    } catch (error) {
+      console.error('Erro ao eliminar modalidade:', error);
+      alert('Não foi possível eliminar a modalidade.');
     }
   };
 
@@ -78,48 +86,78 @@ const ModalitiesPage = () => {
   };
 
   return (
-    <div className="modalities-page" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <div className="modalities-page">
+      <header className="page-header">
         <div>
-          <h1 className="page-title" style={{ margin: 0, fontSize: '24px', color: '#0F172A' }}>Modalidades</h1>
-          <p className="page-subtitle" style={{ margin: '4px 0 0 0', color: '#64748B' }}>Gestão de estilos de dança e honorários</p>
+          <h1 className="page-title">Modalidades</h1>
+          <p className="page-subtitle">Gestão de estilos de dança e honorários</p>
         </div>
         {isAdmin && (
-          <button className="btn-primary" onClick={handleOpenNew} style={{ backgroundColor: '#176B87', color: 'white', padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
+          <button className="btn-primary" onClick={handleOpenNew}>
             + Nova Modalidade
           </button>
         )}
       </header>
 
-      
+      <div className="search-container">
+        <span className="search-icon">🔍</span>
+        <input 
+          type="search" 
+          placeholder="Pesquisar modalidades..." 
+          className="search-input"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {isLoading ? (
+        <div style={{ textAlign: 'center', marginTop: '2rem' }}>A carregar...</div>
+      ) : (
       <div className="table-container">
         <div className="table-header">
-          <div>NOME DA MODALIDADE</div>
-          <div>PREÇO / HORA</div>
-          <div className="text-right">AÇÕES</div>
+          <div className="th-col">NOME DA MODALIDADE</div>
+          <div className="th-col">PREÇO / HORA</div>
+          <div className="th-col text-right">AÇÕES</div>
         </div>
 
         <div className="table-body">
-          {isLoading ? (
-             <div style={{ padding: '16px', textAlign: 'center' }}>A carregar...</div>
-          ) : (
-            filteredModalities.map((modality) => (
-              <div key={modality.modalityId || modality.modality_id} className="table-row">
-                <div className="modality-name">{modality.modalityName || modality.modality_name}</div>
-                <div className="modality-price">€ {Number(modality.modalityHourlyFee || modality.modality_hourly_fee || 0).toFixed(2)}</div>
-                <div className="table-actions">
-                  {isAdmin && (
-                    <>
-                      <button className="action-btn edit-btn" onClick={() => handleEdit(modality)} title="Editar">✏</button>
-                      <button className="action-btn delete-btn" onClick={() => handleDelete(modality.modalityId || modality.modality_id)} title="Eliminar">🗑</button>
-                    </>
-                  )}
-                </div>
+          {filteredModalities.map((modality) => (
+            <div key={modality.modalityId || modality.modality_id} className="table-row">
+              <div className="td-col">
+                <span className="modality-name">{modality.modalityName || modality.modality_name}</span>
               </div>
-            ))
+              <div className="td-col">
+                <span className="modality-price">€ {Number(modality.modalityHourlyFee || modality.modality_hourly_fee || 0).toFixed(2)}</span>
+              </div>
+              <div className="td-col col-actions">
+                {isAdmin && (
+                  <>
+                    <button 
+                      className="action-btn edit-btn" 
+                      onClick={() => handleEdit(modality)} 
+                      title="Editar"
+                    >
+                      ✎
+                    </button>
+                    <button 
+                      className="action-btn delete-btn" 
+                      onClick={() => handleAskDelete(modality)} 
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {filteredModalities.length === 0 && (
+            <div className="empty-results">Nenhuma modalidade encontrada.</div>
           )}
         </div>
       </div>
+      )}
 
       <ModalityModal 
         isOpen={isModalOpen} 
@@ -127,6 +165,25 @@ const ModalitiesPage = () => {
         initialData={editingModality} 
         onSave={handleSave} 
       />
+
+      {modalityToDelete && (
+        <div className="delete-confirm-overlay" onClick={handleCancelDelete}>
+          <div className="delete-confirm-card" onClick={(e) => e.stopPropagation()}>
+            <h3 className="delete-confirm-title">Remover modalidade</h3>
+            <p className="delete-confirm-text">
+              Tens a certeza que queres remover <strong>{modalityToDelete.modalityName || modalityToDelete.modality_name}</strong>?
+            </p>
+            <div className="delete-confirm-actions">
+              <button type="button" className="delete-cancel-btn" onClick={handleCancelDelete}>
+                Cancelar
+              </button>
+              <button type="button" className="delete-confirm-btn" onClick={handleConfirmDelete}>
+                Remover
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
