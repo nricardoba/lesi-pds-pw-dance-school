@@ -7,14 +7,21 @@ import MaintenanceModal from '../components/maintenanceModal/MaintenanceModal';
 import StudioModal from '../components/studioModal/StudioModal';
 import AddClassToSlotModal from '../components/addClassToSlotModal/AddClassToSlotModal';
 import AddMaintenanceToSlotModal from '../components/addMaintenanceToSlotModal/AddMaintenanceToSlotModal';
+import WeekNavigator from '../components/weekNavigator/WeekNavigator';
 
 import { useAuth } from '../context/useAuth';
 import { getStudios, createStudio, updateStudio } from '../services/studios';
 
 import {
+  buildWeekFromDate,
+} from '../utils/scheduleUtils';
+
+import {
   readScheduleClassesFromStorage,
   writeScheduleClassesToStorage
 } from '../utils/scheduleStorage';
+
+import { isSameWeek, getISODay } from 'date-fns';
 
 const StudiosPage = () => {
   const { token, user } = useAuth();
@@ -99,6 +106,22 @@ const StudiosPage = () => {
     { id: 1, day: 'Terça', studio: 'Estúdio Principal', time: '10:00', reason: 'Reparação espelho' }
   ]);
 
+  const [referenceDate, setReferenceDate] = useState(() => new Date());
+  const currentWeek = buildWeekFromDate(referenceDate);
+  const getWeekDayClass = (date) => {
+    if (!referenceDate) return '';
+
+    const sameWeek = isSameWeek(date, referenceDate, { weekStartsOn: 1 });
+    if (!sameWeek) return '';
+
+    const isoDay = getISODay(date);
+
+    if (isoDay === 1) return 'week-bar week-bar-start';
+    if (isoDay === 7) return 'week-bar week-bar-end';
+
+    return 'week-bar week-bar-middle';
+  };
+
 
   const handleOpenNewStudio = () => {
     setEditingStudio(null);
@@ -155,14 +178,17 @@ const StudiosPage = () => {
       studio: studioObj ? studioObj.name : '', 
       time: data.hour,                   
       className: 'Aula Atribuída',       
-      teacher: 'A Definir'               
+      teacher: 'A Definir',
+      name: 'Aula Atribuída',
+      instructor: 'A Definir',
+      room: studioObj ? studioObj.name : '',
+      occupancy: '0/10'
     };
 
     //Adicionar o novo bloco aulas!
     const nextScheduledClasses = [...scheduledClasses, newClassBlock];
     setScheduledClasses(nextScheduledClasses);
 
-    const startHour = parseInt((data.hour || '08:00').split(':')[0], 10);
     const sourceClasses = readScheduleClassesFromStorage();
     const nextSourceClasses = [
       ...sourceClasses,
@@ -175,12 +201,13 @@ const StudiosPage = () => {
         category: 'A Definir',
         instructor: 'A Definir',
         class_time_start: data.hour,
-        class_time_end: `${pad2(startHour + 1)}:00`,
-        start: startHour,
+        class_time_end: `${data.hour || '08:00'}`,
+        start: parseInt((data.hour || '08:00').split(':')[0], 10),
         duration: 1,
         level: 'Todos',
         occupancy: '0/10',
-        maxStudents: 10
+        maxStudents: 10,
+        room: studioObj ? studioObj.name : ''
       }
     ];
 
@@ -193,41 +220,16 @@ const StudiosPage = () => {
     setMaintenances([...maintenances, maintenanceData]);
   };
 
-  const [referenceDate, setReferenceDate] = useState(() => new Date());
-
-  const getMondayOfWeek = (inputDate) => {
-    const date = new Date(inputDate);
-    date.setHours(12, 0, 0, 0);
-    const day = date.getDay();
-    const offset = day === 0 ? -6 : 1 - day;
-    date.setDate(date.getDate() + offset);
-    return date;
-  };
-
-  const weekStart = getMondayOfWeek(referenceDate);
+  const weekStart = currentWeek[0]?.fullDate || new Date(referenceDate);
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 6);
 
   const monthLabel = new Intl.DateTimeFormat('pt-PT', { month: 'long', year: 'numeric' }).format(weekStart);
   const weekRangeLabel = `${pad2(weekStart.getDate())}/${pad2(weekStart.getMonth() + 1)} - ${pad2(weekEnd.getDate())}/${pad2(weekEnd.getMonth() + 1)}`;
 
-  const goToPreviousWeek = () => {
-    const prevWeek = new Date(referenceDate);
-    prevWeek.setDate(prevWeek.getDate() - 7);
-    setReferenceDate(prevWeek);
-  };
-
-  const goToNextWeek = () => {
-    const nextWeek = new Date(referenceDate);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    setReferenceDate(nextWeek);
-  };
-
   const dayIndex = daysOfWeek.indexOf(activeDay);
-  const activeDateObj = new Date(weekStart);
-  if (dayIndex !== -1) {
-    activeDateObj.setDate(weekStart.getDate() + dayIndex);
-  }
+  const activeWeekDay = currentWeek[dayIndex];
+  const activeDateObj = activeWeekDay ? activeWeekDay.fullDate : new Date(weekStart);
   const formattedActiveDate = `${pad2(activeDateObj.getDate())}/${pad2(activeDateObj.getMonth() + 1)}`;
 
   return (
@@ -269,31 +271,13 @@ const StudiosPage = () => {
         </div>
       )}
 
-      <div className="calendar-picker-strip" style={{ margin: '20px 0' }}>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={goToPreviousWeek}
-            style={{ padding: '8px 12px', borderRadius: '12px', border: '1px solid #E5E7EB', backgroundColor: 'white', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}
-          >
-            ←
-          </button>
-
-          <div style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #E5E7EB', backgroundColor: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-            <span style={{ color: '#8b5CF6' }}>📅</span>
-            <span style={{ textTransform: 'capitalize' }}>{monthLabel}</span>
-            <span style={{ color: '#6B7280' }}>{weekRangeLabel}</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={goToNextWeek}
-            style={{ padding: '8px 12px', borderRadius: '12px', border: '1px solid #E5E7EB', backgroundColor: 'white', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}
-          >
-            →
-          </button>
-        </div>
-      </div>
+      <WeekNavigator
+        referenceDate={referenceDate}
+        setReferenceDate={setReferenceDate}
+        monthLabel={monthLabel}
+        weekRangeLabel={weekRangeLabel}
+        getWeekDayClass={getWeekDayClass}
+      />
 
       <DaysTabs days={daysOfWeek} activeDay={activeDay} onSelectDay={setActiveDay} />
 

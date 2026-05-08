@@ -8,6 +8,10 @@ export const getUserById = async (id, token) => {
   return apiClient(`/users/${id}`, { token });
 };
 
+export const getMyProfile = async (token) => {
+  return apiClient('/users/me', { token });
+};
+
 export const createUser = async (data, token) => {
   return apiClient('/users', {
     method: 'POST',
@@ -18,6 +22,14 @@ export const createUser = async (data, token) => {
 
 export const updateUser = async (id, data, token) => {
   return apiClient(`/users/${id}`, {
+    method: 'PUT',
+    body: data,
+    token
+  });
+};
+
+export const updateMyProfile = async (data, token) => {
+  return apiClient('/users/me', {
     method: 'PUT',
     body: data,
     token

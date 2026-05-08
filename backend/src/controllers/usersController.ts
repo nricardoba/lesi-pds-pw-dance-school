@@ -5,8 +5,10 @@ import {
   // => USERS
   listUsersService,
   getUserByIdService,
+  getMyProfileService,
   createUserService,
   updateUserService,
+  updateMyProfileService,
   
   // => USER TYPES
   listUserTypesService,
@@ -42,6 +44,12 @@ export const getUserByIdController = catchAsync(async (req: Request, res: Respon
   return res.json(data);
 });
 
+export const getMyProfileController = catchAsync(async (_req: Request, res: Response) => {
+  const userId = Number(res.locals.user.id);
+  const data = await getMyProfileService(userId);
+  return res.json(data);
+});
+
 export const createUserController = catchAsync(async (req: Request, res: Response) => {
   const data = await createUserService(req.body);
   return res.status(201).json(data);
@@ -49,6 +57,12 @@ export const createUserController = catchAsync(async (req: Request, res: Respons
 
 export const updateUserController = catchAsync(async (req: Request, res: Response) => {
   const data = await updateUserService(req.params, req.body);
+  return res.json(data);
+});
+
+export const updateMyProfileController = catchAsync(async (req: Request, res: Response) => {
+  const userId = Number(res.locals.user.id);
+  const data = await updateMyProfileService(userId, req.body);
   return res.json(data);
 });
 
