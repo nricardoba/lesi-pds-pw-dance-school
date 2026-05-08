@@ -1,5 +1,9 @@
 import { apiClient } from './apiClient';
 
+export const getModalities = async (token) => {
+  return apiClient('/modalities', { token });
+};
+
 export const getStudios = async (token) => {
   return apiClient('/studios', { token });
 };
