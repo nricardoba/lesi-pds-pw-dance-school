@@ -10,13 +10,13 @@ import {
   getUserById
 } from '../../services/users';
 import { registerRequest } from '../../services/auth';
-
-const SPECIALTY_OPTIONS = ['Ballet', 'Contemporâneo', 'Hip Hop', 'Street Dance', 'Jazz', 'Dança Moderna'];
+import { getModalities } from '../../services/studios';
 
 const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
   const specialtiesRef = useRef(null);
   const [specialtiesOpen, setSpecialtiesOpen] = useState(false);
-  const [selectedSpecialties, setSelectedSpecialties] = useState(initialData?.specialties || []);
+  const [selectedSpecialties, setSelectedSpecialties] = useState([]);
+  const [availableModalities, setAvailableModalities] = useState([]);
   
   // Extra fee state
   const [extraFeeCost, setExtraFeeCost] = useState('');
@@ -29,6 +29,14 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
 
   useEffect(() => {
     let active = true;
+    if (isOpen) {
+      getModalities(token).then((data) => {
+        if (active && data) {
+          setAvailableModalities(data);
+        }
+      }).catch(err => console.error("Erro a carregar modalidades:", err));
+    }
+    
     if (isOpen && initialData?.user_id) {
       setIsLoading(true);
       getUserById(initialData.user_id, token)
@@ -51,8 +59,10 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
               street: mainAddress.streetName || '',
               postalCode: mainAddress.postalCode || '',
               locality: mainAddress.postalCodeRel?.locality?.localityName || ''
-            } : {}
+            } : {},
+            modalities: data.userModality ? data.userModality.map(um => um.modalityId) : []
           });
+          setSelectedSpecialties(data.userModality ? data.userModality.map(um => um.modalityId) : []);
         })
         .catch((err) => {
           console.error("Erro a obter dados do professor", err);
@@ -63,9 +73,9 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         });
     } else {
       setTeacherData(initialData || null);
+      setSelectedSpecialties([]);
     }
 
-    setSelectedSpecialties(initialData?.specialties || []);
     setSpecialtiesOpen(false);
 
     const allFees = readExtraFeesFromStorage();
@@ -109,10 +119,6 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
   const modalTitle = isEditing ? 'Editar Professor' : 'Novo Professor';
   const submitButtonText = isEditing ? (isSubmitting ? 'A guardar...' : 'Guardar') : (isSubmitting ? 'A criar...' : 'Criar Professor');
 
-  const selectedSpecialtiesLabel = selectedSpecialties.length === 0
-    ? 'Selecionar especialidades'
-    : selectedSpecialties.join(', ');
-
   const toggleSpecialty = (specialty) => {
     setSelectedSpecialties((currentSpecialties) =>
       currentSpecialties.includes(specialty)
@@ -136,6 +142,7 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
       userTypeId: 2, // Tipo utilizador professor
       userIsActive: true,
       userNif: formData.get('nif') || undefined,
+      modalities: selectedSpecialties,
     };
     
     try {
@@ -145,7 +152,8 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         await updateUser(teacherData.id, { 
           userName: payload.userName,
           userBirthDate: payload.userBirthDate,
-          userStartDate: payload.userStartDate
+          userStartDate: payload.userStartDate,
+          modalities: payload.modalities
         }, token);
         createdOrUpdatedUserId = teacherData.id;
         
@@ -337,35 +345,35 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
             </div>
           </div>
 
+          <div className="form-group full-width mt-16 specialty-field" ref={specialtiesRef}>
+            <label>Modalidades</label>
+            <button
+              type="button"
+              className="specialty-select-trigger"
+              onClick={() => setSpecialtiesOpen((currentValue) => !currentValue)}
+              aria-expanded={specialtiesOpen}
+            >
+              <span>{selectedSpecialties.length === 0 ? 'Selecionar modalidades' : availableModalities.filter(m => selectedSpecialties.includes(m.modalityId)).map(m => m.modalityName).join(', ')}</span>
+              <span className="specialty-select-arrow">▾</span>
+            </button>
+
+            {specialtiesOpen && (
+              <div className="specialty-options">
+                {availableModalities.map((modality) => (
+                  <label key={modality.modalityId} className="specialty-option">
+                    <input
+                      type="checkbox"
+                      checked={selectedSpecialties.includes(modality.modalityId)}
+                      onChange={() => toggleSpecialty(modality.modalityId)}
+                    />
+                    <span>{modality.modalityName}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'none' }}>
-            <div className="form-group full-width mt-16 specialty-field" ref={specialtiesRef}>
-              <label>Especialidades</label>
-              <button
-                type="button"
-                className="specialty-select-trigger"
-                onClick={() => setSpecialtiesOpen((currentValue) => !currentValue)}
-                aria-expanded={specialtiesOpen}
-              >
-                <span>{selectedSpecialtiesLabel}</span>
-                <span className="specialty-select-arrow">▾</span>
-              </button>
-
-              {specialtiesOpen && (
-                <div className="specialty-options">
-                  {SPECIALTY_OPTIONS.map((specialty) => (
-                    <label key={specialty} className="specialty-option">
-                      <input
-                        type="checkbox"
-                        checked={selectedSpecialties.includes(specialty)}
-                        onChange={() => toggleSpecialty(specialty)}
-                      />
-                      <span>{specialty}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
             <div className="form-group full-width mt-16">
               <label>URL da Foto</label>
               <input 
