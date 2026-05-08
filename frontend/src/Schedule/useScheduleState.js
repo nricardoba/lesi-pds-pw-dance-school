@@ -205,12 +205,12 @@ export const useScheduleState = (token, daysOfWeek) => {
             decimalToHourString(classData.start + classData.duration);
 
           const backendClassFormat = {
-            schoolYearId: 1,
-            classDateStart: `${classData.classDate}T${startHourStr}:00`,
-            classDateEnd: `${classData.classDate}T${endHourStr}:00`,
-            classRecurrence: classData.recurrence || false,
-            studioModalityId: 1,
-            classFinalFee: classData.classFinalFee || 20.0,
+          schoolYearId: Number(classData.schoolYear) || 1,
+          classDateStart: `${classData.classDate}T${startHourStr}:00`,
+          classDateEnd: `${classData.classDate}T${endHourStr}:00`,
+          classRecurrence: classData.recurrence || false,
+          studioId: Number(classData.room),
+          modalityId: Number(classData.category),
             classStatusId: 1
           };
           
@@ -229,11 +229,12 @@ export const useScheduleState = (token, daysOfWeek) => {
           decimalToHourString(classData.start + classData.duration);
 
         const backendClassFormat = {
-          schoolYearId: 1,
+          schoolYearId: Number(classData.schoolYear) || 1,
           classDateStart: `${classData.classDate}T${startHourStr}:00`,
           classDateEnd: `${classData.classDate}T${endHourStr}:00`,
           classRecurrence: false,
-          studioModalityId: 1,
+          studioId: Number(classData.room),
+          modalityId: Number(classData.category),
           classFinalFee: 20.0,
           classStatusId: 1
         };

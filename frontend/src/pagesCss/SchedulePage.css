@@ -224,10 +224,14 @@
   padding: 4px 6px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* overflow: hidden; Removed to allow the menu flyout to be visible */
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   z-index: 3;
   cursor: pointer;
+}
+
+.class-card_schedule.active {
+  z-index: 55;
 }
 
 .class-card_menu {

@@ -23,6 +23,7 @@ import CoachingsPage from "./pages/CoachingsPage";
 import ClassTemplatesPage from "./pages/ClassTemplatesPage";
 import TeacherSchedulePage from "./pages/TeacherSchedulePage";
 import ScheduleApprovalsPage from "./pages/ScheduleApprovalsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
             <Route path="/estudios" element={<ProtectedRoute><StudiosPage /></ProtectedRoute>} />
             <Route path="/coachings" element={<ProtectedRoute><CoachingsPage /></ProtectedRoute>} />
             <Route path="/horario" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
+             <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/horario-professor" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSchedulePage /></ProtectedRoute>} />
             <Route path="/aprovacao-horarios" element={<ProtectedRoute allowedRoles={['admin']}><ScheduleApprovalsPage /></ProtectedRoute>} />
             <Route path="templates-aulas" element={<ProtectedRoute><ClassTemplatesPage /></ProtectedRoute>} />

@@ -93,7 +93,7 @@ const availableTeachers = useMemo(() => {
   return teachers
     .map((teacher) => {
       const isSpecialist = teacher.userModality?.some(
-        (um) => um.modality?.modalityName === selectedStyle
+        (um) => um.modality?.modalityId?.toString() === selectedStyle?.toString() || um.modality?.modalityName === selectedStyle
       );
 
       return { ...teacher, isSpecialist };
@@ -127,7 +127,7 @@ const selectedTeacherIsSpecialist = useMemo(() => {
   if (!teacher) return true;
 
   return teacher.userModality?.some(
-    (um) => um.modality?.modalityName === selectedStyle
+    (um) => um.modality?.modalityId?.toString() === selectedStyle?.toString() || um.modality?.modalityName === selectedStyle // Keep fallback just in case
   );
 }, [selectedTeacher, selectedStyle, teachers]);
 
@@ -135,6 +135,7 @@ const availableStyles = useMemo(() => {
   if (!selectedTeacher) {
     return modalities
       .map((modality) => ({
+        id: modality.modalityId,
         name: modality.modalityName,
         isTeacherModality: false
       }))
@@ -148,6 +149,7 @@ const availableStyles = useMemo(() => {
   if (!teacher) {
     return modalities
       .map((modality) => ({
+        id: modality.modalityId,
         name: modality.modalityName,
         isTeacherModality: false
       }))
@@ -159,6 +161,7 @@ const availableStyles = useMemo(() => {
 
   return modalities
     .map((modality) => ({
+      id: modality.modalityId,
       name: modality.modalityName,
       isTeacherModality: teacherModalities.includes(modality.modalityName)
     }))
@@ -398,7 +401,7 @@ const fallbackStyles = useMemo(
                 {!selectedTeacher && (
                   <optgroup label="Modalidades disponíveis">
                     {availableStyles.map((style) => (
-                      <option key={style.name} value={style.name}>
+                      <option key={style.id} value={style.id}>
                         {style.name}
                       </option>
                     ))}
@@ -408,7 +411,7 @@ const fallbackStyles = useMemo(
                 {selectedTeacher && teacherStyles.length > 0 && (
                   <optgroup label="Modalidades do professor">
                     {teacherStyles.map((style) => (
-                      <option key={style.name} value={style.name}>
+                      <option key={style.id} value={style.id}>
                         {style.name}
                       </option>
                     ))}
@@ -418,7 +421,7 @@ const fallbackStyles = useMemo(
                 {selectedTeacher && fallbackStyles.length > 0 && (
                   <optgroup label="Outras modalidades disponíveis">
                     {fallbackStyles.map((style) => (
-                      <option key={style.name} value={style.name}>
+                      <option key={style.id} value={style.id}>
                         {style.name}
                       </option>
                     ))}

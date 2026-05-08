@@ -11,8 +11,10 @@ export const usersRouter = Router();
 
 // Usando o nosso checkRole fundido (ele já faz a validação do token internamente)
 usersRouter.get('/', ensureAuth, UsersController.listUsersController);
+usersRouter.get('/me', ensureAuth, UsersController.getMyProfileController);
 usersRouter.get('/:id', ensureAuth, UsersController.getUserByIdController);
 usersRouter.post('/', checkRole([USER_ROLES.ADMIN]), UsersController.createUserController);
+usersRouter.put('/me', ensureAuth, UsersController.updateMyProfileController);
 usersRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.updateUserController);
 
 // => User Profile Details Routes

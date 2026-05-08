@@ -1,7 +1,12 @@
 .class-card-hover-expand {
   transition: z-index 0.2s, transform 0.2s, box-shadow 0.2s;
   z-index: 10;
-  overflow: hidden;
+  /* overflow: hidden removed to stop clipping the absolute menu */
+}
+
+.class-card-hover-expand.active {
+  z-index: 60 !important;
+  overflow: visible;
 }
 
 .class-card-hover-expand:hover {
@@ -10,4 +15,5 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   height: auto !important; /* allow content to dictate height on hover */
   min-height: max-content;
+  overflow: visible;
 }
