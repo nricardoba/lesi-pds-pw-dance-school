@@ -24,6 +24,7 @@ import ClassTemplatesPage from "./pages/ClassTemplatesPage";
 import TeacherSchedulePage from "./pages/TeacherSchedulePage";
 import ScheduleApprovalsPage from "./pages/ScheduleApprovalsPage";
 import ProfilePage from "./pages/ProfilePage";
+import ModalitiesPage from "./pages/ModalitiesPage";
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
             <Route path="/horario-professor" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSchedulePage /></ProtectedRoute>} />
             <Route path="/aprovacao-horarios" element={<ProtectedRoute allowedRoles={['admin']}><ScheduleApprovalsPage /></ProtectedRoute>} />
             <Route path="templates-aulas" element={<ProtectedRoute><ClassTemplatesPage /></ProtectedRoute>} />
+            <Route path="/modalidades" element={<ProtectedRoute><ModalitiesPage /></ProtectedRoute>} />
           </Route>
           
           
