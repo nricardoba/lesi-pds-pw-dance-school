@@ -32,7 +32,8 @@ export const buildSlotRanges = (selectedKeys) => {
       if (isBreak) {
         const startText = `${String(start).padStart(2, '0')}:00`;
         const endText = `${String(previous + 1).padStart(2, '0')}:00`;
-        slotRanges.push({ id: idCounter, day: `${day}-feira`, time: `${startText} - ${endText}` });
+        const dayLabel = day === 'Sábado' || day === 'Domingo' ? day : `${day}-feira`;
+        slotRanges.push({ id: idCounter, day: dayLabel, time: `${startText} - ${endText}` });
         idCounter += 1;
         start = current;
       }
