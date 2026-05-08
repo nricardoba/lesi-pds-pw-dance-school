@@ -55,6 +55,11 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
   };
+
+  const updateStoredUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
 useEffect(() => {
   const handleUnauthorized = () => {
     logout();
@@ -85,7 +90,7 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, [token]);
   return (
-    <AuthContext.Provider value={{ token, user, role, login, logout }}>
+    <AuthContext.Provider value={{ token, user, role, login, logout, updateStoredUser }}>
       {children}
     </AuthContext.Provider>
   );

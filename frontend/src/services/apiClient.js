@@ -12,6 +12,12 @@ const handleResponse = async (res) => {
     window.dispatchEvent(new Event("auth:unauthorized"));
   }
 
+  if (res.status === 204) {
+    return null;
+  }
+
+  const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
     throw new Error(data?.error?.message || "Erro na API");
   }

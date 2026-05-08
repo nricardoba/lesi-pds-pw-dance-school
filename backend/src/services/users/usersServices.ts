@@ -112,6 +112,10 @@ export const getUserByIdService = async (params: unknown) => {
   return user;
 };
 
+export const getMyProfileService = async (userId: number) => {
+  return getUserByIdService({ id: userId });
+};
+
 export const getUsersByIdsService = async (userIds: number[]) => {
   return prisma.user.findMany({
     where: { userId: { in: userIds } },
@@ -244,4 +248,8 @@ export const updateUserService = async (params: unknown, body: unknown) => {
       },
     },
   });
+};
+
+export const updateMyProfileService = async (userId: number, body: unknown) => {
+  return updateUserService({ id: userId }, body);
 };

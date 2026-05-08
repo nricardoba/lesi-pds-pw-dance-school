@@ -210,7 +210,7 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
               // Converte "YYYY-MM-DD" para "YYYYMMDD"
               birthStr = payload.userBirthDate.replace(/-/g, '');
             }
-            const autoPassword = `prof@${birthStr}`;
+          
             
             await registerRequest(email, autoPassword);
           } catch (e) { console.error(e); }

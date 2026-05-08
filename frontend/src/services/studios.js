@@ -4,6 +4,10 @@ export const getStudios = async (token) => {
   return apiClient('/studios', { token });
 };
 
+export const getStudioModalities = async (token) => {
+  return apiClient('/studio-modalities', { token });
+};
+
 export const getStudioById = async (id, token) => {
   return apiClient(`/studios/${id}`, { token });
 };
