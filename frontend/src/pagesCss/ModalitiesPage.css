@@ -1,0 +1,294 @@
+
+.modalities-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.modalities-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.modalities-page .page-title {
+  margin: 0;
+  font-size: 24px;
+  color: #0F172A;
+}
+
+.modalities-page .page-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #64748B;
+}
+.modalities-page .btn-primary {
+    background-color: #176B87;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modalities-page .search-container {
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0 16px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.modalities-page .search-icon {
+  font-size: 14px;
+  color: #94A3B8;
+}
+
+.modalities-page .search-input {
+  border: none;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  background: transparent;
+}
+
+.modalities-page .table-container {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+}
+
+.modalities-page .table-header,
+.modalities-page .table-row {
+  display: grid;
+  grid-template-columns: 3fr 3fr 3fr 1.4fr 100px;
+  padding: 24px;
+  gap: 16px;
+}
+
+.modalities-page .table-header {
+  border-bottom: 1px solid #E2E8F0;
+  background-color: #FAFAFA;
+}
+
+.modalities-page .table-row {
+  border-bottom: 1px solid #F1F5F9;
+  min-height: 140px;
+  background-color: #FFFFFF;
+  transition: background-color 0.2s ease;
+}
+
+.modalities-page .table-row:hover {
+  background-color: #F8FAFC;
+}
+
+.modalities-page .table-row:last-child {
+  border-bottom: none;
+}
+
+.modalities-page .th-col {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A3B8;
+  letter-spacing: 0.5px;
+}
+
+.modalities-page .th-col.col-right {
+  align-items: flex-end;
+}
+
+.modalities-page .th-col.col-actions {
+  align-items: center;
+}
+
+.modalities-page .td-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.modalities-page .col-modality {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}
+
+.modalities-page .col-contact,
+.modalities-page .col-guardian {
+  justify-content: flex-start;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.modalities-page .col-birthdate {
+  justify-content: center;
+}
+
+.modalities-page .col-actions {
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modalities-page .modality-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4F46E5;
+  flex-shrink: 0;
+}
+
+.modalities-page .modality-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.modalities-page .modality-meta {
+  font-size: 12px;
+  color: #94A3B8;
+}
+
+.modalities-page .info-item {
+  font-size: 13px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalities-page .info-icon {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.modalities-page .text-muted {
+  color: #94A3B8;
+  padding-left: 20px;
+}
+
+.modalities-page .birthdate-text {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.modalities-page .action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.modalities-page .edit-btn {
+  color: #64748B;
+}
+
+.modalities-page .delete-btn {
+  color: #EF4444;
+}
+
+.modalities-page .action-btn:hover {
+  background-color: #F1F5F9;
+}
+
+.modalities-page .text-right {
+  text-align: right;
+}
+
+.modalities-page .empty-results {
+  padding: 32px;
+  text-align: center;
+  color: #94A3B8;
+  font-size: 14px;
+}
+
+.modalities-page .delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.modalities-page .delete-confirm-card {
+  width: 100%;
+  max-width: 420px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  padding: 20px;
+}
+
+.modalities-page .delete-confirm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.modalities-page .delete-confirm-text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.modalities-page .delete-confirm-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modalities-page .delete-cancel-btn,
+.modalities-page .delete-confirm-btn {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.modalities-page .delete-cancel-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+}
+
+.modalities-page .delete-cancel-btn:hover {
+  background: #F8FAFC;
+}
+
+.modalities-page .delete-confirm-btn {
+  background: #DC2626;
+  border: 1px solid #DC2626;
+  color: #FFFFFF;
+}
+
+.modalities-page .delete-confirm-btn:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
