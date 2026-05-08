@@ -19,7 +19,7 @@ const statusContentOptions = {
 };
 
 const TeacherScheduleStatus = ({ currentStatus }) => {
-  const statusKey = currentStatus.status.toLowerCase();
+  const statusKey = currentStatus?.status?.toLowerCase() || 'pendente';
   const currentStatusContent = statusContentOptions[statusKey] || statusContentOptions.pendente;
 
   return (
@@ -27,22 +27,22 @@ const TeacherScheduleStatus = ({ currentStatus }) => {
       <div className="status-header">
         <h2 className="section-title">Estado atual</h2>
         <span className={`status-badge ${statusKey}`}>
-          {currentStatus.status}
+          {currentStatus?.status || 'Pendente'}
         </span>
       </div>
 
       <div className="status-metrics">
         <div className="metric">
           <span className="metric-label">Data de Envio</span>
-          <span className="metric-value">{currentStatus.submissionDate}</span>
+          <span className="metric-value">{currentStatus?.submissionDate || '-'}</span>
         </div>
         <div className="metric">
           <span className="metric-label">Data de Revisão</span>
-          <span className="metric-value">{currentStatus.reviewDate}</span>
+          <span className="metric-value">{currentStatus?.reviewDate || '-'}</span>
         </div>
         <div className="metric">
           <span className="metric-label">Total de Horários</span>
-          <span className="metric-value">{currentStatus.totalSlots} slots</span>
+          <span className="metric-value">{currentStatus?.totalSlots || 0} slots</span>
         </div>
       </div>
 
