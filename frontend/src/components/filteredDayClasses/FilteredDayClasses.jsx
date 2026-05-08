@@ -20,11 +20,11 @@ const FilteredDayClasses = ({ day, classes, onEditClass, onDeleteClass, role }) 
                 <span>{formatTime(classItem.start)}</span>
                 <span className="end-time">{formatTime(endHour)}</span>
               </div>
-              
+
               <div className="detailed-class-info">
-                <h4 className="detailed-class-name">{classItem.name}</h4>
+                <h4 className="detailed-class-name">{classItem.categoryName || classItem.name}</h4>
                 <p className="detailed-class-details">
-                  {[classItem.instructor, classItem.room].filter(Boolean).join(' • ')}
+                  {[classItem.instructorName || classItem.instructor, classItem.roomName || classItem.room].filter(Boolean).join(' • ')}
                 </p>
               </div>
 
@@ -34,13 +34,13 @@ const FilteredDayClasses = ({ day, classes, onEditClass, onDeleteClass, role }) 
                     {classItem.level}
                   </span>
                 ) : null}
-                <span className="detailed-class-category">{classItem.category}</span>
+                <span className="detailed-class-category">{classItem.categoryName || classItem.category}</span>
                 <span className="detailed-class-students">👥 {classItem.occupancy} alunos</span>
               </div>
 
               {role === 'admin' && (
                 <div className="detailed-class-actions">
-                  <button 
+                  <button
                     className="icon-btn edit-btn"
                     onClick={() => onEditClass(classItem)}
                   >

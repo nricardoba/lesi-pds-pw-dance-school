@@ -3,7 +3,7 @@ import './ClassModal.css';
 import { useAuth } from '../../context/useAuth';
 import { getUsers } from '../../services/users';
 import { getModalities } from '../../services/modalities';
-import { getStudios } from '../../services/studios';
+import { getStudios, getStudioModalities } from '../../services/studios';
 
 const DAY_BY_INDEX = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
 
@@ -37,28 +37,32 @@ const ClassModal = ({
 
   const [selectedStyle, setSelectedStyle] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('');
   const [teacherError, setTeacherError] = useState('');
   const [isRecurrent, setIsRecurrent] = useState(false);
 
   const [teachers, setTeachers] = useState([]);
   const [modalities, setModalities] = useState([]);
   const [studios, setStudios] = useState([]);
+  const [studioModalities, setStudioModalities] = useState([]);
 
   useEffect(() => {
     if (!isOpen || !token) return;
 
     const fetchData = async () => {
       try {
-        const [usersData, modalitiesData, studiosData] = await Promise.all([
+        const [usersData, modalitiesData, studiosData, studioModalitiesData] = await Promise.all([
           getUsers(token),
           getModalities(token),
-          getStudios(token)
+          getStudios(token),
+          getStudioModalities(token)
         ]);
 
         const professors = usersData.filter(u => u.userType?.userTypeDesc === 'Professor');
         setTeachers(professors);
         setModalities(modalitiesData);
         setStudios(studiosData);
+        setStudioModalities(studioModalitiesData);
       } catch (err) {
         console.error("Failed to load modal data:", err);
       }
@@ -74,12 +78,46 @@ const ClassModal = ({
 
     /* eslint-disable react-hooks/set-state-in-effect */
     // Reacting to `effectiveData` changing when modal opens
-    setSelectedStyle(effectiveData?.category || '');
-    setSelectedTeacher(effectiveData?.instructor || '');
+    setSelectedStyle(
+      String(
+        effectiveData?.modalityId ||
+        effectiveData?.category ||
+        ''
+      )
+    );
+    setSelectedTeacher(String(effectiveData?.instructorId || effectiveData?.instructor || ''));
+    setSelectedRoom(effectiveData?.room || '');
     setIsRecurrent(effectiveData?.classRecurrence || false);
     setTeacherError('');
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [isOpen, effectiveData]);
+
+  useEffect(() => {
+    if (!isOpen || selectedTeacher) {
+      return;
+    }
+
+    const teacherByName = teachers.find((teacher) => teacher.userName === effectiveData?.instructorName);
+    if (teacherByName) {
+      setSelectedTeacher(String(teacherByName.userId));
+    }
+  }, [isOpen, selectedTeacher, teachers, effectiveData]);
+
+  useEffect(() => {
+    if (!selectedRoom || studioModalities.length === 0) {
+      return;
+    }
+
+    const allowedModalityIds = new Set(
+      studioModalities
+        .filter((relation) => String(relation.studioId) === String(selectedRoom))
+        .map((relation) => String(relation.modalityId))
+    );
+
+    if (selectedStyle && !allowedModalityIds.has(String(selectedStyle))) {
+      setSelectedStyle('');
+    }
+  }, [selectedRoom, selectedStyle, studioModalities]);
 const availableTeachers = useMemo(() => {
   if (!selectedStyle) {
     return teachers
@@ -132,8 +170,17 @@ const selectedTeacherIsSpecialist = useMemo(() => {
 }, [selectedTeacher, selectedStyle, teachers]);
 
 const availableStyles = useMemo(() => {
+  const allowedModalityIds = selectedRoom
+    ? new Set(
+      studioModalities
+        .filter((relation) => String(relation.studioId) === String(selectedRoom))
+        .map((relation) => String(relation.modalityId))
+    )
+    : null;
+
   if (!selectedTeacher) {
     return modalities
+      .filter((modality) => !allowedModalityIds || allowedModalityIds.has(String(modality.modalityId)))
       .map((modality) => ({
         id: modality.modalityId,
         name: modality.modalityName,
@@ -148,6 +195,7 @@ const availableStyles = useMemo(() => {
 
   if (!teacher) {
     return modalities
+      .filter((modality) => !allowedModalityIds || allowedModalityIds.has(String(modality.modalityId)))
       .map((modality) => ({
         id: modality.modalityId,
         name: modality.modalityName,
@@ -160,6 +208,7 @@ const availableStyles = useMemo(() => {
     teacher.userModality?.map((um) => um.modality?.modalityName) || [];
 
   return modalities
+    .filter((modality) => !allowedModalityIds || allowedModalityIds.has(String(modality.modalityId)))
     .map((modality) => ({
       id: modality.modalityId,
       name: modality.modalityName,
@@ -172,7 +221,7 @@ const availableStyles = useMemo(() => {
 
       return a.isTeacherModality ? -1 : 1;
     });
-}, [selectedTeacher, modalities, teachers]);
+}, [selectedTeacher, selectedRoom, modalities, teachers, studioModalities]);
 
 const teacherStyles = useMemo(
   () => availableStyles.filter((style) => style.isTeacherModality),
@@ -184,14 +233,21 @@ const fallbackStyles = useMemo(
   [availableStyles]
 );
 
-  if (!isOpen) return null;
-
   const formatTimeForInput = (decimalTime) => {
     if (decimalTime === undefined || isNaN(decimalTime)) return "10:00";
     const h = Math.floor(decimalTime);
     const m = Math.round((decimalTime - h) * 60);
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   };
+
+  const selectedStudio = useMemo(
+    () => studios.find((studio) => String(studio.studioId) === String(selectedRoom)),
+    [selectedRoom, studios]
+  );
+
+  const derivedMaxStudents = selectedStudio?.studioMaxCapacity || effectiveData?.maxStudents || effectiveData?.occupancy?.split('/')?.[1] || '15';
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -223,19 +279,26 @@ const fallbackStyles = useMemo(
 
     const baseData = {
       id: isEditing ? initialData.id : Date.now(),
-      name: formData.get('name'),
+      name: formData.get('name') || effectiveData?.name || initialData?.name || 'Nova Aula',
       schoolYear: formData.get('schoolYear'),
       room: formData.get('room'),
+      studioId: Number(formData.get('room')),
+      roomName: selectedStudio?.studioName || effectiveData?.roomName || effectiveData?.room || '',
       category: formData.get('category'),
+      modalityId: Number(formData.get('category')),
+      categoryName: modalities.find((modality) => String(modality.modalityId) === String(formData.get('category')))?.modalityName || effectiveData?.categoryName || effectiveData?.category || '',
       instructor: selectedTeacher,
+      instructorId: Number(selectedTeacher),
+      instructorName: teachers.find((teacher) => String(teacher.userId) === String(selectedTeacher))?.userName || effectiveData?.instructorName || '',
       class_time_start: formData.get('startTime'),
       class_time_end: formData.get('endTime'),
       start: startDec,
       duration: duration >= 1 ? duration : 1,
       //level: formData.get('level'),
-      maxStudents: Number(formData.get('maxStudents')),
+      maxStudents: Number(derivedMaxStudents),
       occupancy: isEditing ? effectiveData.occupancy : `0/${formData.get('maxStudents')}`,
       classRecurrence: isRecurrent,
+      studioModalityId: effectiveData?.studioModalityId || null,
     };
 
     const classData = isTemplateMode
@@ -280,7 +343,8 @@ const fallbackStyles = useMemo(
               <label>Sala</label>
               <select
                 name="room"
-                defaultValue={effectiveData?.room || ''}
+                value={selectedRoom}
+                onChange={(e) => setSelectedRoom(e.target.value)}
                 required
                 onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
                 onInput={(e) => e.target.setCustomValidity('')}
@@ -401,7 +465,7 @@ const fallbackStyles = useMemo(
                 {!selectedTeacher && (
                   <optgroup label="Modalidades disponíveis">
                     {availableStyles.map((style) => (
-                      <option key={style.id} value={style.id}>
+                      <option key={style.id} value={String(style.id)}>
                         {style.name}
                       </option>
                     ))}
@@ -411,7 +475,7 @@ const fallbackStyles = useMemo(
                 {selectedTeacher && teacherStyles.length > 0 && (
                   <optgroup label="Modalidades do professor">
                     {teacherStyles.map((style) => (
-                      <option key={style.id} value={style.id}>
+                      <option key={style.id} value={String(style.id)}>
                         {style.name}
                       </option>
                     ))}
@@ -421,7 +485,7 @@ const fallbackStyles = useMemo(
                 {selectedTeacher && fallbackStyles.length > 0 && (
                   <optgroup label="Outras modalidades disponíveis">
                     {fallbackStyles.map((style) => (
-                      <option key={style.id} value={style.id}>
+                      <option key={style.id} value={String(style.id)}>
                         {style.name}
                       </option>
                     ))}
@@ -470,9 +534,11 @@ const fallbackStyles = useMemo(
               <input
                 name="maxStudents"
                 type="number"
-                defaultValue={effectiveData?.maxStudents || effectiveData?.occupancy?.split('/')[1] || '15'}
-                required
+                value={derivedMaxStudents}
+                readOnly
+                title="A ocupação é definida pelo estúdio selecionado"
               />
+              <div className="form-help">A ocupação é definida pelo estúdio selecionado. Para alterar, muda a sala.</div>
             </div>
           </div>
 

@@ -205,21 +205,40 @@ export const useScheduleState = (token, daysOfWeek) => {
             decimalToHourString(classData.start + classData.duration);
 
           const backendClassFormat = {
-          schoolYearId: Number(classData.schoolYear) || 1,
-          classDateStart: `${classData.classDate}T${startHourStr}:00`,
-          classDateEnd: `${classData.classDate}T${endHourStr}:00`,
-          classRecurrence: classData.recurrence || false,
-          studioId: Number(classData.room),
-          modalityId: Number(classData.category),
+            schoolYearId: Number(classData.schoolYear) || 1,
+            classDateStart: `${classData.classDate}T${startHourStr}:00`,
+            classDateEnd: `${classData.classDate}T${endHourStr}:00`,
+            classRecurrence: classData.recurrence || false,
+            studioId: Number(classData.studioId || classData.room),
+            modalityId: Number(classData.modalityId || classData.category),
+            instructorId: classData.instructorId ? Number(classData.instructorId) : Number(classData.instructor) || undefined,
             classStatusId: 1
           };
+
+          if (backendClassFormat.instructorId === undefined || Number.isNaN(backendClassFormat.instructorId)) {
+            delete backendClassFormat.instructorId;
+          }
           
           await updateClassRequest(classData.id, backendClassFormat, token);
           // For frontend immediate update (assuming the mapping is fine as is)
         }
         
         setClassesData((prevData) =>
-          prevData.map((c) => (c.id === classData.id ? classData : c))
+          prevData.map((c) => {
+            if (c.id !== classData.id) return c;
+
+            return {
+              ...c,
+              ...classData,
+              name: classData.categoryName || classData.name || c.name,
+              instructor: classData.instructorId ? String(classData.instructorId) : c.instructor,
+              instructorName: classData.instructorName || c.instructorName || 'Sem professor',
+              roomName: classData.roomName || c.roomName || 'Estúdio',
+              category: classData.category || c.category,
+              categoryName: classData.categoryName || c.categoryName || c.name || 'Geral',
+              studioModalityId: classData.studioModalityId || c.studioModalityId
+            };
+          })
         );
       } else {
         const startHourStr =
@@ -262,11 +281,14 @@ export const useScheduleState = (token, daysOfWeek) => {
             day: dayName,
             start: startDec,
             duration: duration > 0 ? duration : 1.5,
-            name: classData.name || 'Nova Aula',
+            name: classData.categoryName || classData.name || 'Nova Aula',
             instructor: classData.instructor || 'Sem professor',
+            instructorName: classData.instructorName || classData.instructor || 'Sem professor',
             room: classData.room || 'Estúdio 1',
+            roomName: classData.roomName || classData.room || 'Estúdio 1',
             // level: classData.level || 'Geral',
             category: classData.category || 'Geral',
+            categoryName: classData.categoryName || classData.category || 'Geral',
             occupancy: '0/20',
             classDate: classData.classDate
           };

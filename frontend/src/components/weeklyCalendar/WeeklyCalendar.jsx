@@ -191,9 +191,9 @@ const WeeklyCalendar = ({
                           </button>
                         </div>
                       )}
-                      <h4 className="class-card_schedule__title">{classItem.name}</h4>
-                      <p className="class-card_schedule__details">Professor: {classItem.instructor}</p>
-                      <p className="class-card_schedule__details">Sala: {classItem.room}</p>
+                      <h4 className="class-card_schedule__title">{classItem.categoryName || classItem.name || 'Aula'}</h4>
+                      <p className="class-card_schedule__details">Professor: {classItem.instructorName || classItem.instructor || 'Sem professor'}</p>
+                      <p className="class-card_schedule__details">Sala: {classItem.roomName || classItem.room || 'Sem sala'}</p>
                       <div className="class-card_schedule__footer">
                         <span className="class-occupancy">👥 {classItem.occupancy}</span>
                       </div>
