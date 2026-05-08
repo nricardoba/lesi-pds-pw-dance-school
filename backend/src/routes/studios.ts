@@ -21,11 +21,11 @@ studiosRouter.delete('/:id', ensureAuth,checkRole([USER_ROLES.ADMIN]), StudiosCo
 // ============================================================================
 export const modalitiesRouter = Router();
 
-modalitiesRouter.get('/', StudiosController.listModalitiesController);
-modalitiesRouter.get('/:id', StudiosController.getModalityByIdController);
-modalitiesRouter.post('/', checkRole([USER_ROLES.ADMIN]), StudiosController.createModalityController);
-modalitiesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), StudiosController.updateModalityController);
-modalitiesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), StudiosController.deleteModalityController);
+modalitiesRouter.get('/', ensureAuth, StudiosController.listModalitiesController);
+modalitiesRouter.get('/:id', ensureAuth, StudiosController.getModalityByIdController);
+modalitiesRouter.post('/', ensureAuth, checkRole([USER_ROLES.ADMIN]), StudiosController.createModalityController);
+modalitiesRouter.put('/:id', ensureAuth, checkRole([USER_ROLES.ADMIN]), StudiosController.updateModalityController);
+modalitiesRouter.delete('/:id', ensureAuth, checkRole([USER_ROLES.ADMIN]), StudiosController.deleteModalityController);
 
 // ============================================================================
 // STUDIO MODALITIES ROUTER (/studio-modalities)
