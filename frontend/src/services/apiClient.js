@@ -21,9 +21,9 @@ const handleResponse = async (res) => {
 };
 
 // Cliente genérico para evitar a repetição de código em todas as páginas
-export const apiClient = async (endpoint, { method = 'GET', body, token, customHeaders = {} } = {}) => {
+export const apiClient = async (endpoint, { method = 'GET', body, token, customHeaders = {}, isFormData = false } = {}) => {
   const headers = {
-    "Content-Type": "application/json",
+    ...(!isFormData && { "Content-Type": "application/json" }),
     ...customHeaders,
   };
 
@@ -38,7 +38,7 @@ export const apiClient = async (endpoint, { method = 'GET', body, token, customH
   };
 
   if (body) {
-    config.body = JSON.stringify(body);
+    config.body = isFormData ? body : JSON.stringify(body);
   }
 
   const res = await fetch(`${API_URL}${endpoint}`, config);

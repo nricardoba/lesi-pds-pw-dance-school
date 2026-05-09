@@ -10,11 +10,18 @@ import './CostumeCard.css';
     }
   };
 
+  const getImageUrl = (url) => {
+    if (url && url.startsWith('/uploads/')) {
+      return `${import.meta.env.VITE_API_URL || 'http://localhost:3333'}${url}`;
+    }
+    return url;
+  };
+
   return (
     <div className="costume-card">
       {/* Área da Imagem */}
       <div className="costume-card__image-container">
-        <img src={costume.image} alt={costume.title} className="costume-image" />
+        <img src={getImageUrl(costume.image)} alt={costume.title} className="costume-image" />
         
         {/* Tag de Estado no canto superior direito */}
         <span className={`status-badge ${getStatusClass(costume.status)}`}>
@@ -47,7 +54,7 @@ import './CostumeCard.css';
 
         <div className="costume-price-row">
           <div className="price-info">
-            <span className="price-value">€{costume.price.toFixed(2)}</span>
+            <span className="price-value">€{(costume.rentFee || 0).toFixed(2)}</span>
             {costume.isRental && <span className="price-suffix">/aluguer</span>}
           </div>
           <span className="stock-info">{costume.stock} disponíveis</span>
