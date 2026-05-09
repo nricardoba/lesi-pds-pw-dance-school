@@ -20,7 +20,6 @@ import {
   studioModalitiesRouter,
 } from "./studios";
 import { schoolYearsRouter, scheduleVacanciesRouter } from "./school";
-import { scheduleRouter } from "./schedule";
 
 const router = Router();
 
@@ -61,7 +60,6 @@ router.use("/modalities", ensureAuth, modalitiesRouter);
 router.use("/studio-modalities", ensureAuth, studioModalitiesRouter);
 router.use("/school-years", ensureAuth, schoolYearsRouter);
 router.use("/schedule-vacancies", ensureAuth, scheduleVacanciesRouter);
-router.use("/schedule", ensureAuth, scheduleRouter);
 
 // Inventory Group
 router.use("/items", ensureAuth, itemsRouter);

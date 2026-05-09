@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { scheduleService } from '../services/scheduleService';
+import { apiClient } from '../services/apiClient';
 import { useAuth } from '../context/useAuth';
 import '../pagesCss/TeacherSchedulePage.css';
 import TeacherScheduleStatus from '../components/teacherSchedule/TeacherScheduleStatus';
@@ -8,7 +9,15 @@ import TeacherScheduleHistory from '../components/teacherSchedule/TeacherSchedul
 import SubmitScheduleModal from '../components/teacherSchedule/SubmitScheduleModal';
 
 const formatDate = (dateString) => {
+  if (!dateString) {
+    return '-';
+  }
+
   const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
@@ -21,23 +30,34 @@ const TeacherSchedulePage = () => {
   const [currentStatus, setCurrentStatus] = useState({});
   const [availableSlots, setAvailableSlots] = useState([]);
   const [history, setHistory] = useState([]);
+  const [schoolYearId, setSchoolYearId] = useState(null);
 
-  // Use actual logged-in user ID
-  const userId = user?.id || 1;
-
-  useEffect(() => {
-    if (token && user) {
-      fetchScheduleData();
-    }
-  }, [token, user]);
-
-  const fetchScheduleData = () => {
-    scheduleService.getScheduleVacanciesByUserId(userId, token)
+  const fetchCurrentSchoolYear = useCallback(() => {
+    apiClient('/school-years', { token })
       .then(response => {
-        // Obter apenas as aprovadas (se scheduleVacancyRecurrence === false) de acordo com o nosso mock de BD
-        const approvedSlots = response.filter(slot => slot.scheduleVacancyRecurrence === false);
+        const now = new Date();
+        const currentSchoolYear = response.find(schoolYear => {
+          const startDate = new Date(schoolYear.schoolYearStart);
+          const endDate = new Date(schoolYear.schoolYearEnd);
+          return startDate <= now && now <= endDate;
+        }) || response[response.length - 1];
+
+        if (currentSchoolYear?.schoolYearId) {
+          setSchoolYearId(currentSchoolYear.schoolYearId);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching school years:', error);
+      });
+  }, [token]);
+
+  const fetchScheduleData = useCallback(() => {
+    scheduleService.getMyScheduleVacancies(token)
+      .then(response => {
+        // Show PENDING slots (scheduleVacancyRecurrence === true) - slots submitted and awaiting approval
+        const pendingSlots = response.filter(slot => slot.scheduleVacancyRecurrence === true);
         
-        const formattedSlots = approvedSlots.map(slot => {
+        const formattedSlots = pendingSlots.map(slot => {
           const startDate = new Date(slot.scheduleVacancyStart);
           const endDate = new Date(slot.scheduleVacancyEnd);
           const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
@@ -57,7 +77,7 @@ const TeacherSchedulePage = () => {
         console.error('Error fetching schedule vacancies:', error);
       });
 
-    scheduleService.getScheduleSubmissions(userId, token)
+    scheduleService.getMyScheduleSubmissions(token)
       .then(response => {
         const formattedHistory = response.map(item => ({
           id: item.scheduleSubmissionId,
@@ -71,7 +91,7 @@ const TeacherSchedulePage = () => {
         console.error('Error fetching schedule submissions:', error);
       });
 
-    scheduleService.getLatestSubmissionStatus(userId, token)
+    scheduleService.getMyLatestSubmissionStatus(token)
       .then(response => {
         if (response) {
           setCurrentStatus({
@@ -85,7 +105,14 @@ const TeacherSchedulePage = () => {
       .catch(error => {
         console.error('Error fetching latest submission status:', error);
       });
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (token && user) {
+      fetchCurrentSchoolYear();
+      fetchScheduleData();
+    }
+  }, [token, user, fetchCurrentSchoolYear, fetchScheduleData]);
 
   const handleOpenModal = () => {
     setIsSubmitModalOpen(true);
@@ -95,10 +122,14 @@ const TeacherSchedulePage = () => {
     setIsSubmitModalOpen(false);
   };
 
-  const handleSubmitSchedule = (newSlots, selectedSlotsCount) => {
+  const handleSubmitSchedule = (newSlots) => {
+    if (!schoolYearId) {
+      console.error('School year not loaded yet');
+      return;
+    }
+
     const submissionData = {
-      userId: userId,
-      schoolYearId: 11, // Getting a real valid school year ID from db
+      schoolYearId,
       vacancies: newSlots.map(slot => ({
         day_of_week: slot.day,
         start_time: slot.time.split(' - ')[0],
@@ -108,11 +139,15 @@ const TeacherSchedulePage = () => {
 
     scheduleService.submitSchedule(submissionData, token)
       .then(() => {
+        console.log('Schedule submitted successfully');
         fetchScheduleData(); // Refresh data after submission
         setIsSubmitModalOpen(false);
       })
       .catch(error => {
         console.error('Error submitting schedule:', error);
+      })
+      .finally(() => {
+        // Ensure any dangling promise handlers are resolved
       });
   };
 
