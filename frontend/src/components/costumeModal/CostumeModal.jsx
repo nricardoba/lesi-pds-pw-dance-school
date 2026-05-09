@@ -117,7 +117,7 @@ const ReferenceField = ({
   );
 };
 
-const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
+const CostumeModal = ({ isOpen, onClose, initialData, ownerType = 'school', onSave }) => {
   const { token } = useAuth();
   const [categories, setCategories] = useState([]);
   const [colors, setColors] = useState([]);
@@ -172,7 +172,12 @@ const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
   };
 
   const isEditing = !!initialData;
-  const modalTitle = isEditing ? 'Editar Figurino' : 'Novo Figurino';
+  const isUserCostume = ownerType === 'user';
+  const modalTitle = isEditing
+    ? 'Editar Figurino'
+    : isUserCostume
+      ? 'Novo Figurino do Aluno'
+      : 'Novo Figurino';
   const submitButtonText = isEditing ? 'Guardar' : 'Criar Figurino';
   const rentedQuantity = isEditing
     ? Math.max(0, Number(initialData?.quantity || 0) - Number(initialData?.stock || 0))
@@ -213,8 +218,9 @@ const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
       sizeId: parseInt(selectedSizeId, 10),
       colorId: parseInt(selectedColorId, 10),
       itemConditionId: parseInt(selectedConditionId, 10),
-      rentFee: parseFloat(formData.get('rentFee') || 0),
-      quantity: parseInt(formData.get('quantity') || quantity || 1, 10),
+      ownerType: isUserCostume ? 'user' : 'school',
+      rentFee: isUserCostume ? undefined : parseFloat(formData.get('rentFee') || 0),
+      quantity: isUserCostume ? 1 : parseInt(formData.get('quantity') || quantity || 1, 10),
       imageFile: formData.get('imageFile'),
     };
 
@@ -291,43 +297,51 @@ const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
             />
           </div>
 
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label>Quantidade</label>
-              <input
-                name="quantity"
-                type="number"
-                min={minQuantity}
-                step="1"
-                value={quantity}
-                onChange={(event) => {
-                  const nextQuantity = Number(event.target.value);
-                  if (!Number.isFinite(nextQuantity)) {
-                    setQuantity(minQuantity);
-                    return;
-                  }
-                  setQuantity(Math.max(minQuantity, nextQuantity));
-                }}
-                required
-              />
-              {isEditing && (
-                <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#64748B' }}>
-                  Não pode ser inferior a {minQuantity} porque existem unidades atualmente alugadas.
-                </div>
-              )}
+          {!isUserCostume && (
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label>Quantidade</label>
+                <input
+                  name="quantity"
+                  type="number"
+                  min={minQuantity}
+                  step="1"
+                  value={quantity}
+                  onChange={(event) => {
+                    const nextQuantity = Number(event.target.value);
+                    if (!Number.isFinite(nextQuantity)) {
+                      setQuantity(minQuantity);
+                      return;
+                    }
+                    setQuantity(Math.max(minQuantity, nextQuantity));
+                  }}
+                  required
+                />
+                {isEditing && (
+                  <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#64748B' }}>
+                    Não pode ser inferior a {minQuantity} porque existem unidades atualmente alugadas.
+                  </div>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Preço de Aluguer (€)</label>
+                <input
+                  name="rentFee"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  defaultValue={isEditing ? initialData.rentFee : '0'}
+                  required
+                />
+              </div>
             </div>
-            <div className="form-group">
-              <label>Preço de Aluguer (€)</label>
-              <input
-                name="rentFee"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={isEditing ? initialData.rentFee : '0'}
-                required
-              />
+          )}
+
+          {isUserCostume && (
+            <div className="form-group full-width mt-16" style={{ color: '#64748B', fontSize: '0.9rem' }}>
+              Este figurino será criado como pertença do aluno e não inclui preço de aluguer.
             </div>
-          </div>
+          )}
 
           <div className="form-group full-width mt-16">
             <label>Imagem do Figurino</label>

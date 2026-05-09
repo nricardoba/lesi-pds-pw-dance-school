@@ -15,9 +15,24 @@ const getCostumeGroupKey = (item) => {
   return `${chars.itemCharacteristicsId || 0}|${item.itemConditionId || 0}|${rentFee}`;
 };
 
+const formatUserContacts = (user) => {
+  const contacts = user?.userContact || [];
+
+  return contacts
+    .map((userContact) => ({
+      id: userContact.userContactId,
+      value: userContact.contact?.contactValue || '',
+      type: userContact.contact?.contactType?.contactTypeDesc || 'Contacto',
+      isMain: Boolean(userContact.isMainContact),
+    }))
+    .filter((contact) => contact.value);
+};
+
 const CostumesPage = () => {
   const { token, user, role } = useAuth();
   const isAdmin = role === 'admin';
+  const isStudent = role === 'student';
+  const canCreateCostume = isAdmin || isStudent;
   const currentUserId = user?.user_id ?? user?.userId ?? user?.id ?? null;
   const currentUserName = user?.user_name ?? user?.userName ?? user?.name ?? '';
 
@@ -33,6 +48,7 @@ const CostumesPage = () => {
   const [rentingCostume, setRentingCostume] = useState(null);
   const [costumeToDelete, setCostumeToDelete] = useState(null);
   const [selectedRental, setSelectedRental] = useState(null);
+  const [selectedCostumeInfo, setSelectedCostumeInfo] = useState(null);
 
   const [costumes, setCostumes] = useState([]);
   const [activeRentals, setActiveRentals] = useState([]);
@@ -115,6 +131,7 @@ const CostumesPage = () => {
             color: chars.color?.colorName || 'N/A',
             rentFee: Number(item.schoolItem?.rentFee ?? 0),
             isRental: true,
+            ownerType: 'school',
             image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150',
             images: [chars.itemImage?.[0]?.itemImageUrl || ''],
           });
@@ -128,21 +145,62 @@ const CostumesPage = () => {
         }
       });
 
-      const formattedItems = Array.from(groupedByCostume.values()).map((group) => {
-        const quantity = group.ids.length;
-        const stock = group.availableItemIds.length;
-        const representativeId = stock > 0 ? group.availableItemIds[0] : group.ids[0];
-        const status = stock > 0 ? 'Disponível' : 'Alugado';
+      const userCostumes = itemsData
+        .filter((item) => !!item.userItem && !item.schoolItem)
+        .map((item) => {
+          const chars = item.itemCharacteristics || {};
+          const owner = item.userItem?.user || {};
+          const contacts = formatUserContacts(owner);
 
-        return {
-          ...group,
-          id: representativeId,
-          quantity,
-          stock,
-          status,
-          actionText: status === 'Disponível' ? 'Alugar' : 'Indisponível',
-        };
-      });
+          return {
+            id: item.itemId,
+            ids: [item.itemId],
+            availableItemIds: [item.itemId],
+            ownerUserId: item.userItem?.userId,
+            characteristicsId: chars.itemCharacteristicsId,
+            title: chars.itemCharacteristicsName || 'Sem nome',
+            name: chars.itemCharacteristicsName || '',
+            categoryId: chars.categoryId,
+            sizeId: chars.sizeId,
+            colorId: chars.colorId,
+            category: chars.category?.categoryName || 'Desconhecida',
+            size: chars.size?.sizeName || 'N/A',
+            condition: item.itemCondition?.itemConditionName || 'Novo',
+            itemConditionId: item.itemConditionId,
+            color: chars.color?.colorName || 'N/A',
+            rentFee: 0,
+            isRental: false,
+            ownerType: 'user',
+            sellerName: owner.userName || 'Aluno',
+            sellerStudentNumber: owner.studentNumber?.studentNumber || '',
+            sellerContacts: contacts,
+            image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150',
+            images: [chars.itemImage?.[0]?.itemImageUrl || ''],
+            quantity: 1,
+            stock: 1,
+            status: 'Disponível',
+            actionText: 'Ver informações',
+          };
+        });
+
+      const formattedItems = [
+        ...Array.from(groupedByCostume.values()).map((group) => {
+          const quantity = group.ids.length;
+          const stock = group.availableItemIds.length;
+          const representativeId = stock > 0 ? group.availableItemIds[0] : group.ids[0];
+          const status = stock > 0 ? 'Disponível' : 'Alugado';
+
+          return {
+            ...group,
+            id: representativeId,
+            quantity,
+            stock,
+            status,
+            actionText: status === 'Disponível' ? 'Alugar' : 'Indisponível',
+          };
+        }),
+        ...userCostumes,
+      ].sort((left, right) => left.title.localeCompare(right.title));
 
       setCostumes(formattedItems);
       setActiveRentals(formattedRentals);
@@ -255,8 +313,18 @@ const CostumesPage = () => {
     setSelectedRental(null);
   };
 
+  const handleOpenCostumeInfo = (costume) => {
+    setSelectedCostumeInfo(costume);
+  };
+
+  const handleCloseCostumeInfo = () => {
+    setSelectedCostumeInfo(null);
+  };
+
   const handleSaveCostume = async (costumeData) => {
     try {
+      const ownerType = costumeData.ownerType || (isStudent ? 'user' : 'school');
+
       if (editingCostume) {
         const currentQuantity = Math.max(1, Number(editingCostume.quantity || 1));
         const currentStock = Math.max(0, Number(editingCostume.stock ?? currentQuantity));
@@ -306,7 +374,9 @@ const CostumesPage = () => {
               itemId,
               {
                 itemConditionId: costumeData.itemConditionId,
-                rentFee: costumeData.rentFee,
+                ...(editingCostume.ownerType === 'school'
+                  ? { rentFee: costumeData.rentFee, ownerType: 'school' }
+                  : { ownerType: 'user' }),
               },
               token,
             ),
@@ -323,8 +393,10 @@ const CostumesPage = () => {
               {
                 itemCharacteristicsId: editingCostume.characteristicsId || costumeData.characteristicsId,
                 itemConditionId: costumeData.itemConditionId,
-                ownerType: 'school',
-                rentFee: costumeData.rentFee,
+                ownerType: editingCostume.ownerType === 'user' ? 'user' : 'school',
+                ...(editingCostume.ownerType === 'school'
+                  ? { rentFee: costumeData.rentFee }
+                  : { userId: currentUserId }),
               },
               token,
             ),
@@ -340,6 +412,11 @@ const CostumesPage = () => {
           );
         }
       } else {
+        if (ownerType === 'user' && !currentUserId) {
+          alert('Não foi possível identificar o teu utilizador para criar o figurino.');
+          return;
+        }
+
         const charRes = await createItemCharacteristics({
           name: costumeData.name,
           categoryId: costumeData.categoryId,
@@ -347,12 +424,14 @@ const CostumesPage = () => {
           colorId: costumeData.colorId,
         }, token);
 
-        const quantity = Math.max(1, Number(costumeData.quantity || 1));
+        const quantity = ownerType === 'school' ? Math.max(1, Number(costumeData.quantity || 1)) : 1;
         const createRequests = Array.from({ length: quantity }, () => createItem({
           itemCharacteristicsId: charRes.itemCharacteristicsId,
           itemConditionId: costumeData.itemConditionId,
-          ownerType: 'school',
-          rentFee: costumeData.rentFee,
+          ownerType,
+          ...(ownerType === 'school'
+            ? { rentFee: costumeData.rentFee }
+            : { userId: currentUserId }),
         }, token));
 
         await Promise.all(createRequests);
@@ -397,7 +476,7 @@ const CostumesPage = () => {
           <h1 className="page-title">Figurinos</h1>
           <p className="page-subtitle">Gestão de aluguer e venda de figurinos</p>
         </div>
-        {isAdmin && (
+        {canCreateCostume && (
           <button className="btn-primary" onClick={handleOpenNewCostume}>
             + Novo Figurino
           </button>
@@ -462,9 +541,20 @@ const CostumesPage = () => {
                 isAdmin={isAdmin}
                 key={costume.id}
                 costume={costume}
-                onEdit={() => handleEditCostume(costume)}
-                onRent={isAdmin ? () => handleOpenRentalModal(costume) : undefined}
-                onDelete={() => handleAskDeleteCostume(costume)}
+                onEdit={
+                  (costume.ownerType === 'school' && (isAdmin || role === 'parent')) ||
+                  (costume.ownerType === 'user' && role === 'student' && String(costume.ownerUserId) === String(currentUserId))
+                    ? () => handleEditCostume(costume)
+                    : undefined
+                }
+                onRent={isAdmin && costume.ownerType === 'school' ? () => handleOpenRentalModal(costume) : undefined}
+                onViewInfo={costume.ownerType === 'user' ? () => handleOpenCostumeInfo(costume) : undefined}
+                onDelete={
+                  (costume.ownerType === 'school' && (isAdmin || role === 'parent')) ||
+                  (costume.ownerType === 'user' && role === 'student' && String(costume.ownerUserId) === String(currentUserId))
+                    ? () => handleAskDeleteCostume(costume)
+                    : undefined
+                }
               />
             ))}
             {filteredCostumes.length === 0 && (
@@ -499,6 +589,7 @@ const CostumesPage = () => {
           setEditingCostume(null);
         }}
         initialData={editingCostume}
+        ownerType={editingCostume?.ownerType || (isStudent ? 'user' : 'school')}
         onSave={handleSaveCostume}
       />
       <RentalModal
@@ -586,6 +677,72 @@ const CostumesPage = () => {
               <div className="rental-details-field">
                 <span className="rental-details-label">Condição</span>
                 <span className="rental-details-value">{selectedRental.condition}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedCostumeInfo && (
+        <div className="rental-details-overlay" onClick={handleCloseCostumeInfo}>
+          <div className="rental-details-card" onClick={(e) => e.stopPropagation()}>
+            <div className="rental-details-header">
+              <div>
+                <h3 className="rental-details-title">Informações do figurino</h3>
+                <p className="rental-details-subtitle">{selectedCostumeInfo.title}</p>
+              </div>
+              <button className="rental-details-close" onClick={handleCloseCostumeInfo}>
+                &times;
+              </button>
+            </div>
+
+            <div className="rental-details-grid">
+              <div className="rental-details-field">
+                <span className="rental-details-label">Aluno vendedor</span>
+                <span className="rental-details-value">
+                  {selectedCostumeInfo.sellerName}
+                  {selectedCostumeInfo.sellerStudentNumber
+                    ? ` (${selectedCostumeInfo.sellerStudentNumber})`
+                    : ''}
+                </span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Estado</span>
+                <span className="rental-details-value">{selectedCostumeInfo.status}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Categoria</span>
+                <span className="rental-details-value">{selectedCostumeInfo.category}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Tamanho</span>
+                <span className="rental-details-value">{selectedCostumeInfo.size}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Cor</span>
+                <span className="rental-details-value">{selectedCostumeInfo.color}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Condição</span>
+                <span className="rental-details-value">{selectedCostumeInfo.condition}</span>
+              </div>
+            </div>
+
+            <div className="seller-contact-section">
+              <h4 className="seller-contact-title">Contactos</h4>
+              <div className="seller-contact-list">
+                {selectedCostumeInfo.sellerContacts?.length > 0 ? (
+                  selectedCostumeInfo.sellerContacts.map((contact) => (
+                    <div className="seller-contact-item" key={contact.id}>
+                      <span className="seller-contact-type">
+                        {contact.type}{contact.isMain ? ' · principal' : ''}
+                      </span>
+                      <span className="seller-contact-value">{contact.value}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="seller-contact-empty">Sem contactos disponíveis.</div>
+                )}
               </div>
             </div>
           </div>
