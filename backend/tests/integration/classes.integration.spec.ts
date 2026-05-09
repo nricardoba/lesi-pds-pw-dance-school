@@ -15,8 +15,11 @@ describe('Testes de Integracao - CRUD de Aulas', () => {
   let classStatusId: number | null = null;
   let schoolYearId: number | null = null;
   let studioId: number | null = null;
+  let studioId2: number | null = null;
   let modalityId: number | null = null;
   let studioModalityId: number | null = null;
+  let studioModalityId2: number | null = null;
+  let professorUserId: number | null = null;
 
   const uniqueSuffix = Date.now();
 
@@ -54,12 +57,26 @@ describe('Testes de Integracao - CRUD de Aulas', () => {
     });
     studioId = studio.studioId;
 
-    const modality = await prisma.modality.create({
+    const studio2 = await prisma.studio.create({
       data: {
-        modalityName: `Modalidade Teste ${uniqueSuffix}`,
-        modalityHourlyFee: 15.5,
+        studioName: `Estudio Teste 2 ${uniqueSuffix}`,
+        studioMaxCapacity: 20,
       },
     });
+    studioId2 = studio2.studioId;
+
+    const modalityName = `Modalidade Teste ${uniqueSuffix}`;
+
+const modality = await prisma.modality.upsert({
+  where: {
+    modalityName,
+  },
+  update: {},
+  create: {
+    modalityName,
+    modalityHourlyFee: 20,
+  },
+});
     modalityId = modality.modalityId;
 
     const studioModality = await prisma.studioModality.create({
@@ -69,6 +86,30 @@ describe('Testes de Integracao - CRUD de Aulas', () => {
       },
     });
     studioModalityId = studioModality.studioModalityId;
+
+    const studioModality2 = await prisma.studioModality.create({
+      data: {
+        studioId: studio2.studioId,
+        modalityId: modality.modalityId,
+      },
+    });
+    studioModalityId2 = studioModality2.studioModalityId;
+
+    const adminCredential = await prisma.userCredential.findFirst({
+      where: {
+        userContact: {
+          contact: {
+            contactValue: adminLogin.email,
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    expect(adminCredential).not.toBeNull();
+    professorUserId = adminCredential?.userId ?? null;
   });
 
   // Limpar os registos criados durante os testes.
@@ -86,9 +127,21 @@ describe('Testes de Integracao - CRUD de Aulas', () => {
         });
       }
 
+      if (studioModalityId2) {
+        await prisma.studioModality.delete({
+          where: { studioModalityId: studioModalityId2 },
+        });
+      }
+
       if (studioId) {
         await prisma.studio.delete({
           where: { studioId },
+        });
+      }
+
+      if (studioId2) {
+        await prisma.studio.delete({
+          where: { studioId: studioId2 },
         });
       }
 
@@ -127,12 +180,35 @@ describe('Testes de Integracao - CRUD de Aulas', () => {
         studioModalityId,
         classFinalFee: 25.0,
         classStatusId,
+        instructorId: professorUserId,
       });
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('classId');
 
     classId = response.body.classId;
+  });
+
+  // Garante que o backend impede conflito no mesmo professor.
+  it('deve bloquear a criação de uma aula sobreposta para o mesmo professor', async () => {
+    expect(classId).not.toBeNull();
+
+    const response = await request(app)
+      .post('/classes')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        schoolYearId,
+        classDateStart: '2026-05-01T10:30:00Z',
+        classDateEnd: '2026-05-01T11:30:00Z',
+        classRecurrence: false,
+        studioModalityId: studioModalityId2,
+        classFinalFee: 25.0,
+        classStatusId,
+        instructorId: professorUserId,
+      });
+
+    expect(response.status).toBe(409);
+    expect(response.body.error.message).toBe('O professor já tem uma aula nesse horário.');
   });
 
   // Garante que o backend valida payload vazio.

@@ -7,6 +7,7 @@ import {
 } from "../../src/services/classes/classesServices";
 import { prisma } from "../../src/config/db";
 import { AppError } from "../../src/utils/appError";
+import { getUserByIdService } from "../../src/services/users/usersServices";
 
 // Mock do módulo de base de dados
 vi.mock("../../src/config/db", () => {
@@ -17,6 +18,17 @@ vi.mock("../../src/config/db", () => {
       update: vi.fn(),
     },
     classStatus: {
+      findFirst: vi.fn(),
+    },
+    studio: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    },
+    studioModality: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    },
+    userClassRole: {
       findFirst: vi.fn(),
     },
     userClass: {
@@ -89,6 +101,37 @@ describe("Unidade - requestCoachingService", () => {
         "Professor responsável e assistente não podem ser o mesmo utilizador.",
         409,
       ),
+    );
+  });
+
+  it('deve lançar erro se o professor não tiver disponibilidade no horário pedido', async () => {
+    const dadosSemDisponibilidade = {
+      modality_id: 1,
+      professor_id: 2,
+      student_ids: [3],
+      school_year_id: 1,
+      start_time: "2026-05-01T10:00:00Z",
+      end_time: "2026-05-01T11:00:00Z",
+    };
+
+    vi.mocked(getUserByIdService).mockResolvedValue({ userId: 2 } as any);
+    vi.mocked(prisma.studio.findFirst).mockResolvedValue({
+      studioId: 1,
+      studioName: 'A Definir',
+    } as any);
+    vi.mocked(prisma.studioModality.findFirst).mockResolvedValue({
+      studioModalityId: 1,
+      studioId: 1,
+      modalityId: 1,
+      modality: { modalityHourlyFee: 25 },
+      studio: { studioId: 1, studioName: 'A Definir' },
+    } as any);
+
+    const scheduleVacancyMock = await import("../../src/services/school/scheduleVacancyServices");
+    vi.mocked(scheduleVacancyMock.getScheduleVacanciesByUserIdService).mockResolvedValue([] as any);
+
+    await expect(requestCoachingService(dadosSemDisponibilidade)).rejects.toThrow(
+      new AppError("Professor sem disponibilidade neste horário.", 409),
     );
   });
 
