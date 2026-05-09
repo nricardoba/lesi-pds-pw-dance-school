@@ -64,7 +64,7 @@ const RentalModal = ({ isOpen, onClose, costume, onSave, students = [] }) => {
           <div className="form-group mt-16" style={{ maxWidth: '50%' }}>
             <label>Preço (€)</label>
             {/* Traz o preço predefinido do figurino selecionado */}
-            <input name="price" type="number" step="0.01" min="0" defaultValue={costume.price} required />
+            <input name="price" type="number" step="0.01" min="0" defaultValue={costume.rentFee ?? costume.price ?? 0} required />
           </div>
 
           <div className="modal-actions">
