@@ -22,6 +22,11 @@ const updateItemSchema = z.object({
   userId: z.coerce.number().int().positive().optional(),
 });
 
+const itemActorSchema = z.object({
+  id: z.union([z.string(), z.number()]),
+  userTypeId: z.coerce.number().int().positive(),
+});
+
 export const listItemsService = async () => {
   return prisma.item.findMany({
     include: {
@@ -37,7 +42,20 @@ export const listItemsService = async () => {
       schoolItem: true,
       userItem: {
         include: {
-          user: true,
+          user: {
+            include: {
+              studentNumber: true,
+              userContact: {
+                include: {
+                  contact: {
+                    include: {
+                      contactType: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -70,7 +88,20 @@ export const getItemByIdService = async (params: unknown) => {
       schoolItem: true,
       userItem: {
         include: {
-          user: true,
+          user: {
+            include: {
+              studentNumber: true,
+              userContact: {
+                include: {
+                  contact: {
+                    include: {
+                      contactType: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -116,14 +147,32 @@ export const createItemService = async (body: unknown) => {
       itemCharacteristics: true,
       itemCondition: true,
       schoolItem: true,
-      userItem: true,
+      userItem: {
+        include: {
+          user: {
+            include: {
+              studentNumber: true,
+              userContact: {
+                include: {
+                  contact: {
+                    include: {
+                      contactType: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 };
 
-export const updateItemService = async (params: unknown, body: unknown) => {
+export const updateItemService = async (params: unknown, body: unknown, actor: unknown) => {
   const { id } = itemIdSchema.parse(params);
   const parsedBody = updateItemSchema.parse(body);
+  const parsedActor = itemActorSchema.parse(actor);
 
   const existingItem = await prisma.item.findUnique({
     where: { itemId: id },
@@ -135,6 +184,17 @@ export const updateItemService = async (params: unknown, body: unknown) => {
 
   if (!existingItem) {
     throw new AppError("Item não encontrado.", 404);
+  }
+
+  const isStudent = parsedActor.userTypeId === 3;
+  const currentUserId = String(parsedActor.id);
+
+  if (existingItem.userItem) {
+    if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+      throw new AppError("Sem permissão para editar este figurino.", 403);
+    }
+  } else if (existingItem.schoolItem && isStudent) {
+    throw new AppError("Sem permissão para editar este figurino.", 403);
   }
 
   const dataToUpdate: Record<string, unknown> = {};
@@ -195,20 +255,53 @@ export const updateItemService = async (params: unknown, body: unknown) => {
       itemCharacteristics: true,
       itemCondition: true,
       schoolItem: true,
-      userItem: true,
+      userItem: {
+        include: {
+          user: {
+            include: {
+              studentNumber: true,
+              userContact: {
+                include: {
+                  contact: {
+                    include: {
+                      contactType: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 };
 
-export const deleteItemService = async (params: unknown) => {
+export const deleteItemService = async (params: unknown, actor: unknown) => {
   const { id } = itemIdSchema.parse(params);
+  const parsedActor = itemActorSchema.parse(actor);
 
   const existingItem = await prisma.item.findUnique({
     where: { itemId: id },
+    include: {
+      schoolItem: true,
+      userItem: true,
+    },
   });
 
   if (!existingItem) {
     throw new AppError("Item não encontrado.", 404);
+  }
+
+  const isStudent = parsedActor.userTypeId === 3;
+  const currentUserId = String(parsedActor.id);
+
+  if (existingItem.userItem) {
+    if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+      throw new AppError("Sem permissão para remover este figurino.", 403);
+    }
+  } else if (existingItem.schoolItem && isStudent) {
+    throw new AppError("Sem permissão para remover este figurino.", 403);
   }
 
   await prisma.item.delete({

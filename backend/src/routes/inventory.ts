@@ -56,19 +56,19 @@ itemsRouter.get("/:id", InventoryController.getItemByIdController);
 itemsRouter.post(
     "/",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT, USER_ROLES.STUDENT]),
     InventoryController.createItemController,
 );
 itemsRouter.put(
     "/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT, USER_ROLES.STUDENT]),
     InventoryController.updateItemController,
 );
 itemsRouter.delete(
     "/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT, USER_ROLES.STUDENT]),
     InventoryController.deleteItemController,
 );
 

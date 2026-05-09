@@ -169,14 +169,14 @@ export const createItemController = catchAsync(
 
 export const updateItemController = catchAsync(
   async (req: Request, res: Response) => {
-    const data = await updateItemService(req.params, req.body);
+    const data = await updateItemService(req.params, req.body, res.locals.user);
     return res.json(data);
   },
 );
 
 export const deleteItemController = catchAsync(
   async (req: Request, res: Response) => {
-    const data = await deleteItemService(req.params);
+    const data = await deleteItemService(req.params, res.locals.user);
     return res.json(data);
   },
 );
