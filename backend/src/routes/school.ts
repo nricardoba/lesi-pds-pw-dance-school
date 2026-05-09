@@ -18,17 +18,17 @@ schoolYearsRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), SchoolController
 // ============================================================================
 export const scheduleVacanciesRouter = Router();
 
-scheduleVacanciesRouter.get('/', SchoolController.listScheduleVacanciesController);
-scheduleVacanciesRouter.get('/all', SchoolController.getAllScheduleSubmissionsController);
-scheduleVacanciesRouter.get('/me', SchoolController.getMyScheduleVacanciesController);
-scheduleVacanciesRouter.get('/me/submissions', SchoolController.getMyScheduleSubmissionsController);
-scheduleVacanciesRouter.get('/me/latest', SchoolController.getMyLatestSubmissionStatusController);
-scheduleVacanciesRouter.get('/user/:userId/submissions', SchoolController.getScheduleSubmissionsController);
-scheduleVacanciesRouter.get('/user/:userId/latest', SchoolController.getLatestSubmissionStatusController);
-scheduleVacanciesRouter.post('/submit', SchoolController.submitScheduleController);
-scheduleVacanciesRouter.put('/:submissionId/review', SchoolController.reviewScheduleSubmissionController);
-scheduleVacanciesRouter.get('/:id', SchoolController.getScheduleVacancyByIdController);
-scheduleVacanciesRouter.get('/user/:userId', SchoolController.getScheduleVacanciesByUserIdController);
+scheduleVacanciesRouter.get('/', checkRole([USER_ROLES.ADMIN]), SchoolController.listScheduleVacanciesController);
+scheduleVacanciesRouter.get('/all', checkRole([USER_ROLES.ADMIN]), SchoolController.getAllScheduleSubmissionsController);
+scheduleVacanciesRouter.get('/me', checkRole([USER_ROLES.TEACHER]), SchoolController.getMyScheduleVacanciesController);
+scheduleVacanciesRouter.get('/me/submissions', checkRole([USER_ROLES.TEACHER]), SchoolController.getMyScheduleSubmissionsController);
+scheduleVacanciesRouter.get('/me/latest', checkRole([USER_ROLES.TEACHER]), SchoolController.getMyLatestSubmissionStatusController);
+scheduleVacanciesRouter.get('/user/:userId/submissions', checkRole([USER_ROLES.ADMIN]), SchoolController.getScheduleSubmissionsController);
+scheduleVacanciesRouter.get('/user/:userId/latest', checkRole([USER_ROLES.ADMIN]), SchoolController.getLatestSubmissionStatusController);
+scheduleVacanciesRouter.post('/submit', checkRole([USER_ROLES.TEACHER]), SchoolController.submitScheduleController);
+scheduleVacanciesRouter.put('/:submissionId/review', checkRole([USER_ROLES.ADMIN]), SchoolController.reviewScheduleSubmissionController);
+scheduleVacanciesRouter.get('/:id', checkRole([USER_ROLES.ADMIN]), SchoolController.getScheduleVacancyByIdController);
+scheduleVacanciesRouter.get('/user/:userId', checkRole([USER_ROLES.ADMIN]), SchoolController.getScheduleVacanciesByUserIdController);
 scheduleVacanciesRouter.post('/', checkRole([USER_ROLES.ADMIN]), SchoolController.createScheduleVacancyController);
 scheduleVacanciesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), SchoolController.updateScheduleVacancyController);
 scheduleVacanciesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), SchoolController.deleteScheduleVacancyController);
