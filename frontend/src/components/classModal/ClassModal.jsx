@@ -4,6 +4,7 @@ import { useAuth } from '../../context/useAuth';
 import { getUsers } from '../../services/users';
 import { getModalities } from '../../services/modalities';
 import { getStudios, getStudioModalities } from '../../services/studios';
+import { getSchoolYears } from '../../services/schoolYears';
 
 const DAY_BY_INDEX = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
 
@@ -45,17 +46,33 @@ const ClassModal = ({
   const [modalities, setModalities] = useState([]);
   const [studios, setStudios] = useState([]);
   const [studioModalities, setStudioModalities] = useState([]);
+  const [schoolYears, setSchoolYears] = useState([]);
+  const [selectedSchoolYear, setSelectedSchoolYear] = useState('');
+
+  const findSchoolYearIdForDate = (dateValue) => {
+    if (!dateValue || !schoolYears.length) return '';
+
+    const targetDate = new Date(`${dateValue}T12:00:00`);
+    const match = schoolYears.find((year) => {
+      const start = new Date(year.schoolYearStart);
+      const end = new Date(year.schoolYearEnd);
+      return targetDate >= start && targetDate <= end;
+    });
+
+    return match ? String(match.schoolYearId) : '';
+  };
 
   useEffect(() => {
     if (!isOpen || !token) return;
 
     const fetchData = async () => {
       try {
-        const [usersData, modalitiesData, studiosData, studioModalitiesData] = await Promise.all([
+        const [usersData, modalitiesData, studiosData, studioModalitiesData, schoolYearsData] = await Promise.all([
           getUsers(token),
           getModalities(token),
           getStudios(token),
-          getStudioModalities(token)
+          getStudioModalities(token),
+          getSchoolYears(token)
         ]);
 
         const professors = usersData.filter(u => u.userType?.userTypeDesc === 'Professor');
@@ -63,6 +80,7 @@ const ClassModal = ({
         setModalities(modalitiesData);
         setStudios(studiosData);
         setStudioModalities(studioModalitiesData);
+        setSchoolYears(schoolYearsData || []);
       } catch (err) {
         console.error("Failed to load modal data:", err);
       }
@@ -89,8 +107,19 @@ const ClassModal = ({
     setSelectedRoom(effectiveData?.room || '');
     setIsRecurrent(effectiveData?.classRecurrence || false);
     setTeacherError('');
+    setSelectedSchoolYear(String(effectiveData?.schoolYear || ''));
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [isOpen, effectiveData]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const derivedSchoolYearId = findSchoolYearIdForDate(effectiveData?.classDate || preferredClassDate);
+
+    if (derivedSchoolYearId) {
+      setSelectedSchoolYear(derivedSchoolYearId);
+    }
+  }, [isOpen, effectiveData?.classDate, preferredClassDate, schoolYears]);
 
   useEffect(() => {
     if (!isOpen || selectedTeacher) {
@@ -328,14 +357,18 @@ const fallbackStyles = useMemo(
               <label>Ano Letivo</label>
               <select
                 name="schoolYear"
-                defaultValue={effectiveData?.schoolYear || ''}
+                value={selectedSchoolYear}
+                onChange={(e) => setSelectedSchoolYear(e.target.value)}
                 required
                 onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
                 onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
-                <option value="1">2025/2026</option>
-                <option value="2">2026/2027</option>
+                {schoolYears.map((year) => (
+                  <option key={year.schoolYearId} value={String(year.schoolYearId)}>
+                    {year.schoolYearName}
+                  </option>
+                ))}
               </select>
             </div>
 

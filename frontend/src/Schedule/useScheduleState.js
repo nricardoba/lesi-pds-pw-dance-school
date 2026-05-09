@@ -355,9 +355,20 @@ export const useScheduleState = (token, daysOfWeek) => {
       : formatDateForInput(referenceDate);
   };
 
+  const updateReferenceDate = (nextReferenceDate) => {
+    setReferenceDate((currentDate) => {
+      const resolvedDate = typeof nextReferenceDate === 'function'
+        ? nextReferenceDate(currentDate)
+        : nextReferenceDate;
+
+      return resolvedDate;
+    });
+    setSelectedDay('Todos os dias');
+  };
+
   return {
     referenceDate,
-    setReferenceDate,
+    setReferenceDate: updateReferenceDate,
     getWeekDayClass,
     selectedDay,
     setSelectedDay,
