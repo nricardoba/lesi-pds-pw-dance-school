@@ -1,7 +1,7 @@
 import './CostumeCard.css';
 
   // Define a cor da tag de estado baseada no valor
- const CostumeCard = ({ costume, onEdit, onRent, onDelete, isAdmin }) => {
+ const CostumeCard = ({ costume, onEdit, onRent, onDelete, onViewInfo, isAdmin }) => {
   const getStatusClass = (status) => {
     switch(status.toLowerCase()) {
       case 'disponível': return 'status-available';
@@ -29,15 +29,16 @@ import './CostumeCard.css';
         </span>
 
         {/* Ações rápidas (Editar/Eliminar) - Normalmente visíveis em hover ou para admin */}
-        {isAdmin && (<div className="costume-card__image-actions">
+        {(onEdit || onDelete) && (<div className="costume-card__image-actions">
           <button 
             className="icon-btn edit-btn-overlay" 
             title="Editar"
             onClick={onEdit}
+            disabled={!onEdit}
           >
             ✎
           </button>
-          <button className="icon-btn delete-btn-overlay" title="Eliminar" onClick={onDelete}>🗑️</button>
+          <button className="icon-btn delete-btn-overlay" title="Eliminar" onClick={onDelete} disabled={!onDelete}>🗑️</button>
         </div>)} 
       </div>
 
@@ -54,19 +55,36 @@ import './CostumeCard.css';
 
         <div className="costume-price-row">
           <div className="price-info">
-            <span className="price-value">€{(costume.rentFee || 0).toFixed(2)}</span>
-            {costume.isRental && <span className="price-suffix">/aluguer</span>}
+            {costume.isRental ? (
+              <>
+                <span className="price-value">€{(costume.rentFee || 0).toFixed(2)}</span>
+                <span className="price-suffix">/aluguer</span>
+              </>
+            ) : (
+              <span className="price-suffix">Figurino do aluno</span>
+            )}
           </div>
-          <span className="stock-info">{costume.stock} disponíveis</span>
+          <span className="stock-info">
+            {costume.isRental ? `${costume.stock} disponíveis` : 'Venda direta pelo aluno'}
+          </span>
         </div>
 
-        {onRent && (
+        {onRent && costume.isRental && (
           <button 
             className="btn-action-full" 
             onClick={onRent}
             disabled={costume.status === 'Alugado' || costume.stock === 0}
           >
             🛍️ {costume.actionText || 'Alugar'}
+          </button>
+        )}
+
+        {onViewInfo && (
+          <button 
+            className="btn-action-full btn-action-full--info" 
+            onClick={onViewInfo}
+          >
+            👁️ Ver informações
           </button>
         )}
       </div>
