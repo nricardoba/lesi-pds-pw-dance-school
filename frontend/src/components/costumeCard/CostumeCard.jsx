@@ -60,13 +60,15 @@ import './CostumeCard.css';
           <span className="stock-info">{costume.stock} disponíveis</span>
         </div>
 
-        <button 
-          className="btn-action-full" 
-          onClick={onRent}
-          disabled={costume.status === 'Alugado' || costume.stock === 0}
-        >
-          🛍️ {costume.actionText || 'Alugar'}
-        </button>
+        {onRent && (
+          <button 
+            className="btn-action-full" 
+            onClick={onRent}
+            disabled={costume.status === 'Alugado' || costume.stock === 0}
+          >
+            🛍️ {costume.actionText || 'Alugar'}
+          </button>
+        )}
       </div>
     </div>
   );

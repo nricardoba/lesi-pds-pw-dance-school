@@ -44,12 +44,13 @@ const CostumesPage = () => {
     try {
       setIsLoading(true);
 
-      const [itemsData, rentalsData, usersData, categoriesData] = await Promise.all([
+      const [itemsData, rentalsData, usersData] = await Promise.all([
         getItems(token),
         getRentals(token),
         getUsers(token),
-        getCategories(token),
       ]);
+
+      const categoriesData = await getCategories(token);
 
       setCategories(categoriesData || []);
 
@@ -462,7 +463,7 @@ const CostumesPage = () => {
                 key={costume.id}
                 costume={costume}
                 onEdit={() => handleEditCostume(costume)}
-                onRent={() => handleOpenRentalModal(costume)}
+                onRent={isAdmin ? () => handleOpenRentalModal(costume) : undefined}
                 onDelete={() => handleAskDeleteCostume(costume)}
               />
             ))}
@@ -479,7 +480,7 @@ const CostumesPage = () => {
               <RentalItem
                 key={rental.id}
                 rental={rental}
-                onReturn={handleReturnRental}
+                onReturn={isAdmin ? handleReturnRental : undefined}
                 onViewDetails={handleOpenRentalDetails}
               />
             ))}
