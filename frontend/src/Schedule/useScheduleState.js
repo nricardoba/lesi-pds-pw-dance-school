@@ -26,6 +26,12 @@ export const useScheduleState = (token, daysOfWeek) => {
   const { classesData, setClassesData } = useScheduleData(token);
   const modals = useScheduleModals();
 
+  const isNotFoundError = (error) => {
+    if (!(error instanceof Error)) return false;
+    const message = error.message.toLowerCase();
+    return message.includes('404') || message.includes('not found') || message.includes('não encontrada');
+  };
+
   const getWeekDayClass = (date) => {
     if (!referenceDate) return '';
 
@@ -219,7 +225,14 @@ export const useScheduleState = (token, daysOfWeek) => {
             delete backendClassFormat.instructorId;
           }
           
-          await updateClassRequest(classData.id, backendClassFormat, token);
+          try {
+            await updateClassRequest(classData.id, backendClassFormat, token);
+          } catch (error) {
+            // If class does not exist on backend (ghost local class), keep local edit.
+            if (!isNotFoundError(error)) {
+              throw error;
+            }
+          }
           // For frontend immediate update (assuming the mapping is fine as is)
         }
         
@@ -339,6 +352,15 @@ export const useScheduleState = (token, daysOfWeek) => {
       );
       modals.setClassToDelete(null);
     } catch (error) {
+      // Remove local ghost classes even if backend says the class no longer exists.
+      if (isNotFoundError(error)) {
+        setClassesData((prevData) =>
+          prevData.filter((item) => item.id !== modals.classToDelete.id)
+        );
+        modals.setClassToDelete(null);
+        return;
+      }
+
       console.error('Error deleting class:', error);
       alert('Erro ao apagar a aula do servidor.');
     }

@@ -120,6 +120,36 @@ const StudiosPage = () => {
     };
   }, [setClassesData]);
 
+  useEffect(() => {
+    if (!studios.length || !classesData.length) {
+      return;
+    }
+
+    const studioNameById = new Map(studios.map((studio) => [Number(studio.id), studio.name]));
+    let hasChanges = false;
+
+    const reconciledClasses = classesData.map((classItem) => {
+      const classStudioId = Number(classItem.studioId || classItem.room);
+      const actualStudioName = studioNameById.get(classStudioId);
+
+      if (!actualStudioName || classItem.roomName === actualStudioName) {
+        return classItem;
+      }
+
+      hasChanges = true;
+      return {
+        ...classItem,
+        roomName: actualStudioName,
+        studio: actualStudioName,
+      };
+    });
+
+    if (hasChanges) {
+      setClassesData(reconciledClasses);
+      writeScheduleClassesToStorage(reconciledClasses);
+    }
+  }, [studios, classesData]);
+
   const scheduledClasses = useMemo(() => {
     return (classesData || []).map((classItem) => ({
       id: classItem.id,
@@ -203,6 +233,28 @@ const StudiosPage = () => {
         } catch (relErr) {
           console.error('Erro a sincronizar modalidades do estúdio:', relErr);
         }
+      }
+
+      // Keep schedule classes in sync when studio name changes
+      if (editingStudio) {
+        const studioId = Number(savedStudio?.studioId || editingStudio.id);
+        const studioName = savedStudio?.studioName || payload.studioName;
+
+        const nextClasses = (classesData || []).map((classItem) => {
+          const classStudioId = Number(classItem.studioId || classItem.room);
+          if (classStudioId !== studioId) {
+            return classItem;
+          }
+
+          return {
+            ...classItem,
+            roomName: studioName,
+            studio: studioName,
+          };
+        });
+
+        setClassesData(nextClasses);
+        writeScheduleClassesToStorage(nextClasses);
       }
 
       await fetchStudios();

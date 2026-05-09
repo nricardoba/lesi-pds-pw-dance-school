@@ -1,5 +1,5 @@
 ﻿import '../pagesCss/SchedulePage.css';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { registerLocale } from 'react-datepicker';
 import { pt } from 'date-fns/locale';
 import WeekNavigator from '../components/weekNavigator/weekNavigator';
@@ -11,6 +11,8 @@ import WeeklyCalendar from '../components/weeklyCalendar/WeeklyCalendar';
 import DeleteConfirmModal from '../components/deleteConfirmModal/DeleteConfirmModal';
 import TemplatePickerModal from '../components/templatePickerModal/TemplatePickerModal';
 import { useScheduleState } from '../Schedule/useScheduleState';
+import { getUsers } from '../services/users';
+import { getStudios } from '../services/studios';
 import { formatDateForInput, pad2 } from '../utils/scheduleUtils';
 
 registerLocale('pt', pt);
@@ -85,7 +87,50 @@ const SchedulePage = () => {
 
   const todayDateIso = formatDateForInput(new Date());
 
+  // Filter state
+  const [professors, setProfessors] = useState([]);
+  const [studiosList, setStudiosList] = useState([]);
+  const [selectedProfessorId, setSelectedProfessorId] = useState('');
+  const [selectedStudioId, setSelectedStudioId] = useState('');
+  const [selectedModalityId, setSelectedModalityId] = useState('');
+  useEffect(() => {
+    if (!token) return;
+
+    let mounted = true;
+
+    const fetchFilterData = async () => {
+      try {
+        const [usersData, studiosData] = await Promise.all([getUsers(token), getStudios(token)]);
+        if (!mounted) return;
+        const professorList = (usersData || []).filter((u) => u.userType?.userTypeDesc === 'Professor');
+        setProfessors(professorList);
+        setStudiosList(studiosData || []);
+      } catch (err) {
+        console.error('Failed to load filters data', err);
+      }
+    };
+
+    fetchFilterData();
+
+    return () => { mounted = false; };
+  }, [token]);
+
   const daysToRender = selectedDay === 'Todos os dias' ? daysOfWeek : [selectedDay];
+
+  // Apply professor/studio filters to schedule data
+  const classesInCurrentWeekFiltered = (classesInCurrentWeek || []).filter((c) => {
+    if (selectedProfessorId && String(c.instructorId) !== String(selectedProfessorId)) return false;
+    if (selectedStudioId && String(c.room) !== String(selectedStudioId)) return false;
+    if (selectedModalityId && String(c.category) !== String(selectedModalityId)) return false;
+    return true;
+  });
+
+  const filteredClassesBySelection = (filteredClasses || []).filter((c) => {
+    if (selectedProfessorId && String(c.instructorId) !== String(selectedProfessorId)) return false;
+    if (selectedStudioId && String(c.room) !== String(selectedStudioId)) return false;
+    if (selectedModalityId && String(c.category) !== String(selectedModalityId)) return false;
+    return true;
+  });
 
   return (
     <div className="schedule-page">
@@ -94,6 +139,7 @@ const SchedulePage = () => {
           <h1 className="schedule-page__title">Horário de Aulas</h1>
           <p className="schedule-page__subtitle">Grelha semanal com todas as aulas</p>
         </div>
+
 
         {role === 'admin' && (
           <button className="btn-primary" onClick={handleOpenNewClass}>
@@ -130,6 +176,45 @@ const SchedulePage = () => {
         currentWeekForSchedule={currentWeekForSchedule}
         todayDateIso={todayDateIso}
       />
+      
+        <div className="schedule-page__filters">
+          <label>
+            Professor/a:&nbsp;
+            <select value={selectedProfessorId} onChange={(e) => setSelectedProfessorId(e.target.value)}>
+              <option value="">Todos os professores</option>
+              {professors.map((p) => (
+                <option key={p.userId} value={String(p.userId)}>{p.userName}</option>
+              ))}
+            </select>
+          </label>
+
+          <label style={{ marginLeft: '12px' }}>
+            Estúdio:&nbsp;
+            <select value={selectedStudioId} onChange={(e) => setSelectedStudioId(e.target.value)}>
+              <option value="">Todos os estúdios</option>
+              {studiosList.map((s) => (
+                <option key={s.studioId} value={String(s.studioId)}>{s.studioName}</option>
+              ))}
+            </select>
+          </label>
+
+          <label style={{ marginLeft: '12px' }}>
+            Estilo:&nbsp;
+            <select value={selectedModalityId} onChange={(e) => setSelectedModalityId(e.target.value)}>
+              <option value="">Todos os estilos</option>
+              {(() => {
+                const mapByCat = new Map();
+                (classesInCurrentWeek || []).forEach((cls) => {
+                  const key = String(cls.category || cls.categoryName || cls.name || cls.id);
+                  if (!mapByCat.has(key)) mapByCat.set(key, { id: cls.category || key, name: cls.categoryName || cls.name || `Aula ${cls.id}` });
+                });
+                return Array.from(mapByCat.values()).map((m) => (
+                  <option key={m.id} value={String(m.id)}>{m.name}</option>
+                ));
+              })()}
+            </select>
+          </label>
+        </div>
 
       {viewMode === 'daily' ? (
         <div className="mt-2 daily-view-container">
@@ -143,10 +228,10 @@ const SchedulePage = () => {
             </button>
           </div>
 
-          {filteredClasses.length > 0 ? (
+          {filteredClassesBySelection.length > 0 ? (
             <FilteredDayClasses
               day={selectedDay}
-              classes={[...filteredClasses].sort((a, b) => a.start - b.start)}
+              classes={[...filteredClassesBySelection].sort((a, b) => a.start - b.start)}
               onEditClass={handleEditClass}
               onDeleteClass={role === 'admin' ? handleAskDeleteClass : undefined}
               role={role}
@@ -163,7 +248,7 @@ const SchedulePage = () => {
         <WeeklyCalendar
           role={role}
           daysToRender={daysToRender}
-          classesInCurrentWeek={classesInCurrentWeek}
+          classesInCurrentWeek={classesInCurrentWeekFiltered}
           getDayLayoutMap={getDayLayoutMap}
           calculatePosition={calculatePosition}
           activeSlotMenu={activeSlotMenu}

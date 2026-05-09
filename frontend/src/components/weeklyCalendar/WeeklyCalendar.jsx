@@ -79,8 +79,8 @@ const WeeklyCalendar = ({
                         {role === 'admin' && isMenuOpen && !hasClassInSlot && (
                           <div className="slot-menu-schedule" onClick={(e) => e.stopPropagation()}>
                             <button type="button" onClick={() => openNewClassFromSlot(slotInfo)}>+ Nova Aula</button>
-                            <button type="button" onClick={() => openTemplatePickerFromSlot(slotInfo)}>▶ Usar Template</button>
-                          </div>
+{/*                             <button type="button" onClick={() => openTemplatePickerFromSlot(slotInfo)}>▶ Usar Template</button>
+ */}                          </div>
                         )}
                       </div>
                     );
