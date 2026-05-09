@@ -10,8 +10,10 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
   const { role, user, token } = useAuth();
   //const [extraFees, setExtraFees] = useState([]);
 
+  const currentUserId = user?.user_id || user?.userId || user?.id || '';
+
   const [formData, setFormData] = useState({
-    studentId: role === 'student' ? (user?.user_name || 'Estudante Atual') : '',
+    studentId: role === 'student' ? currentUserId : '',
     teacherId: '',
     schoolYearId: '',
     modalityId: '',
@@ -133,7 +135,7 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
     const payload = {
       modality_id: Number(formData.modalityId),
       professor_id: Number(formData.teacherId),
-      student_ids: [Number(formData.studentId)],
+      student_ids: [Number(formData.studentId || currentUserId)],
       school_year_id: Number(formData.schoolYearId),
       start_time: new Date(`${formData.date}T${formData.time}:00`).toISOString(),
       end_time: calculateISOEndTime(formData.date, formData.time, formData.duration)
