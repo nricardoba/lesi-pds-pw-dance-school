@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { scheduleService } from '../services/scheduleService';
+import { apiClient } from '../services/apiClient';
+import { useAuth } from '../context/useAuth';
 import '../pagesCss/TeacherSchedulePage.css';
 import TeacherScheduleStatus from '../components/teacherSchedule/TeacherScheduleStatus';
 import TeacherScheduleSlots from '../components/teacherSchedule/TeacherScheduleSlots';
 import TeacherScheduleHistory from '../components/teacherSchedule/TeacherScheduleHistory';
 import SubmitScheduleModal from '../components/teacherSchedule/SubmitScheduleModal';
 
-const formatDate = (date) => {
+const formatDate = (dateString) => {
+  if (!dateString) {
+    return '-';
+  }
+
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
@@ -13,27 +25,94 @@ const formatDate = (date) => {
 };
 
 const TeacherSchedulePage = () => {
+  const { token, user } = useAuth();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState({
-    submissionDate: '01/03/2026',
-    reviewDate: '01/03/2026',
-    totalSlots: 6,
-    status: 'Aprovado'
-  });
+  const [currentStatus, setCurrentStatus] = useState({});
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [schoolYearId, setSchoolYearId] = useState(null);
 
-  const [availableSlots, setAvailableSlots] = useState([
-    { id: 1, day: 'Segunda-feira', time: '09:00 - 13:00' },
-    { id: 2, day: 'Segunda-feira', time: '14:00 - 18:00' },
-    { id: 3, day: 'Terça-feira', time: '10:00 - 14:00' },
-    { id: 4, day: 'Quarta-feira', time: '09:00 - 13:00' },
-    { id: 5, day: 'Quinta-feira', time: '14:00 - 19:00' },
-    { id: 6, day: 'Sexta-feira', time: '09:00 - 12:00' }
-  ]);
+  const fetchCurrentSchoolYear = useCallback(() => {
+    apiClient('/school-years', { token })
+      .then(response => {
+        const now = new Date();
+        const currentSchoolYear = response.find(schoolYear => {
+          const startDate = new Date(schoolYear.schoolYearStart);
+          const endDate = new Date(schoolYear.schoolYearEnd);
+          return startDate <= now && now <= endDate;
+        }) || response[response.length - 1];
 
-  const [history, setHistory] = useState([
-    { id: 1, date: '01/03/2026', status: 'Aprovado', details: '6 slots • Horário aprovado pela direção' },
-    { id: 2, date: '15/02/2026', status: 'Rejeitado', details: '4 slots • Conflito com outras aulas - por favor ajustar Segunda-feira manhã' }
-  ]);
+        if (currentSchoolYear?.schoolYearId) {
+          setSchoolYearId(currentSchoolYear.schoolYearId);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching school years:', error);
+      });
+  }, [token]);
+
+  const fetchScheduleData = useCallback(() => {
+    scheduleService.getMyScheduleVacancies(token)
+      .then(response => {
+        // Show PENDING slots (scheduleVacancyRecurrence === true) - slots submitted and awaiting approval
+        const pendingSlots = response.filter(slot => slot.scheduleVacancyRecurrence === true);
+        
+        const formattedSlots = pendingSlots.map(slot => {
+          const startDate = new Date(slot.scheduleVacancyStart);
+          const endDate = new Date(slot.scheduleVacancyEnd);
+          const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+          
+          const startStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+          const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+
+          return {
+            id: slot.scheduleVacancyId,
+            day: days[startDate.getDay()],
+            time: `${startStr} - ${endStr}`
+          };
+        });
+        setAvailableSlots(formattedSlots);
+      })
+      .catch(error => {
+        console.error('Error fetching schedule vacancies:', error);
+      });
+
+    scheduleService.getMyScheduleSubmissions(token)
+      .then(response => {
+        const formattedHistory = response.map(item => ({
+          id: item.scheduleSubmissionId,
+          date: formatDate(item.submissionDate),
+          status: item.status?.scheduleSubmissionStatusDesc || 'Pendente',
+          details: `${item.scheduleVacancies?.length || 0} slots • ${item.rejectionReason || `Horário ${item.status?.scheduleSubmissionStatusDesc?.toLowerCase() || 'pendente'} pela direção`}`
+        }));
+        setHistory(formattedHistory);
+      })
+      .catch(error => {
+        console.error('Error fetching schedule submissions:', error);
+      });
+
+    scheduleService.getMyLatestSubmissionStatus(token)
+      .then(response => {
+        if (response) {
+          setCurrentStatus({
+            submissionDate: formatDate(response.submissionDate),
+            reviewDate: response.reviewDate ? formatDate(response.reviewDate) : '-',
+            totalSlots: response.scheduleVacancies?.length || 0,
+            status: response.status?.scheduleSubmissionStatusDesc || 'Pendente'
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching latest submission status:', error);
+      });
+  }, [token]);
+
+  useEffect(() => {
+    if (token && user) {
+      fetchCurrentSchoolYear();
+      fetchScheduleData();
+    }
+  }, [token, user, fetchCurrentSchoolYear, fetchScheduleData]);
 
   const handleOpenModal = () => {
     setIsSubmitModalOpen(true);
@@ -43,28 +122,33 @@ const TeacherSchedulePage = () => {
     setIsSubmitModalOpen(false);
   };
 
-  const handleSubmitSchedule = (newSlots, selectedSlotsCount) => {
-    const today = formatDate(new Date());
+  const handleSubmitSchedule = (newSlots) => {
+    if (!schoolYearId) {
+      console.error('School year not loaded yet');
+      return;
+    }
 
-    setAvailableSlots(newSlots);
-    setCurrentStatus({
-      submissionDate: today,
-      reviewDate: '-',
-      totalSlots: selectedSlotsCount,
-      status: 'Pendente'
-    });
+    const submissionData = {
+      schoolYearId,
+      vacancies: newSlots.map(slot => ({
+        day_of_week: slot.day,
+        start_time: slot.time.split(' - ')[0],
+        end_time: slot.time.split(' - ')[1],
+      }))
+    };
 
-    setHistory((previous) => [
-      {
-        id: Date.now(),
-        date: today,
-        status: 'Pendente',
-        details: `${selectedSlotsCount} slots • Horário enviado e a aguardar aprovação da direção`
-      },
-      ...previous
-    ]);
-
-    setIsSubmitModalOpen(false);
+    scheduleService.submitSchedule(submissionData, token)
+      .then(() => {
+        console.log('Schedule submitted successfully');
+        fetchScheduleData(); // Refresh data after submission
+        setIsSubmitModalOpen(false);
+      })
+      .catch(error => {
+        console.error('Error submitting schedule:', error);
+      })
+      .finally(() => {
+        // Ensure any dangling promise handlers are resolved
+      });
   };
 
   return (
@@ -90,7 +174,7 @@ const TeacherSchedulePage = () => {
         isOpen={isSubmitModalOpen} 
         onClose={handleCloseModal} 
         onSubmit={handleSubmitSchedule} 
-        teacherName="Ana Ribeiro" 
+        teacherName={user?.userName || "Professor"} 
       />
     </div>
   );

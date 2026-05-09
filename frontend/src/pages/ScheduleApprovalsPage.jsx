@@ -1,50 +1,40 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { scheduleService } from '../services/scheduleService';
+import { useAuth } from '../context/useAuth';
 import '../pagesCss/ScheduleApprovalsPage.css';
 import ScheduleApprovalsStats from '../components/scheduleApprovals/ScheduleApprovalsStats';
 import ScheduleApprovalsControls from '../components/scheduleApprovals/ScheduleApprovalsControls';
 import ScheduleApprovalsTable from '../components/scheduleApprovals/ScheduleApprovalsTable';
 import ScheduleApprovalModal from '../components/scheduleApprovals/ScheduleApprovalModal';
 
-const REQUESTS_SEED = [
-  {
-    id: 1001,
-    teacherName: 'Ana Ribeiro',
-    submittedAt: '18/04/2026',
-    status: 'Pendente',
-    note: 'Disponibilidade para o próximo mês letivo.',
-    slots: [
-      { day: 'Segunda-feira', time: '09:00 - 13:00' },
-      { day: 'Quarta-feira', time: '14:00 - 18:00' },
-      { day: 'Sexta-feira', time: '10:00 - 13:00' }
-    ]
-  },
-  {
-    id: 1002,
-    teacherName: 'Ricardo Santos',
-    submittedAt: '17/04/2026',
-    status: 'Pendente',
-    note: 'Ajuste de disponibilidade por conflito com formação externa.',
-    slots: [
-      { day: 'Terça-feira', time: '08:00 - 12:00' },
-      { day: 'Quinta-feira', time: '15:00 - 19:00' }
-    ]
-  },
-  {
-    id: 1003,
-    teacherName: 'Sofia Martins',
-    submittedAt: '12/04/2026',
-    status: 'Aprovado',
-    decisionDate: '13/04/2026',
-    note: 'Aprovado sem alterações.',
-    slots: [{ day: 'Segunda-feira', time: '08:00 - 12:00' }]
-  }
-];
-
 const ScheduleApprovalsPage = () => {
-  const [requests, setRequests] = useState(REQUESTS_SEED);
+  const { token } = useAuth();
+  const [requests, setRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('Todos');
   const [selectedRequestId, setSelectedRequestId] = useState(null);
+
+  useEffect(() => {
+    if (!token) return;
+    scheduleService.getAllScheduleSubmissions(token)
+    .then(res => {
+      const allSubmissions = res;
+      const formattedRequests = allSubmissions.map(req => ({
+        id: req.scheduleSubmissionId, // This is acting as userId underneath based on our mock logic
+        teacherName: req.user.userName,
+        submittedAt: new Date(req.submissionDate).toLocaleDateString(),
+        status: req.status.scheduleSubmissionStatusDesc,
+        note: req.rejectionReason || '',
+        slots: req.scheduleVacancies.map(v => ({
+          day: v.day_of_week,
+          time: `${v.start_time} - ${v.end_time}`
+        })),
+        decisionDate: req.reviewDate ? new Date(req.reviewDate).toLocaleDateString() : null
+      }));
+      setRequests(formattedRequests);
+    })
+    .catch(error => console.error('Error fetching schedule requests:', error));
+  }, []);
 
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) || null;
 
@@ -60,30 +50,19 @@ const ScheduleApprovalsPage = () => {
   const approvedCount = requests.filter((request) => request.status === 'Aprovado').length;
   const rejectedCount = requests.filter((request) => request.status === 'Rejeitado').length;
 
-  const markRequest = (requestId, nextStatus) => {
-    const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const year = today.getFullYear();
-    const decisionDate = `${day}/${month}/${year}`;
-
-    setRequests((previous) =>
-      previous.map((request) =>
-        request.id === requestId
-          ? {
-              ...request,
-              status: nextStatus,
-              decisionDate,
-              note:
-                nextStatus === 'Aprovado'
-                  ? 'Pedido aprovado pela direção.'
-                  : 'Pedido rejeitado pela direção. Solicitar novo envio ajustado.'
-            }
-          : request
-      )
-    );
-
-    setSelectedRequestId(null);
+  const markRequest = (requestId, nextStatus, rejectionReason = '') => {
+    scheduleService.reviewScheduleSubmission(requestId, { status: nextStatus, rejectionReason }, token)
+      .then(() => {
+        setRequests(prev =>
+          prev.map(req =>
+            req.id === requestId
+              ? { ...req, status: nextStatus, decisionDate: new Date().toLocaleDateString(), note: rejectionReason }
+              : req
+          )
+        );
+        setSelectedRequestId(null);
+      })
+      .catch(error => console.error(`Error ${nextStatus === 'Aprovado' ? 'approving' : 'rejecting'} schedule:`, error));
   };
 
   return (
