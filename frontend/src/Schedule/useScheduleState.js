@@ -254,9 +254,14 @@ export const useScheduleState = (token, daysOfWeek) => {
           classRecurrence: false,
           studioId: Number(classData.room),
           modalityId: Number(classData.category),
+          instructorId: classData.instructorId ? Number(classData.instructorId) : Number(classData.instructor) || undefined,
           classFinalFee: 20.0,
           classStatusId: 1
         };
+
+        if (backendClassFormat.instructorId === undefined || Number.isNaN(backendClassFormat.instructorId)) {
+          delete backendClassFormat.instructorId;
+        }
 
         if (token) {
           const newClass = await createClassRequest(backendClassFormat, token);

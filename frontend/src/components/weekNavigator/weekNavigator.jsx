@@ -14,15 +14,15 @@ const WeekNavigator = ({
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     const goToPreviousWeek = () => {
-        const prevWeek = new Date(referenceDate);
-        prevWeek.setDate(prevWeek.getDate() - 7);
-        setReferenceDate(prevWeek);
+        const prevDay = new Date(referenceDate);
+        prevDay.setDate(prevDay.getDate() - 1);
+        setReferenceDate(prevDay);
     };
 
     const goToNextWeek = () => {
-        const nextWeek = new Date(referenceDate);
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        setReferenceDate(nextWeek);
+        const nextDay = new Date(referenceDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        setReferenceDate(nextDay);
     };
 
     useEffect(() => {

@@ -39,10 +39,10 @@ const AvailabilityGrid = ({ studios, activeDay, displayDate, classes, maintenanc
             <div className="grid-cell-time">{hour}</div>
             
             {studios.map(studio => {
-              // Verifica se existe aula para esta estúdio, dia e hora
-             const classHere = classes?.find(c => c.day === activeDay && c.studio === studio.name && c.time === hour);
-              const maintenanceHere = maintenances?.find(m => m.day === activeDay && m.studio === studio.name && m.time === hour);
-              
+              // Verifica se existe aula para este estúdio (preferência por studioId), dia e hora
+              const classHere = classes?.find(c => c.day === activeDay && ((c.studioId && Number(c.studioId) === Number(studio.id)) || c.studio === studio.name) && c.time === hour);
+              const maintenanceHere = maintenances?.find(m => m.day === activeDay && ((m.studioId && Number(m.studioId) === Number(studio.id)) || m.studio === studio.name) && m.time === hour);
+
               const isMenuOpen = activeMenu?.studioId === studio.id && activeMenu?.hour === hour;
 
               return (
