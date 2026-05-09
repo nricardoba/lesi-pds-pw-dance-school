@@ -314,7 +314,8 @@ export const useScheduleState = (token, daysOfWeek) => {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Erro ao gravar no servidor.';
-      alert(`Erro ao gravar no servidor: ${message}`);
+      console.error('Erro ao gravar no servidor:', message);
+      throw error instanceof Error ? error : new Error(message);
     }
   };
 

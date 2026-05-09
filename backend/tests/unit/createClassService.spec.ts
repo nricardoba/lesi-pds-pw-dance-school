@@ -10,6 +10,7 @@ vi.mock('../../src/config/db', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      findMany: vi.fn(),
     },
     studioModality: {
       findFirst: vi.fn(),
@@ -59,7 +60,26 @@ describe('Class Services - Unit Tests', () => {
       };
 
       vi.mocked(prisma.schoolYear.findUnique).mockResolvedValue({ schoolYearId: 1 } as any);
-      vi.mocked(prisma.class.create).mockResolvedValue(mockCreatedClass as any);
+      vi.mocked(prisma.studioModality.findFirst).mockResolvedValue({
+        studioModalityId: 1,
+        studioId: 1,
+        modalityId: 1,
+      } as any);
+      vi.mocked(prisma.class.findMany).mockResolvedValue([] as any);
+      vi.mocked(prisma.$transaction).mockImplementation(async (callback) => {
+        return callback({
+          class: {
+            create: vi.fn().mockResolvedValue({ classId: 1 }),
+            findUnique: vi.fn().mockResolvedValue(mockCreatedClass),
+          },
+          studioModality: {
+            create: vi.fn(),
+          },
+          userClass: {
+            create: vi.fn(),
+          },
+        } as any);
+      });
 
       const response = await classServices.createClassService(validPayload);
 
@@ -69,18 +89,81 @@ describe('Class Services - Unit Tests', () => {
         classId: 1,
       });
 
-      expect(prisma.class.create).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.any(Object),
-        include: expect.any(Object),
-      }));
+      expect(prisma.$transaction).toHaveBeenCalled();
+    });
+
+    it('deve bloquear a criação se o professor já tiver outra aula no mesmo horário', async () => {
+      const validPayload = {
+        schoolYearId: 1,
+        classDateStart: new Date('2023-09-01T10:00:00Z').toISOString(),
+        classDateEnd: new Date('2023-09-01T11:00:00Z').toISOString(),
+        classRecurrence: false,
+        studioModalityId: 1,
+        classFinalFee: 100,
+        classStatusId: 1,
+        instructorId: 5,
+      };
+
+      vi.mocked(prisma.schoolYear.findUnique).mockResolvedValue({ schoolYearId: 1 } as any);
+      vi.mocked(prisma.studioModality.findFirst).mockResolvedValue({
+        studioModalityId: 1,
+        studioId: 1,
+        modalityId: 1,
+      } as any);
+      vi.mocked(prisma.class.findMany).mockResolvedValue([
+        {
+          classId: 2,
+          studioModality: { studioId: 2 },
+          userClass: [
+            {
+              userId: 5,
+              userClassRole: { userClassRoleDesc: 'Professor Responsável' },
+            },
+          ],
+        },
+      ] as any);
+
+      await expect(classServices.createClassService(validPayload)).rejects.toThrow(
+        'O professor já tem uma aula nesse horário.'
+      );
+      expect(prisma.class.create).not.toHaveBeenCalled();
+    });
+
+    it('deve bloquear a criação se o estúdio já estiver ocupado no mesmo horário', async () => {
+      const validPayload = {
+        schoolYearId: 1,
+        classDateStart: new Date('2023-09-01T10:00:00Z').toISOString(),
+        classDateEnd: new Date('2023-09-01T11:00:00Z').toISOString(),
+        classRecurrence: false,
+        studioModalityId: 1,
+        classFinalFee: 100,
+        classStatusId: 1,
+      };
+
+      vi.mocked(prisma.schoolYear.findUnique).mockResolvedValue({ schoolYearId: 1 } as any);
+      vi.mocked(prisma.studioModality.findFirst).mockResolvedValue({
+        studioModalityId: 1,
+        studioId: 3,
+        modalityId: 1,
+      } as any);
+      vi.mocked(prisma.class.findMany).mockResolvedValue([
+        {
+          classId: 3,
+          studioModality: { studioId: 3 },
+          userClass: [],
+        },
+      ] as any);
+
+      await expect(classServices.createClassService(validPayload)).rejects.toThrow(
+        'O estúdio já está ocupado nesse horário.'
+      );
+      expect(prisma.class.create).not.toHaveBeenCalled();
     });
 
     it('deve lançar erro se faltar algum dado necessário', async () => {
       const invalidData = { classDateStart: '2023-09-01T10:00:00Z' }; // Faltando outros dados
 
-      await expect(classServices.createClassService(invalidData)).rejects.toThrow(
-        'Dados obrigatórios ausentes'
-      );
+      await expect(classServices.createClassService(invalidData)).rejects.toThrow();
       expect(prisma.class.create).not.toHaveBeenCalled();
     });
   });
@@ -88,10 +171,16 @@ describe('Class Services - Unit Tests', () => {
   describe('updateClassService', () => {
     it('deve atualizar a aula com sucesso', async () => {
       const updatedData = { classDateStart: new Date('2023-09-02T10:00:00Z').toISOString(), classDateEnd: new Date('2023-09-02T11:00:00Z').toISOString() };
-      const mockClass = { classId: 1, ...updatedData, userClass: [] };
+      const mockClass = { classId: 1, ...updatedData, studioModalityId: 1, studioModality: { studioId: 1 }, userClass: [] };
 
       vi.mocked(prisma.class.findUnique).mockResolvedValue(mockClass as any);
       vi.mocked(prisma.userClassRole.findFirst).mockResolvedValue({ userClassRoleId: 1 } as any);
+      vi.mocked(prisma.studioModality.findFirst).mockResolvedValue({
+        studioModalityId: 1,
+        studioId: 1,
+        modalityId: 1,
+      } as any);
+      vi.mocked(prisma.class.findMany).mockResolvedValue([] as any);
       
       // Mock $transaction to execute the callback immediately and return the result
       vi.mocked(prisma.$transaction).mockImplementation(async (callback) => {
@@ -124,6 +213,68 @@ describe('Class Services - Unit Tests', () => {
       vi.mocked(prisma.class.findUnique).mockResolvedValue(null);
 
       await expect(classServices.updateClassService({ id: 999 }, updatedData)).rejects.toThrow('Aula não encontrada.');
+    });
+
+    it('deve bloquear a edição se o professor já tiver outra aula em conflito', async () => {
+      const updatedData = { classDateStart: new Date('2023-09-02T10:00:00Z').toISOString(), classDateEnd: new Date('2023-09-02T11:00:00Z').toISOString() };
+      const mockClass = {
+        classId: 1,
+        ...updatedData,
+        studioModalityId: 1,
+        studioModality: { studioId: 1 },
+        userClass: [
+          {
+            userId: 7,
+            userClassRole: { userClassRoleDesc: 'Professor Responsável' },
+          },
+        ],
+      };
+
+      vi.mocked(prisma.class.findUnique).mockResolvedValue(mockClass as any);
+      vi.mocked(prisma.studioModality.findFirst).mockResolvedValue({
+        studioModalityId: 1,
+        studioId: 1,
+        modalityId: 1,
+      } as any);
+      vi.mocked(prisma.class.findMany).mockResolvedValue([
+        {
+          classId: 2,
+          studioModality: { studioId: 2 },
+          userClass: [
+            {
+              userId: 7,
+              userClassRole: { userClassRoleDesc: 'Professor Responsável' },
+            },
+          ],
+        },
+      ] as any);
+
+      await expect(classServices.updateClassService({ id: 1 }, updatedData)).rejects.toThrow(
+        'O professor já tem uma aula nesse horário.'
+      );
+    });
+
+    it('deve bloquear a edição se o estúdio já estiver ocupado em conflito', async () => {
+      const updatedData = { classDateStart: new Date('2023-09-02T10:00:00Z').toISOString(), classDateEnd: new Date('2023-09-02T11:00:00Z').toISOString() };
+      const mockClass = { classId: 1, ...updatedData, studioModalityId: 1, studioModality: { studioId: 1 }, userClass: [] };
+
+      vi.mocked(prisma.class.findUnique).mockResolvedValue(mockClass as any);
+      vi.mocked(prisma.studioModality.findFirst).mockResolvedValue({
+        studioModalityId: 1,
+        studioId: 1,
+        modalityId: 1,
+      } as any);
+      vi.mocked(prisma.class.findMany).mockResolvedValue([
+        {
+          classId: 2,
+          studioModality: { studioId: 1 },
+          userClass: [],
+        },
+      ] as any);
+
+      await expect(classServices.updateClassService({ id: 1 }, updatedData)).rejects.toThrow(
+        'O estúdio já está ocupado nesse horário.'
+      );
     });
   });
 

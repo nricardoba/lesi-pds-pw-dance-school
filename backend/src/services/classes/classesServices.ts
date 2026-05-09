@@ -83,6 +83,111 @@ const confirmCoachingSchema = z.object({
 const closeCoachingSchema = z.object({
   finalStatus: z.enum(["Concluída", "Cancelada"]).optional(),
 });
+
+const PROFESSOR_ROLE_DESCS = ["Professor Responsável", "Professor Assistente"];
+
+const getProfessorUserIdFromClass = (classItem: {
+  userClass?: Array<{ userId: number; userClassRole?: { userClassRoleDesc?: string | null } | null }>;
+}) => {
+  return classItem.userClass?.find((uc) =>
+    PROFESSOR_ROLE_DESCS.includes(uc.userClassRole?.userClassRoleDesc ?? "")
+  )?.userId ?? null;
+};
+
+const resolveStudioContext = async (input: {
+  studioModalityId?: number;
+  studioId?: number;
+  modalityId?: number;
+}) => {
+  if (input.studioModalityId) {
+    const studioModality = await prisma.studioModality.findFirst({
+      where: { studioModalityId: input.studioModalityId },
+    });
+
+    if (!studioModality) {
+      throw new AppError("Estúdio/Modalidade indisponível.", 400);
+    }
+
+    return studioModality;
+  }
+
+  if (input.studioId && input.modalityId) {
+    const existingStudioModality = await prisma.studioModality.findFirst({
+      where: {
+        studioId: input.studioId,
+        modalityId: input.modalityId,
+      },
+    });
+
+    if (existingStudioModality) {
+      return existingStudioModality;
+    }
+
+    return {
+      studioModalityId: null,
+      studioId: input.studioId,
+      modalityId: input.modalityId,
+    };
+  }
+
+  const fallbackStudioModality = await prisma.studioModality.findFirst();
+
+  if (!fallbackStudioModality) {
+    throw new AppError("Estúdio/Modalidade indisponível.", 400);
+  }
+
+  return fallbackStudioModality;
+};
+
+const assertNoScheduleConflicts = async ({
+  classIdToIgnore,
+  classDateStart,
+  classDateEnd,
+  studioId,
+  instructorId,
+}: {
+  classIdToIgnore?: number;
+  classDateStart: Date;
+  classDateEnd: Date;
+  studioId?: number | null;
+  instructorId?: number | null;
+}) => {
+  const overlappingClasses = await prisma.class.findMany({
+    where: {
+      ...(classIdToIgnore ? { classId: { not: classIdToIgnore } } : {}),
+      classDateStart: { lt: classDateEnd },
+      classDateEnd: { gt: classDateStart },
+    },
+    include: {
+      studioModality: true,
+      userClass: {
+        include: {
+          userClassRole: true,
+        },
+      },
+    },
+  });
+
+  if (instructorId) {
+    const professorConflict = overlappingClasses.find((classItem) =>
+      getProfessorUserIdFromClass(classItem) === instructorId
+    );
+
+    if (professorConflict) {
+      throw new AppError("O professor já tem uma aula nesse horário.", 409);
+    }
+  }
+
+  if (studioId) {
+    const studioConflict = overlappingClasses.find(
+      (classItem) => classItem.studioModality?.studioId === studioId
+    );
+
+    if (studioConflict) {
+      throw new AppError("O estúdio já está ocupado nesse horário.", 409);
+    }
+  }
+};
 export const listClassesService = async () => {
   return prisma.class.findMany({
     include: {
@@ -151,27 +256,34 @@ export const createClassService = async (body: unknown) => {
     instructorId,
   } = createClassSchema.parse(body);
 
-  if (!studioModalityId && studioId && modalityId) {
-    let sm = await prisma.studioModality.findFirst({
-      where: { studioId: studioId, modalityId: modalityId }
-    });
-    
-    // Se a associação não existir, contornamos o erro criando-a automaticamente 
-    // para facilitar que a aula seja gravada de imediato
-    if (!sm) {
-      sm = await prisma.studioModality.create({
+  const studioContext = await resolveStudioContext({
+    studioModalityId,
+    studioId,
+    modalityId,
+  });
+  const resolvedStudioId = studioContext.studioId;
+  let finalStudioModalityId = studioContext.studioModalityId ?? undefined;
+  const finalClassDateStart = new Date(classDateStart);
+  const finalClassDateEnd = new Date(classDateEnd);
+
+  await assertNoScheduleConflicts({
+    classDateStart: finalClassDateStart,
+    classDateEnd: finalClassDateEnd,
+    studioId: resolvedStudioId,
+    instructorId: instructorId ?? null,
+  });
+
+  if (!finalStudioModalityId) {
+    finalStudioModalityId = await prisma.$transaction(async (tx) => {
+      const createdStudioModality = await tx.studioModality.create({
         data: {
-          studioId: studioId,
-          modalityId: modalityId
-        }
+          studioId: resolvedStudioId,
+          modalityId: studioContext.modalityId,
+        },
       });
-    }
-    studioModalityId = sm.studioModalityId;
-  } else if (!studioModalityId) {
-      // Just fallback for hardcoded frontend requests if they forgot to change
-      const sm = await prisma.studioModality.findFirst();
-      if (!sm) throw new AppError("Salo/Modalidade indisponível.", 400);
-      studioModalityId = sm.studioModalityId;
+
+      return createdStudioModality.studioModalityId;
+    });
   }
 
   // To fix frontend sending hardcoded 'schoolYearId: 1' which might not exist
@@ -196,10 +308,10 @@ export const createClassService = async (body: unknown) => {
     const createdClass = await tx.class.create({
       data: {
         schoolYearId,
-        classDateStart: new Date(classDateStart),
-        classDateEnd: new Date(classDateEnd),
+        classDateStart: finalClassDateStart,
+        classDateEnd: finalClassDateEnd,
         classRecurrence: classRecurrence ?? false,
-        studioModalityId,
+        studioModalityId: finalStudioModalityId,
         classFinalFee,
         classStatusId,
       },
@@ -289,6 +401,7 @@ export const updateClassService = async (params: unknown, body: unknown) => {
   const existingClass = await prisma.class.findUnique({
     where: { classId: id },
     include: {
+      studioModality: true,
       userClass: {
         include: {
           userClassRole: true,
@@ -322,6 +435,44 @@ export const updateClassService = async (params: unknown, body: unknown) => {
   if (parsedBody.studioModalityId !== undefined) {
     dataToUpdate.studioModalityId = parsedBody.studioModalityId;
   }
+
+  const finalClassDateStart =
+    dataToUpdate.classDateStart instanceof Date
+      ? dataToUpdate.classDateStart
+      : existingClass.classDateStart;
+  const finalClassDateEnd =
+    dataToUpdate.classDateEnd instanceof Date
+      ? dataToUpdate.classDateEnd
+      : existingClass.classDateEnd;
+
+  const studioContext = await resolveStudioContext({
+    studioModalityId:
+      typeof dataToUpdate.studioModalityId === "number"
+        ? dataToUpdate.studioModalityId
+        : existingClass.studioModalityId,
+    studioId: parsedBody.studioId,
+    modalityId: parsedBody.modalityId,
+  });
+
+  const resolvedStudioId = studioContext.studioId;
+  const resolvedStudioModalityId = studioContext.studioModalityId ?? null;
+
+  if (dataToUpdate.studioModalityId === undefined && resolvedStudioModalityId !== null) {
+    dataToUpdate.studioModalityId = resolvedStudioModalityId;
+  }
+
+  const finalInstructorId =
+    parsedBody.instructorId != null
+      ? parsedBody.instructorId
+      : getProfessorUserIdFromClass(existingClass);
+
+  await assertNoScheduleConflicts({
+    classIdToIgnore: id,
+    classDateStart: finalClassDateStart,
+    classDateEnd: finalClassDateEnd,
+    studioId: resolvedStudioId,
+    instructorId: finalInstructorId,
+  });
 
   if (!dataToUpdate.studioModalityId && parsedBody.studioId && parsedBody.modalityId) {
     let studioModality = await prisma.studioModality.findFirst({

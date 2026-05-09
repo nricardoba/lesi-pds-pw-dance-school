@@ -304,6 +304,7 @@ const StudiosPage = () => {
       }
     } catch (error) {
       console.error('Erro a guardar aula:', error);
+      throw error instanceof Error ? error : new Error('Erro ao guardar a aula.');
     }
   };
 
