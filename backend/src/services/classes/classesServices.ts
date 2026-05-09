@@ -25,9 +25,12 @@ const createClassSchema = z.object({
   classDateStart: z.string().min(1),
   classDateEnd: z.string().min(1),
   classRecurrence: z.boolean().optional().nullable(),
-  studioModalityId: z.coerce.number().int().positive(),
+  studioModalityId: z.coerce.number().int().positive().optional(),
+  studioId: z.coerce.number().int().positive().optional(),
+  modalityId: z.coerce.number().int().positive().optional(),
   classFinalFee: z.coerce.number().nonnegative(),
   classStatusId: z.coerce.number().int().positive(),
+  instructorId: z.coerce.number().int().positive().optional().nullable(),
 });
 
 const createUserClassSchema = z.object({
@@ -42,8 +45,11 @@ const updateClassSchema = z.object({
   classDateEnd: z.string().min(1).optional(),
   classRecurrence: z.boolean().optional().nullable(),
   studioModalityId: z.coerce.number().int().positive().optional(),
+  studioId: z.coerce.number().int().positive().optional(),
+  modalityId: z.coerce.number().int().positive().optional(),
   classFinalFee: z.coerce.number().nonnegative().optional(),
   classStatusId: z.coerce.number().int().positive().optional(),
+  instructorId: z.coerce.number().int().positive().optional().nullable(),
 });
 
 const updateUserClassSchema = z.object({
@@ -77,6 +83,111 @@ const confirmCoachingSchema = z.object({
 const closeCoachingSchema = z.object({
   finalStatus: z.enum(["Concluída", "Cancelada"]).optional(),
 });
+
+const PROFESSOR_ROLE_DESCS = ["Professor Responsável", "Professor Assistente"];
+
+const getProfessorUserIdFromClass = (classItem: {
+  userClass?: Array<{ userId: number; userClassRole?: { userClassRoleDesc?: string | null } | null }>;
+}) => {
+  return classItem.userClass?.find((uc) =>
+    PROFESSOR_ROLE_DESCS.includes(uc.userClassRole?.userClassRoleDesc ?? "")
+  )?.userId ?? null;
+};
+
+const resolveStudioContext = async (input: {
+  studioModalityId?: number;
+  studioId?: number;
+  modalityId?: number;
+}) => {
+  if (input.studioModalityId) {
+    const studioModality = await prisma.studioModality.findFirst({
+      where: { studioModalityId: input.studioModalityId },
+    });
+
+    if (!studioModality) {
+      throw new AppError("Estúdio/Modalidade indisponível.", 400);
+    }
+
+    return studioModality;
+  }
+
+  if (input.studioId && input.modalityId) {
+    const existingStudioModality = await prisma.studioModality.findFirst({
+      where: {
+        studioId: input.studioId,
+        modalityId: input.modalityId,
+      },
+    });
+
+    if (existingStudioModality) {
+      return existingStudioModality;
+    }
+
+    return {
+      studioModalityId: null,
+      studioId: input.studioId,
+      modalityId: input.modalityId,
+    };
+  }
+
+  const fallbackStudioModality = await prisma.studioModality.findFirst();
+
+  if (!fallbackStudioModality) {
+    throw new AppError("Estúdio/Modalidade indisponível.", 400);
+  }
+
+  return fallbackStudioModality;
+};
+
+const assertNoScheduleConflicts = async ({
+  classIdToIgnore,
+  classDateStart,
+  classDateEnd,
+  studioId,
+  instructorId,
+}: {
+  classIdToIgnore?: number;
+  classDateStart: Date;
+  classDateEnd: Date;
+  studioId?: number | null;
+  instructorId?: number | null;
+}) => {
+  const overlappingClasses = await prisma.class.findMany({
+    where: {
+      ...(classIdToIgnore ? { classId: { not: classIdToIgnore } } : {}),
+      classDateStart: { lt: classDateEnd },
+      classDateEnd: { gt: classDateStart },
+    },
+    include: {
+      studioModality: true,
+      userClass: {
+        include: {
+          userClassRole: true,
+        },
+      },
+    },
+  });
+
+  if (instructorId) {
+    const professorConflict = overlappingClasses.find((classItem) =>
+      getProfessorUserIdFromClass(classItem) === instructorId
+    );
+
+    if (professorConflict) {
+      throw new AppError("O professor já tem uma aula nesse horário.", 409);
+    }
+  }
+
+  if (studioId) {
+    const studioConflict = overlappingClasses.find(
+      (classItem) => classItem.studioModality?.studioId === studioId
+    );
+
+    if (studioConflict) {
+      throw new AppError("O estúdio já está ocupado nesse horário.", 409);
+    }
+  }
+};
 export const listClassesService = async () => {
   return prisma.class.findMany({
     include: {
@@ -132,36 +243,116 @@ export const getClassByIdService = async (params: unknown) => {
 };
 
 export const createClassService = async (body: unknown) => {
-  const {
+  let {
     schoolYearId,
     classDateStart,
     classDateEnd,
     classRecurrence,
     studioModalityId,
+    studioId,
+    modalityId,
     classFinalFee,
     classStatusId,
+    instructorId,
   } = createClassSchema.parse(body);
 
-  return prisma.class.create({
-    data: {
-      schoolYearId,
-      classDateStart: new Date(classDateStart),
-      classDateEnd: new Date(classDateEnd),
-      classRecurrence: classRecurrence ?? false,
-      studioModalityId,
-      classFinalFee,
-      classStatusId,
-    },
-    include: {
-      classStatus: true,
-      schoolYear: true,
-      studioModality: {
-        include: {
-          studio: true,
-          modality: true,
+  const studioContext = await resolveStudioContext({
+    studioModalityId,
+    studioId,
+    modalityId,
+  });
+  const resolvedStudioId = studioContext.studioId;
+  let finalStudioModalityId = studioContext.studioModalityId ?? undefined;
+  const finalClassDateStart = new Date(classDateStart);
+  const finalClassDateEnd = new Date(classDateEnd);
+
+  await assertNoScheduleConflicts({
+    classDateStart: finalClassDateStart,
+    classDateEnd: finalClassDateEnd,
+    studioId: resolvedStudioId,
+    instructorId: instructorId ?? null,
+  });
+
+  if (!finalStudioModalityId) {
+    finalStudioModalityId = await prisma.$transaction(async (tx) => {
+      const createdStudioModality = await tx.studioModality.create({
+        data: {
+          studioId: resolvedStudioId,
+          modalityId: studioContext.modalityId,
+        },
+      });
+
+      return createdStudioModality.studioModalityId;
+    });
+  }
+
+  // To fix frontend sending hardcoded 'schoolYearId: 1' which might not exist
+  const yearExists = await prisma.schoolYear.findUnique({ where: { schoolYearId } });
+  if (!yearExists) {
+    const defaultYear = await prisma.schoolYear.findFirst();
+    if (!defaultYear) throw new AppError("Ano letivo indisponível.", 400);
+    schoolYearId = defaultYear.schoolYearId;
+  }
+
+  const professorRole = instructorId
+    ? await prisma.userClassRole.findFirst({
+        where: { userClassRoleDesc: "Professor Responsável" },
+      })
+    : null;
+
+  if (instructorId && !professorRole) {
+    throw new AppError('Role "Professor Responsável" não encontrado na DB.', 500);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const createdClass = await tx.class.create({
+      data: {
+        schoolYearId,
+        classDateStart: finalClassDateStart,
+        classDateEnd: finalClassDateEnd,
+        classRecurrence: classRecurrence ?? false,
+        studioModalityId: finalStudioModalityId,
+        classFinalFee,
+        classStatusId,
+      },
+    });
+
+    if (instructorId && professorRole) {
+      await tx.userClass.create({
+        data: {
+          classId: createdClass.classId,
+          userId: instructorId,
+          userClassRoleId: professorRole.userClassRoleId,
+          userValidation: false,
+        },
+      });
+    }
+
+    const createdClassWithRelations = await tx.class.findUnique({
+      where: { classId: createdClass.classId },
+      include: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
+          include: {
+            studio: true,
+            modality: true,
+          },
+        },
+        userClass: {
+          include: {
+            user: true,
+            userClassRole: true,
+          },
         },
       },
-    },
+    });
+
+    if (!createdClassWithRelations) {
+      throw new AppError('Aula criada mas não foi possível carregar os detalhes.', 500);
+    }
+
+    return createdClassWithRelations;
   });
 };
 
@@ -209,7 +400,14 @@ export const updateClassService = async (params: unknown, body: unknown) => {
 
   const existingClass = await prisma.class.findUnique({
     where: { classId: id },
-    select: { classId: true },
+    include: {
+      studioModality: true,
+      userClass: {
+        include: {
+          userClassRole: true,
+        },
+      },
+    },
   });
 
   if (!existingClass) {
@@ -223,15 +421,11 @@ export const updateClassService = async (params: unknown, body: unknown) => {
   }
 
   if (parsedBody.classDateStart !== undefined) {
-    dataToUpdate.classDateStart = new Date(
-      parsedBody.classDateStart
-    );
+    dataToUpdate.classDateStart = new Date(parsedBody.classDateStart);
   }
 
   if (parsedBody.classDateEnd !== undefined) {
-    dataToUpdate.classDateEnd = new Date(
-      parsedBody.classDateEnd
-    );
+    dataToUpdate.classDateEnd = new Date(parsedBody.classDateEnd);
   }
 
   if (parsedBody.classRecurrence !== undefined) {
@@ -242,6 +436,64 @@ export const updateClassService = async (params: unknown, body: unknown) => {
     dataToUpdate.studioModalityId = parsedBody.studioModalityId;
   }
 
+  const finalClassDateStart =
+    dataToUpdate.classDateStart instanceof Date
+      ? dataToUpdate.classDateStart
+      : existingClass.classDateStart;
+  const finalClassDateEnd =
+    dataToUpdate.classDateEnd instanceof Date
+      ? dataToUpdate.classDateEnd
+      : existingClass.classDateEnd;
+
+  const studioContext = await resolveStudioContext({
+    studioModalityId:
+      typeof dataToUpdate.studioModalityId === "number"
+        ? dataToUpdate.studioModalityId
+        : existingClass.studioModalityId,
+    studioId: parsedBody.studioId,
+    modalityId: parsedBody.modalityId,
+  });
+
+  const resolvedStudioId = studioContext.studioId;
+  const resolvedStudioModalityId = studioContext.studioModalityId ?? null;
+
+  if (dataToUpdate.studioModalityId === undefined && resolvedStudioModalityId !== null) {
+    dataToUpdate.studioModalityId = resolvedStudioModalityId;
+  }
+
+  const finalInstructorId =
+    parsedBody.instructorId != null
+      ? parsedBody.instructorId
+      : getProfessorUserIdFromClass(existingClass);
+
+  await assertNoScheduleConflicts({
+    classIdToIgnore: id,
+    classDateStart: finalClassDateStart,
+    classDateEnd: finalClassDateEnd,
+    studioId: resolvedStudioId,
+    instructorId: finalInstructorId,
+  });
+
+  if (!dataToUpdate.studioModalityId && parsedBody.studioId && parsedBody.modalityId) {
+    let studioModality = await prisma.studioModality.findFirst({
+      where: {
+        studioId: parsedBody.studioId,
+        modalityId: parsedBody.modalityId,
+      },
+    });
+
+    if (!studioModality) {
+      studioModality = await prisma.studioModality.create({
+        data: {
+          studioId: parsedBody.studioId,
+          modalityId: parsedBody.modalityId,
+        },
+      });
+    }
+
+    dataToUpdate.studioModalityId = studioModality.studioModalityId;
+  }
+
   if (parsedBody.classFinalFee !== undefined) {
     dataToUpdate.classFinalFee = parsedBody.classFinalFee;
   }
@@ -250,19 +502,85 @@ export const updateClassService = async (params: unknown, body: unknown) => {
     dataToUpdate.classStatusId = parsedBody.classStatusId;
   }
 
-  return prisma.class.update({
-    where: { classId: id },
-    data: dataToUpdate,
-    include: {
-      classStatus: true,
-      schoolYear: true,
-      studioModality: {
-        include: {
-          studio: true,
-          modality: true,
+  const professorRole = await prisma.userClassRole.findFirst({
+    where: {
+      userClassRoleDesc: "Professor Responsável",
+    },
+  });
+
+  if (!professorRole) {
+    throw new AppError('Role "Professor Responsável" não encontrado na DB.', 500);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const updatedClass = await tx.class.update({
+      where: { classId: id },
+      data: dataToUpdate,
+      include: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
+          include: {
+            studio: true,
+            modality: true,
+          },
+        },
+        userClass: {
+          include: {
+            user: true,
+            userClassRole: true,
+          },
         },
       },
-    },
+    });
+
+    if (parsedBody.instructorId != null) {
+      const existingProfessorLinks = existingClass.userClass.filter(
+        (uc) =>
+          uc.userClassRole?.userClassRoleDesc === "Professor Responsável" ||
+          uc.userClassRole?.userClassRoleDesc === "Professor Assistente"
+      );
+
+      if (existingProfessorLinks.length > 0) {
+        await tx.userClass.deleteMany({
+          where: {
+            classId: id,
+            userId: {
+              in: existingProfessorLinks.map((uc) => uc.userId),
+            },
+          },
+        });
+      }
+
+      await tx.userClass.create({
+        data: {
+          classId: id,
+          userId: parsedBody.instructorId as number,
+          userClassRoleId: professorRole.userClassRoleId,
+          userValidation: false,
+        },
+      });
+    }
+
+    return tx.class.findUnique({
+      where: { classId: id },
+      include: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
+          include: {
+            studio: true,
+            modality: true,
+          },
+        },
+        userClass: {
+          include: {
+            user: true,
+            userClassRole: true,
+          },
+        },
+      },
+    });
   });
 };
 

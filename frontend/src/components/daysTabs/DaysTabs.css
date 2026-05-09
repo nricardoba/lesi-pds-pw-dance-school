@@ -1,31 +1,87 @@
-
 .days-tabs {
   display: flex;
-  gap: 8px;
-  margin: 24px 0;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 24px auto;
+  padding: 8px;
+  background-color: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  width: max-content;
+  max-width: 100%;
   overflow-x: auto;
-  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.days-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.days-tabs::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 4px;
 }
 
 .day-tab {
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid #E2E8F0;
-  background-color: #FFFFFF;
-  color: #475569;
-  font-size: 13px;
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: none;
+  background-color: transparent;
+  color: #9CA3AF;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .day-tab:hover {
   background-color: #F8FAFC;
+  color: #475569;
 }
 
 .day-tab.active {
   background-color: #176B87;
-  border-color: #176B87;
   color: #FFFFFF;
+}
+
+.day-tab--today {
+  box-shadow: inset 0 0 0 2px #b8667d;
+  background-color: #FCECF0;
+  color: #8E3D59;
+}
+
+.day-tab--today:not(.active):hover {
+  background-color: #FADFE7;
+  color: #7A3250;
+}
+
+.day-tab.active.day-tab--today {
+  background-color: #176B87;
+  color: #FFFFFF;
+  box-shadow: inset 0 0 0 2px #b8667d;
+}
+
+.day-tab--all {
+  min-width: 96px;
+}
+
+.day-tab__short {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.day-tab__date {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.day-tab.active .day-tab__date {
+  font-weight: 700;
 }

@@ -16,3 +16,8 @@ export const setupCredentialsController = catchAsync(async (req: Request, res: R
   const result = await setupCredentialsService(req.body);
   return res.status(201).json(result);
 });
+
+export const verifyTokenController = catchAsync(async (req: Request, res: Response) => {
+  // Se o token for válido e o utilizador existir e tiver a role certa, o ensureAuth vai deixar passar e res.locals.user estará preenchido.
+  return res.status(200).json({ valid: true, user: res.locals.user });
+});

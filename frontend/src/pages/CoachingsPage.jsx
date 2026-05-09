@@ -3,40 +3,60 @@ import '../pagesCss/CoachingsPage.css';
 import CoachingCard from '../components/coachingCard/CoachingCard';
 import CoachingModal from '../components/coachingModal/CoachingModal';
 import { useAuth } from '../context/useAuth';
-import { 
-  readCoachingsFromStorage, writeCoachingsToStorage,
-  readScheduleClassesFromStorage, writeScheduleClassesToStorage 
-} from '../utils/scheduleStorage';
+import { apiClient } from '../services/apiClient';
+import { listClassesRequest, confirmCoachingRequest } from '../services/classes';
 
 const CoachingsPage = () => {
-  const { role, user } = useAuth();
-  
+  const { role, user, token } = useAuth();
+
   // Estrutura das colunas do Kanban
   const columns = [
-    { id: 'pendente', title: 'Pendente', status: 'Pendente', dotColor: '#F59E0B' },
-    { id: 'aceite', title: 'Aceite', status: 'Aceite', dotColor: '#3B82F6' },
-    { id: 'confirmado', title: 'Confirmado', status: 'Confirmado', dotColor: '#10B981' },
-    { id: 'rejeitado', title: 'Rejeitado', status: 'Rejeitado', dotColor: '#EF4444' }
+    { id: 'agendada', title: 'Pendente', status: 'Agendada', dotColor: '#F59E0B' },
+    { id: 'aceite', title: 'Aceite', status: 'A Decorrer', dotColor: '#3B82F6' },
+    { id: 'confirmado', title: 'Concluída', status: 'Concluída', dotColor: '#10B981' },
+    { id: 'rejeitado', title: 'Cancelada', status: 'Cancelada', dotColor: '#EF4444' }
   ];
 
-  // Dados simulados baseados na imagem
-  const initialCoachingsData = [
-    { id: 1, student: 'Mariana Silva', teacher: 'Sofia Martins', status: 'Pendente', date: '2026-01-15 às 15:00', duration: '60 min', note: 'Preparação para audição' },
-    { id: 2, student: 'João Costa', teacher: 'Ricardo Santos', status: 'Pendente', date: '2026-01-07 às 10:00', duration: '60 min' },
-    { id: 3, student: 'João Costa', teacher: 'Ricardo Santos', status: 'Confirmado', date: '2026-01-16 às 16:00', room: 'Sala Principal' },
-    { id: 4, student: 'Miguel Ferreira', teacher: 'Ana Ferreira', status: 'Confirmado', date: '2026-01-14 às 11:00', room: 'Estúdio Pequeno' }
-  ];
-
-  const [coachings, setCoachings] = useState(() => {
-    const stored = readCoachingsFromStorage();
-    return stored && stored.length > 0 ? stored : initialCoachingsData;
-  });
-  
+  const [coachings, setCoachings] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const fetchCoachings = async () => {
+    try {
+      const data = await listClassesRequest(token); // Esta função chama o listClassesService[cite: 11, 16]
+
+      // Filtramos os dados para garantir que mostramos apenas coachings (se necessário) 
+      // e formatamos para as colunas do teu Kanban
+      const formatted = data.map(c => ({
+        id: c.classId,
+        student: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc === "Aluno")?.user.userName || "N/A",
+        teacher: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc.includes("Professor"))?.user.userName || "N/A",
+        status: c.classStatus.classStatusDesc, // "Agendada", "A Decorrer", etc.
+        date: new Date(c.classDateStart).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }),
+        duration: `${(new Date(c.classDateEnd) - new Date(c.classDateStart)) / 60000} min`
+      }));
+
+      setCoachings(formatted);
+    } catch (err) {
+      console.error("Erro ao carregar coachings:", err);
+    }
+  };
+
   useEffect(() => {
-    writeCoachingsToStorage(coachings);
-  }, [coachings]);
+    if (token) {
+      fetchCoachings();
+    }
+  }, [token]);
+
+
+  const [studios, setStudios] = useState([]);
+
+  useEffect(() => {
+    if (token && role === 'admin') {
+      apiClient('/studios', { token }) // Usa o listStudiosController[cite: 18].
+        .then(setStudios)
+        .catch(console.error);
+    }
+  }, [token, role]);
 
   // States para os modais de ação (Aprovar/Rejeitar)
   const [actionModal, setActionModal] = useState({ isOpen: false, type: null, coachingId: null });
@@ -48,7 +68,7 @@ const CoachingsPage = () => {
       id: Date.now(),
       student: newCoaching.student,
       teacher: newCoaching.teacher,
-      status: 'Pendente',
+      status: 'Agendada',
       date: `${newCoaching.date} às ${newCoaching.time}`,
       rawDate: newCoaching.date,
       rawTime: newCoaching.time,
@@ -71,17 +91,17 @@ const CoachingsPage = () => {
     setActionModal({ isOpen: false, type: null, coachingId: null });
   };
 
-  const confirmAction = () => {
+  const confirmAction = async () => {
     if (actionModal.type === 'accept' && !selectedRoom) {
       alert("Por favor, selecione uma sala para confirmar.");
       return;
     }
 
-    const targetCoaching = coachings.find(c => c.id === actionModal.coachingId);
+    /**const targetCoaching = coachings.find(c => c.id === actionModal.coachingId);
     if (!targetCoaching) return;
 
     if (actionModal.type === 'accept') {
-      const scheduleClasses = readScheduleClassesFromStorage();
+      /**const scheduleClasses = readScheduleClassesFromStorage();
       const rawDate = targetCoaching.rawDate;
       const rawTime = targetCoaching.rawTime;
       
@@ -112,51 +132,32 @@ const CoachingsPage = () => {
          if (overlapping) {
            return c.instructor === targetCoaching.teacher || c.room === selectedRoom;
          }
-         return false;
+         return false
       });
 
       if (isConflict) {
         alert("Erro: O professor ou a sala já estão ocupados neste horário para a duração pretendida. Por favor, rejeite ou verifique o horário.");
-        return;
+        return;**/
+
+    try {
+      if (actionModal.type === 'accept') {
+        // Chamada real ao Backend para mudar o estado para 'A Decorrer'[cite: 16]
+        await confirmCoachingRequest(actionModal.coachingId, selectedRoom, token);
+      } else {
+        // Chamada para cancelar/rejeitar[cite: 16]
+        await apiClient(`/coaching/${actionModal.coachingId}/close`, {
+          method: 'POST',
+          body: { finalStatus: 'Cancelada' },
+          token
+        });
       }
 
-      const daysOfWeekStr = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
-      const targetDate = new Date(dateVal);
-      const dayName = daysOfWeekStr[targetDate.getDay()];
-      
-      let occupancy = '1/1';
-      if (targetCoaching.coachingType === 'Duo') occupancy = '2/2';
-      if (targetCoaching.coachingType === 'Grupo') occupancy = '5/5';
-
-      const newClass = {
-        id: Date.now(),
-        day: dayName,
-        classDate: dateVal,
-        start: startDec,
-        duration: durationDec,
-        name: `Coaching (${targetCoaching.student})`,
-        schoolYear: targetCoaching.schoolYear,
-        instructor: targetCoaching.teacher,
-        room: selectedRoom,
-        level: 'Personalizado',
-        category: targetCoaching.danceType || 'Coaching',
-        occupancy: occupancy
-      };
-
-      writeScheduleClassesToStorage([...scheduleClasses, newClass]);
+      // Recarrega os dados da API para atualizar o Kanban visualmente
+      fetchCoachings();
+      closeActionModal();
+    } catch (err) {
+      alert("Erro ao processar ação: " + err.message);
     }
-
-    setCoachings(prev => prev.map(coaching => {
-      if (coaching.id === actionModal.coachingId) {
-        if (actionModal.type === 'accept') {
-          return { ...coaching, status: 'Confirmado', room: selectedRoom };
-        } else if (actionModal.type === 'reject') {
-          return { ...coaching, status: 'Rejeitado', rejectReason: rejectReason };
-        }
-      }
-      return coaching;
-    }));
-    closeActionModal();
   };
 
   return (
@@ -184,21 +185,21 @@ const CoachingsPage = () => {
           return (
             <div key={col.id} className="kanban-column">
               <div className="kanban-column__header">
-                <span 
-                  className="status-dot" 
+                <span
+                  className="status-dot"
                   style={{ backgroundColor: col.dotColor }}
                 ></span>
                 <h3 className="kanban-column__title">
                   {col.title} ({colItems.length})
                 </h3>
               </div>
-              
+
               <div className="kanban-column__content">
                 {colItems.length > 0 ? (
                   colItems.map(item => (
-                    <CoachingCard 
-                      key={item.id} 
-                      data={item} 
+                    <CoachingCard
+                      key={item.id}
+                      data={item}
                       onAccept={() => openActionModal('accept', item.id)}
                       onReject={() => openActionModal('reject', item.id)}
                       hideActions={role === 'student'}
@@ -212,9 +213,9 @@ const CoachingsPage = () => {
           );
         })}
       </div>
-      <CoachingModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <CoachingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSave={handleSaveCoaching}
       />
 
@@ -228,51 +229,51 @@ const CoachingsPage = () => {
                 <p style={{ marginBottom: '16px', color: '#4B5563', fontSize: '0.875rem' }}>Para confirmar este coaching, escolha a sala.</p>
                 <div style={{ marginBottom: '24px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 500 }}>Sala</label>
-                  <select 
-                    value={selectedRoom} 
+                  <select
+                    value={selectedRoom}
                     onChange={(e) => setSelectedRoom(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: '4px' }}
+                    style = {{width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: '4px' }}
                   >
                     <option value="" disabled>Selecione uma sala</option>
-                    <option value="Sala Principal">Sala Principal</option>
-                    <option value="Estúdio Pequeno">Estúdio Pequeno</option>
-                    <option value="Sala de Ensaio A">Sala de Ensaio A</option>
+                    {studios.map(s => (
+                      <option key={s.studioId} value={s.studioId}>{s.studioName}</option>
+                    ))}
                   </select>
                 </div>
               </>
             ) : (
-              <>
-                <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '1.25rem', color: '#EF4444' }}>Rejeitar Pedido</h3>
-                <p style={{ marginBottom: '16px', color: '#4B5563', fontSize: '0.875rem' }}>Indique o motivo da rejeição (será enviado ao aluno).</p>
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 500 }}>Motivo (Opcional - será enviado ao aluno)</label>
-                  <select 
-                    value={rejectReason} 
-                    onChange={(e) => setRejectReason(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: '4px', marginBottom: '12px' }}
-                  >
-                    <option value="">Selecione um motivo rápido... (ou deixe vazio)</option>
-                    <option value="Professor indisponível">Professor indisponível</option>
-                    <option value="Horário sobreposto">Horário sobreposto</option>
-                    <option value="Falta de vagas físicas">Falta de vagas físicas</option>
-                  </select>
-                </div>
-              </>
-            )}
-            
+            <>
+              <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '1.25rem', color: '#EF4444' }}>Rejeitar Pedido</h3>
+              <p style={{ marginBottom: '16px', color: '#4B5563', fontSize: '0.875rem' }}>Indique o motivo da rejeição (será enviado ao aluno).</p>
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 500 }}>Motivo (Opcional - será enviado ao aluno)</label>
+                <select
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: '4px', marginBottom: '12px' }}
+                >
+                  <option value="">Selecione um motivo rápido... (ou deixe vazio)</option>
+                  <option value="Professor indisponível">Professor indisponível</option>
+                  <option value="Horário sobreposto">Horário sobreposto</option>
+                  <option value="Falta de vagas físicas">Falta de vagas físicas</option>
+                </select>
+              </div>
+            </>
+          )}
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button 
+              <button
                 onClick={closeActionModal}
                 style={{ padding: '8px 16px', backgroundColor: '#F3F4F6', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500 }}
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 onClick={confirmAction}
-                style={{ 
-                  padding: '8px 16px', 
-                  backgroundColor: actionModal.type === 'accept' ? '#10B981' : '#EF4444', 
-                  color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500 
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: actionModal.type === 'accept' ? '#10B981' : '#EF4444',
+                  color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500
                 }}
               >
                 {actionModal.type === 'accept' ? 'Confirmar' : 'Rejeitar'}

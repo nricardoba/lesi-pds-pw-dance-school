@@ -100,6 +100,46 @@
   font-family: inherit;
 }
 
+.reference-field {
+  position: relative;
+}
+
+.reference-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  max-height: 220px;
+  overflow: auto;
+}
+
+.reference-option {
+  width: 100%;
+  display: block;
+  text-align: left;
+  padding: 10px 12px;
+  border: 0;
+  background: #FFFFFF;
+  color: #0F172A;
+  cursor: pointer;
+  font: inherit;
+}
+
+.reference-option:hover,
+.reference-option:focus {
+  background: #F8FAFC;
+}
+
+.reference-option--create {
+  font-weight: 600;
+  color: #176B87;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {

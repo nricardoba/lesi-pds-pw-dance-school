@@ -2,6 +2,7 @@
 import { checkRole } from '../middlewares/checkRole';
 import { USER_ROLES } from '../utils/permissions';
 import * as SchoolController from '../controllers/schoolController';
+import { ensureAuth } from '../middlewares/ensureAuth';
 
 // ============================================================================
 // SCHOOL YEARS ROUTER (/school-years)
@@ -9,9 +10,9 @@ import * as SchoolController from '../controllers/schoolController';
 export const schoolYearsRouter = Router();
 
 schoolYearsRouter.get('/', SchoolController.listSchoolYearsController);
-schoolYearsRouter.post('/', checkRole([USER_ROLES.ADMIN]), SchoolController.createSchoolYearController);
-schoolYearsRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), SchoolController.updateSchoolYearController);
-schoolYearsRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), SchoolController.deleteSchoolYearController);
+schoolYearsRouter.post('/', ensureAuth,checkRole([USER_ROLES.ADMIN]), SchoolController.createSchoolYearController);
+schoolYearsRouter.put('/:id', ensureAuth,checkRole([USER_ROLES.ADMIN]), SchoolController.updateSchoolYearController);
+schoolYearsRouter.delete('/:id', ensureAuth,checkRole([USER_ROLES.ADMIN]), SchoolController.deleteSchoolYearController);
 
 // ============================================================================
 // SCHEDULE VACANCIES ROUTER (/schedule-vacancies)
