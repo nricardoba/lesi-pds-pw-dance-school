@@ -66,9 +66,9 @@ export const useScheduleData = (token) => {
           };
         });
 
-        if (mappedClasses.length > 0) {
-          setClassesData(mappedClasses);
-        }
+        // Backend is the source of truth when authenticated.
+        // Always sync, including empty lists, to avoid stale local "ghost" classes.
+        setClassesData(mappedClasses);
       } catch (error) {
         console.error('Error fetching classes:', error);
       }

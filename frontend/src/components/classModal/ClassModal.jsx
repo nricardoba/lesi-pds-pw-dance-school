@@ -4,12 +4,29 @@ import { useAuth } from '../../context/useAuth';
 import { getUsers } from '../../services/users';
 import { getModalities } from '../../services/modalities';
 import { getStudios, getStudioModalities } from '../../services/studios';
+import { getSchoolYears } from '../../services/schoolYears';
 
 const DAY_BY_INDEX = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
 
 const getDayNameFromIsoDate = (isoDate) => {
   const date = new Date(`${isoDate}T12:00:00`);
   return DAY_BY_INDEX[date.getDay()];
+};
+
+const formatSubmitErrorMessage = (message) => {
+  if (!message) {
+    return 'Não foi possível guardar a aula.';
+  }
+
+  if (message.includes('professor')) {
+    return 'Este professor já tem uma aula nesse horário. Escolhe outro professor ou outro horário.';
+  }
+
+  if (message.includes('estúdio')) {
+    return 'Este estúdio já está ocupado nesse horário. Escolhe outra sala ou outro horário.';
+  }
+
+  return message;
 };
 
 const ClassModal = ({
@@ -39,23 +56,40 @@ const ClassModal = ({
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('');
   const [teacherError, setTeacherError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isRecurrent, setIsRecurrent] = useState(false);
 
   const [teachers, setTeachers] = useState([]);
   const [modalities, setModalities] = useState([]);
   const [studios, setStudios] = useState([]);
   const [studioModalities, setStudioModalities] = useState([]);
+  const [schoolYears, setSchoolYears] = useState([]);
+  const [selectedSchoolYear, setSelectedSchoolYear] = useState('');
+
+  const findSchoolYearIdForDate = (dateValue) => {
+    if (!dateValue || !schoolYears.length) return '';
+
+    const targetDate = new Date(`${dateValue}T12:00:00`);
+    const match = schoolYears.find((year) => {
+      const start = new Date(year.schoolYearStart);
+      const end = new Date(year.schoolYearEnd);
+      return targetDate >= start && targetDate <= end;
+    });
+
+    return match ? String(match.schoolYearId) : '';
+  };
 
   useEffect(() => {
     if (!isOpen || !token) return;
 
     const fetchData = async () => {
       try {
-        const [usersData, modalitiesData, studiosData, studioModalitiesData] = await Promise.all([
+        const [usersData, modalitiesData, studiosData, studioModalitiesData, schoolYearsData] = await Promise.all([
           getUsers(token),
           getModalities(token),
           getStudios(token),
-          getStudioModalities(token)
+          getStudioModalities(token),
+          getSchoolYears(token)
         ]);
 
         const professors = usersData.filter(u => u.userType?.userTypeDesc === 'Professor');
@@ -63,6 +97,7 @@ const ClassModal = ({
         setModalities(modalitiesData);
         setStudios(studiosData);
         setStudioModalities(studioModalitiesData);
+        setSchoolYears(schoolYearsData || []);
       } catch (err) {
         console.error("Failed to load modal data:", err);
       }
@@ -89,8 +124,20 @@ const ClassModal = ({
     setSelectedRoom(effectiveData?.room || '');
     setIsRecurrent(effectiveData?.classRecurrence || false);
     setTeacherError('');
+    setSubmitError('');
+    setSelectedSchoolYear(String(effectiveData?.schoolYear || ''));
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [isOpen, effectiveData]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const derivedSchoolYearId = findSchoolYearIdForDate(effectiveData?.classDate || preferredClassDate);
+
+    if (derivedSchoolYearId) {
+      setSelectedSchoolYear(derivedSchoolYearId);
+    }
+  }, [isOpen, effectiveData?.classDate, preferredClassDate, schoolYears]);
 
   useEffect(() => {
     if (!isOpen || selectedTeacher) {
@@ -249,8 +296,9 @@ const fallbackStyles = useMemo(
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     const formData = new FormData(e.target);
     const classDate = formData.get('classDate');
 
@@ -309,8 +357,13 @@ const fallbackStyles = useMemo(
         classDate
       };
 
-    onSave(classData);
-    onClose();
+    try {
+      await onSave(classData);
+      onClose();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao guardar a aula.';
+      setSubmitError(formatSubmitErrorMessage(message));
+    }
   };
 
   return (
@@ -328,14 +381,18 @@ const fallbackStyles = useMemo(
               <label>Ano Letivo</label>
               <select
                 name="schoolYear"
-                defaultValue={effectiveData?.schoolYear || ''}
+                value={selectedSchoolYear}
+                onChange={(e) => setSelectedSchoolYear(e.target.value)}
                 required
                 onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
                 onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
-                <option value="1">2025/2026</option>
-                <option value="2">2026/2027</option>
+                {schoolYears.map((year) => (
+                  <option key={year.schoolYearId} value={String(year.schoolYearId)}>
+                    {year.schoolYearName}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -543,6 +600,7 @@ const fallbackStyles = useMemo(
           </div>
 
           <div className="modal-actions">
+            {submitError && <div className="submit-error-banner" role="alert">{submitError}</div>}
             <button type="button" className="btn-cancel" onClick={onClose}>Cancelar</button>
             <button type="submit" className="btn-submit">{submitButtonText}</button>
           </div>

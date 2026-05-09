@@ -9,20 +9,27 @@ const WeekNavigator = ({
     setReferenceDate,
     monthLabel,
     weekRangeLabel,
-    getWeekDayClass
+    getWeekDayClass,
+    stepDays = 7
 }) => {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const today = new Date();
+
+    const shiftReferenceDate = (days) => {
+        setReferenceDate((currentDate) => {
+            const nextDate = new Date(currentDate || referenceDate);
+            nextDate.setHours(12, 0, 0, 0);
+            nextDate.setDate(nextDate.getDate() + days);
+            return nextDate;
+        });
+    };
 
     const goToPreviousWeek = () => {
-        const prevWeek = new Date(referenceDate);
-        prevWeek.setDate(prevWeek.getDate() - 7);
-        setReferenceDate(prevWeek);
+        shiftReferenceDate(-stepDays);
     };
 
     const goToNextWeek = () => {
-        const nextWeek = new Date(referenceDate);
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        setReferenceDate(nextWeek);
+        shiftReferenceDate(stepDays);
     };
 
     useEffect(() => {
@@ -101,7 +108,12 @@ const WeekNavigator = ({
                                     date.getMonth() === referenceDate.getMonth() &&
                                     date.getDate() === referenceDate.getDate();
 
-                                return `${baseClass}${isReferenceDay ? ' reference-day' : ''}`.trim();
+                                const isToday =
+                                    date.getFullYear() === today.getFullYear() &&
+                                    date.getMonth() === today.getMonth() &&
+                                    date.getDate() === today.getDate();
+
+                                return `${baseClass}${isReferenceDay ? ' reference-day' : ''}${isToday ? ' today-day' : ''}`.trim();
                             }}
                             formatWeekDay={(nameOfDay) => nameOfDay.substring(0, 3)}
                         />
