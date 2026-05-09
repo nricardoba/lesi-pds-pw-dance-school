@@ -2,7 +2,7 @@
 import React from 'react';
 import { registerLocale } from 'react-datepicker';
 import { pt } from 'date-fns/locale';
-import WeekNavigator from '../components/weekNavigator/WeekNavigator';
+import WeekNavigator from '../components/weekNavigator/weekNavigator';
 import DaysTabs from '../components/daysTabs/DaysTabs';
 import { useAuth } from '../context/useAuth';
 import FilteredDayClasses from '../components/filteredDayClasses/FilteredDayClasses';
