@@ -212,3 +212,101 @@
   background: #B91C1C;
   border-color: #B91C1C;
 }
+
+.costumes-page .rental-details-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1300;
+  padding: 16px;
+}
+
+.costumes-page .rental-details-card {
+  width: 100%;
+  max-width: 620px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  padding: 24px;
+}
+
+.costumes-page .rental-details-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.costumes-page .rental-details-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.costumes-page .rental-details-subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #64748B;
+}
+
+.costumes-page .rental-details-close {
+  border: none;
+  background: #F8FAFC;
+  color: #475569;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.costumes-page .rental-details-close:hover {
+  background: #E2E8F0;
+}
+
+.costumes-page .rental-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.costumes-page .rental-details-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+}
+
+.costumes-page .rental-details-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.costumes-page .rental-details-value {
+  font-size: 14px;
+  color: #0F172A;
+  font-weight: 500;
+}
+
+@media (max-width: 700px) {
+  .costumes-page .rental-details-card {
+    padding: 18px;
+  }
+
+  .costumes-page .rental-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
