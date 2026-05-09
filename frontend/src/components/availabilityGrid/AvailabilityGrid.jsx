@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './AvailabilityGrid.css';
 
-const AvailabilityGrid = ({ studios, activeDay, displayDate, classes, maintenances, onAddClass, onAddMaintenance }) => {
+const AvailabilityGrid = ({ studios, activeDay, activeDate, displayDate, classes, maintenances, onAddClass, onAddMaintenance }) => {
   const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 
   // Estado para saber qual célula tem o menu aberto: { studioId: 1, hour: '09:00' }
@@ -39,10 +39,22 @@ const AvailabilityGrid = ({ studios, activeDay, displayDate, classes, maintenanc
             <div className="grid-cell-time">{hour}</div>
             
             {studios.map(studio => {
-              // Verifica se existe aula para esta estúdio, dia e hora
-             const classHere = classes?.find(c => c.day === activeDay && c.studio === studio.name && c.time === hour);
-              const maintenanceHere = maintenances?.find(m => m.day === activeDay && m.studio === studio.name && m.time === hour);
-              
+              // Verifica se existe aula para este estúdio (preferência por studioId), dia e hora
+              const classHere = classes?.find((c) => {
+                const sameStudio = (c.studioId && Number(c.studioId) === Number(studio.id)) || c.studio === studio.name;
+                const sameTime = c.time === hour;
+                const sameDate = c.classDate ? c.classDate === activeDate : c.day === activeDay;
+
+                return sameStudio && sameTime && sameDate;
+              });
+              const maintenanceHere = maintenances?.find((m) => {
+                const sameStudio = (m.studioId && Number(m.studioId) === Number(studio.id)) || m.studio === studio.name;
+                const sameTime = m.time === hour;
+                const sameDate = m.classDate ? m.classDate === activeDate : m.day === activeDay;
+
+                return sameStudio && sameTime && sameDate;
+              });
+
               const isMenuOpen = activeMenu?.studioId === studio.id && activeMenu?.hour === hour;
 
               return (

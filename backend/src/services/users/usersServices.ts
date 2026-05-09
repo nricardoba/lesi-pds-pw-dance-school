@@ -14,6 +14,7 @@ const createUserSchema = z.object({
   userIsActive: z.coerce.boolean(),
   studentNumber: z.string().optional(),
   userNif: z.string().optional(),
+  modalities: z.array(z.coerce.number().int().positive()).optional(),
 });
 
 const updateUserSchema = z.object({
@@ -22,6 +23,7 @@ const updateUserSchema = z.object({
   userStartDate: z.string().optional().nullable(),
   userTypeId: z.coerce.number().int().positive().optional(),
   userIsActive: z.coerce.boolean().optional(),
+  modalities: z.array(z.coerce.number().int().positive()).optional(),
 });
 
 export const listUsersService = async () => {
@@ -30,6 +32,11 @@ export const listUsersService = async () => {
       userType: true,
       studentNumber: true,
       userNIF: true,
+      userModality: {
+        include: {
+          modality: true,
+        },
+      },
       userAddress: {
         include: {
           address: {
@@ -68,6 +75,11 @@ export const getUserByIdService = async (params: unknown) => {
       userType: true,
       studentNumber: true,
       userNIF: true,
+      userModality: {
+        include: {
+          modality: true,
+        },
+      },
       userAddress: {
         include: {
           address: {
@@ -100,6 +112,10 @@ export const getUserByIdService = async (params: unknown) => {
   return user;
 };
 
+export const getMyProfileService = async (userId: number) => {
+  return getUserByIdService({ id: userId });
+};
+
 export const getUsersByIdsService = async (userIds: number[]) => {
   return prisma.user.findMany({
     where: { userId: { in: userIds } },
@@ -116,6 +132,7 @@ export const createUserService = async (body: unknown) => {
     userIsActive,
     studentNumber,
     userNif,
+    modalities,
   } = createUserSchema.parse(body);
 
   const createdUser = await prisma.user.create({
@@ -146,12 +163,27 @@ export const createUserService = async (body: unknown) => {
     });
   }
 
+  if (modalities && modalities.length > 0) {
+    const userModalityData = modalities.map((modalityId) => ({
+      userId: createdUser.userId,
+      modalityId,
+    }));
+    await prisma.userModality.createMany({
+      data: userModalityData,
+    });
+  }
+
   return prisma.user.findUnique({
     where: { userId: createdUser.userId },
     include: {
       userType: true,
       studentNumber: true,
       userNIF: true,
+      userModality: {
+        include: {
+          modality: true,
+        },
+      },
     },
   });
 };
@@ -195,6 +227,13 @@ export const updateUserService = async (params: unknown, body: unknown) => {
     dataToUpdate.userIsActive = parsedBody.userIsActive;
   }
 
+  if (parsedBody.modalities !== undefined) {
+    dataToUpdate.userModality = {
+      deleteMany: {},
+      create: parsedBody.modalities.map((modalityId) => ({ modalityId })),
+    };
+  }
+
   return prisma.user.update({
     where: { userId: id },
     data: dataToUpdate,
@@ -202,6 +241,15 @@ export const updateUserService = async (params: unknown, body: unknown) => {
       userType: true,
       studentNumber: true,
       userNIF: true,
+      userModality: {
+        include: {
+          modality: true,
+        },
+      },
     },
   });
+};
+
+export const updateMyProfileService = async (userId: number, body: unknown) => {
+  return updateUserService({ id: userId }, body);
 };

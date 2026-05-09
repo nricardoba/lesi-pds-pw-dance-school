@@ -68,6 +68,12 @@
 .form-group input:focus,
 .form-group select:focus { border-color: #176B87; }
 
+.selected-student-name {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #334155;
+}
+
 .modal-actions {
   display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;
 }

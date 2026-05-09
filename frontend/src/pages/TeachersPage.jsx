@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TeacherModal from '../components/teacherModal/TeacherModal';
 import '../pagesCss/TeachersPage.css';
-import { getUsers } from '../services/users';
+import { getUsers, updateUser } from '../services/users';
 import { useAuth } from '../context/useAuth';
 
 const TeachersPage = () => {
@@ -34,20 +34,23 @@ const TeachersPage = () => {
           c => c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'telemóvel' ||
             c.contact?.contactType?.contactTypeDesc?.toLowerCase() === 'phone'
         );
+        
+        const teacherSpecialties = u.userModality ? u.userModality.map(um => um.modality?.modalityName) : [];
 
         return {
           user_id: u.userId,
           name: u.userName,
-          bio: 'Sem biografia disponível', // Pode vir de outro campo no futuro
           email: emailContact?.contact?.contactValue || '',
           phone: phoneContact?.contact?.contactValue || '',
-          specialties: [], // Ainda a implementar a lógica de especialidades ou ler das qualificações
+          specialties: teacherSpecialties,
           classesCount: 0,
+          isActive: u.userIsActive,
           avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.userName) + '&background=random'
         };
       });
 
-      setTeachers(formattedTeachers);
+      const activeTeachers = formattedTeachers.filter(u => u.isActive !== false);
+      setTeachers(activeTeachers);
     } catch (error) {
       console.error('Erro ao carregar professores:', error);
     } finally {
@@ -89,11 +92,15 @@ const TeachersPage = () => {
   const handleConfirmDeleteTeacher = async () => {
     if (!teacherToDelete) return;
 
-    // Futura implementação de remoção no backend aqui
-    // await deleteUser(teacherToDelete.user_id, token);
+    try {
+      // Soft delete no backend
+      await updateUser(teacherToDelete.user_id, { userIsActive: false }, token);
 
-    setTeachers(teachers.filter((teacher) => teacher.user_id !== teacherToDelete.user_id));
-    setTeacherToDelete(null);
+      setTeacherToDelete(null);
+      await fetchTeachers();
+    } catch (error) {
+      console.error('Erro ao remover professor:', error);
+    }
   };
 
   return (
@@ -151,7 +158,6 @@ const TeachersPage = () => {
                   <img src={teacher.avatar} alt={teacher.name} className="prof-avatar" />
                   <div className="prof-details">
                     <span className="prof-name">{teacher.name}</span>
-                    <span className="prof-bio">{teacher.bio}</span>
                   </div>
                 </div>
 
@@ -206,6 +212,7 @@ const TeachersPage = () => {
         onClose={() => setIsModalOpen(false)}
         initialData={editingTeacher}
         onSave={handleSaveTeacher}
+        token={token}
       />
 
       {teacherToDelete && (

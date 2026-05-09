@@ -12,11 +12,16 @@ const app: Express = express();
 const port = process.env.PORT || 3333;
 
 // Middlewares
-app.use(cors()); // Permite pedidos do teu frontend
-app.use(express.json()); // Permite receber dados no formato JSON
-app.use(express.urlencoded({ extended: true })); // Permite receber dados de formulários
-app.use('/uploads', express.static('uploads')); // Serve ficheiros estáticos da pasta "uploads"
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'));
 app.use((_req, res, next) => {
   const originalJson = res.json.bind(res);
   res.json = ((body: unknown) => {

@@ -1,8 +1,18 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 const handleResponse = async (res) => {
-  const data = await res.json();
+  if (res.status === 204) {
+    return null;
+  }
 
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (res.status === 401) {
+    window.dispatchEvent(new Event("auth:unauthorized"));
+  }
+
+  // Se a resposta não for ok, lança um erro
   if (!res.ok) {
     throw new Error(data?.error?.message || "Erro na API");
   }
@@ -11,9 +21,9 @@ const handleResponse = async (res) => {
 };
 
 // Cliente genérico para evitar a repetição de código em todas as páginas
-export const apiClient = async (endpoint, { method = 'GET', body, token, customHeaders = {} } = {}) => {
+export const apiClient = async (endpoint, { method = 'GET', body, token, customHeaders = {}, isFormData = false } = {}) => {
   const headers = {
-    "Content-Type": "application/json",
+    ...(!isFormData && { "Content-Type": "application/json" }),
     ...customHeaders,
   };
 
@@ -28,7 +38,7 @@ export const apiClient = async (endpoint, { method = 'GET', body, token, customH
   };
 
   if (body) {
-    config.body = JSON.stringify(body);
+    config.body = isFormData ? body : JSON.stringify(body);
   }
 
   const res = await fetch(`${API_URL}${endpoint}`, config);

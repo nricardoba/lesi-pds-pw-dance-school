@@ -11,22 +11,24 @@ export const usersRouter = Router();
 
 // Usando o nosso checkRole fundido (ele já faz a validação do token internamente)
 usersRouter.get('/', ensureAuth, UsersController.listUsersController);
+usersRouter.get('/me', ensureAuth, UsersController.getMyProfileController);
 usersRouter.get('/:id', ensureAuth, UsersController.getUserByIdController);
 usersRouter.post('/', checkRole([USER_ROLES.ADMIN]), UsersController.createUserController);
+usersRouter.put('/me', ensureAuth, UsersController.updateMyProfileController);
 usersRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.updateUserController);
 
 // => User Profile Details Routes
-usersRouter.put('/:id/nif', checkRole([USER_ROLES.ADMIN]), UsersController.upsertUserNifController);
-usersRouter.delete('/:id/nif', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserNifController);
+usersRouter.put('/:id/nif', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.upsertUserNifController);
+usersRouter.delete('/:id/nif', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserNifController);
 
-usersRouter.put('/:id/student-number', checkRole([USER_ROLES.ADMIN]), UsersController.upsertStudentNumberController);
-usersRouter.delete('/:id/student-number', checkRole([USER_ROLES.ADMIN]), UsersController.deleteStudentNumberController);
+usersRouter.put('/:id/student-number', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.upsertStudentNumberController);
+usersRouter.delete('/:id/student-number', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.deleteStudentNumberController);
 
-usersRouter.post('/:id/contacts', checkRole([USER_ROLES.ADMIN]), UsersController.addUserContactController);
-usersRouter.delete('/:id/contacts/:contactId', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserContactController);
+usersRouter.post('/:id/contacts', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.addUserContactController);
+usersRouter.delete('/:id/contacts/:contactId', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserContactController);
 
-usersRouter.post('/:id/addresses', checkRole([USER_ROLES.ADMIN]), UsersController.addUserAddressController);
-usersRouter.delete('/:id/addresses/:userAddressId', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserAddressController);
+usersRouter.post('/:id/addresses', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.addUserAddressController);
+usersRouter.delete('/:id/addresses/:userAddressId', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserAddressController);
 
 // ============================================================================
 // USER TYPES ROUTER (/user-types)
@@ -42,6 +44,6 @@ userTypesRouter.get('/', ensureAuth, UsersController.listUserTypesController);
 export const userClassRolesRouter = Router();
 
 userClassRolesRouter.get('/', ensureAuth, UsersController.listUserClassRolesController);
-userClassRolesRouter.post('/', checkRole([USER_ROLES.ADMIN]), UsersController.createUserClassRoleController);
-userClassRolesRouter.put('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.updateUserClassRoleController);
-userClassRolesRouter.delete('/:id', checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserClassRoleController);
+userClassRolesRouter.post('/', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.createUserClassRoleController);
+userClassRolesRouter.put('/:id', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.updateUserClassRoleController);
+userClassRolesRouter.delete('/:id', ensureAuth, checkRole([USER_ROLES.ADMIN]), UsersController.deleteUserClassRoleController);

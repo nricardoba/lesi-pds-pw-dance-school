@@ -77,13 +77,23 @@
 }
 
 /* Perfil no fundo */
+.sidebar-profile-wrapper {
+  position: relative;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #E2E8F0;
+}
+
 .sidebar-profile {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 8px 0 8px;
-  border-top: 1px solid #E2E8F0;
-  margin-top: auto;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
 }
 
 .profile-avatar {
@@ -97,3 +107,49 @@
 
 .profile-info h4 { margin: 0; font-size: 13px; color: #0F172A; }
 .profile-info p { margin: 0; font-size: 11px; color: #64748B; }
+
+.profile-chevron {
+  margin-left: auto;
+  color: #94A3B8;
+  font-size: 14px;
+}
+
+.sidebar-profile-menu {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: calc(100% + 8px);
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.16);
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  z-index: 30;
+}
+
+.sidebar-profile-menu button {
+  width: 100%;
+  border: none;
+  background: #F8FAFC;
+  color: #0F172A;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.sidebar-profile-menu button:hover {
+  background: #E2E8F0;
+}
+
+.sidebar-profile-menu button.danger {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.sidebar-profile-menu button.danger:hover {
+  background: #FECACA;
+}

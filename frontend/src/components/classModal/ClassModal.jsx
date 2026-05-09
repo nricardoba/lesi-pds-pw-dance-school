@@ -1,19 +1,32 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './ClassModal.css';
-
-const DANCE_STYLES = ['Ballet', 'Contemporâneo', 'Hip Hop', 'Street Dance', 'Jazz', 'Dança Moderna'];
-
-const TEACHERS = [
-  { name: 'Sofia Martins', specialties: ['Ballet', 'Contemporâneo'] },
-  { name: 'Ricardo Santos', specialties: ['Hip Hop', 'Street Dance'] },
-  { name: 'Ana Ferreira', specialties: ['Jazz', 'Dança Moderna'] }
-];
+import { useAuth } from '../../context/useAuth';
+import { getUsers } from '../../services/users';
+import { getModalities } from '../../services/modalities';
+import { getStudios, getStudioModalities } from '../../services/studios';
+import { getSchoolYears } from '../../services/schoolYears';
 
 const DAY_BY_INDEX = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
 
 const getDayNameFromIsoDate = (isoDate) => {
   const date = new Date(`${isoDate}T12:00:00`);
   return DAY_BY_INDEX[date.getDay()];
+};
+
+const formatSubmitErrorMessage = (message) => {
+  if (!message) {
+    return 'Não foi possível guardar a aula.';
+  }
+
+  if (message.includes('professor')) {
+    return 'Este professor já tem uma aula nesse horário. Escolhe outro professor ou outro horário.';
+  }
+
+  if (message.includes('estúdio')) {
+    return 'Este estúdio já está ocupado nesse horário. Escolhe outra sala ou outro horário.';
+  }
+
+  return message;
 };
 
 const ClassModal = ({
@@ -26,6 +39,7 @@ const ClassModal = ({
   prefillData = null,
   forceCreateMode = false
 }) => {
+  const { token } = useAuth();
   const handleModalClick = (e) => e.stopPropagation();
 
   const isTemplateMode = mode === 'template';
@@ -37,33 +51,235 @@ const ClassModal = ({
   const submitButtonText = isTemplateMode
     ? (isEditing ? 'Guardar Template' : 'Criar Template')
     : (isEditing ? 'Guardar' : 'Criar Aula');
+
   const [selectedStyle, setSelectedStyle] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('');
   const [teacherError, setTeacherError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [isRecurrent, setIsRecurrent] = useState(false);
+
+  const [teachers, setTeachers] = useState([]);
+  const [modalities, setModalities] = useState([]);
+  const [studios, setStudios] = useState([]);
+  const [studioModalities, setStudioModalities] = useState([]);
+  const [schoolYears, setSchoolYears] = useState([]);
+  const [selectedSchoolYear, setSelectedSchoolYear] = useState('');
+
+  const findSchoolYearIdForDate = (dateValue) => {
+    if (!dateValue || !schoolYears.length) return '';
+
+    const targetDate = new Date(`${dateValue}T12:00:00`);
+    const match = schoolYears.find((year) => {
+      const start = new Date(year.schoolYearStart);
+      const end = new Date(year.schoolYearEnd);
+      return targetDate >= start && targetDate <= end;
+    });
+
+    return match ? String(match.schoolYearId) : '';
+  };
+
+  useEffect(() => {
+    if (!isOpen || !token) return;
+
+    const fetchData = async () => {
+      try {
+        const [usersData, modalitiesData, studiosData, studioModalitiesData, schoolYearsData] = await Promise.all([
+          getUsers(token),
+          getModalities(token),
+          getStudios(token),
+          getStudioModalities(token),
+          getSchoolYears(token)
+        ]);
+
+        const professors = usersData.filter(u => u.userType?.userTypeDesc === 'Professor');
+        setTeachers(professors);
+        setModalities(modalitiesData);
+        setStudios(studiosData);
+        setStudioModalities(studioModalitiesData);
+        setSchoolYears(schoolYearsData || []);
+      } catch (err) {
+        console.error("Failed to load modal data:", err);
+      }
+    };
+
+    fetchData();
+  }, [isOpen, token]);
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
 
-    setSelectedStyle(effectiveData?.category || '');
-    setSelectedTeacher(effectiveData?.instructor || '');
+    /* eslint-disable react-hooks/set-state-in-effect */
+    // Reacting to `effectiveData` changing when modal opens
+    setSelectedStyle(
+      String(
+        effectiveData?.modalityId ||
+        effectiveData?.category ||
+        ''
+      )
+    );
+    setSelectedTeacher(String(effectiveData?.instructorId || effectiveData?.instructor || ''));
+    setSelectedRoom(effectiveData?.room || '');
+    setIsRecurrent(effectiveData?.classRecurrence || false);
     setTeacherError('');
+    setSubmitError('');
+    setSelectedSchoolYear(String(effectiveData?.schoolYear || ''));
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [isOpen, effectiveData]);
 
-  const availableTeachers = useMemo(() => {
-    if (!selectedStyle) {
-      return [];
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const derivedSchoolYearId = findSchoolYearIdForDate(effectiveData?.classDate || preferredClassDate);
+
+    if (derivedSchoolYearId) {
+      setSelectedSchoolYear(derivedSchoolYearId);
+    }
+  }, [isOpen, effectiveData?.classDate, preferredClassDate, schoolYears]);
+
+  useEffect(() => {
+    if (!isOpen || selectedTeacher) {
+      return;
     }
 
-    return TEACHERS.filter((teacher) =>
-      teacher.specialties.some((specialty) => specialty.toLowerCase() === selectedStyle.toLowerCase())
+    const teacherByName = teachers.find((teacher) => teacher.userName === effectiveData?.instructorName);
+    if (teacherByName) {
+      setSelectedTeacher(String(teacherByName.userId));
+    }
+  }, [isOpen, selectedTeacher, teachers, effectiveData]);
+
+  useEffect(() => {
+    if (!selectedRoom || studioModalities.length === 0) {
+      return;
+    }
+
+    const allowedModalityIds = new Set(
+      studioModalities
+        .filter((relation) => String(relation.studioId) === String(selectedRoom))
+        .map((relation) => String(relation.modalityId))
     );
-  }, [selectedStyle]);
 
-  if (!isOpen) return null;
+    if (selectedStyle && !allowedModalityIds.has(String(selectedStyle))) {
+      setSelectedStyle('');
+    }
+  }, [selectedRoom, selectedStyle, studioModalities]);
+const availableTeachers = useMemo(() => {
+  if (!selectedStyle) {
+    return teachers
+      .map((teacher) => ({
+        ...teacher,
+        isSpecialist: false
+      }))
+      .sort((a, b) => a.userName.localeCompare(b.userName));
+  }
 
-  // Função para converter hora decimal (ex: 10.5) para formato de input (ex: "10:30")
+  return teachers
+    .map((teacher) => {
+      const isSpecialist = teacher.userModality?.some(
+        (um) => um.modality?.modalityId?.toString() === selectedStyle?.toString() || um.modality?.modalityName === selectedStyle
+      );
+
+      return { ...teacher, isSpecialist };
+    })
+    .sort((a, b) => {
+      if (a.isSpecialist === b.isSpecialist) {
+        return a.userName.localeCompare(b.userName);
+      }
+
+      return a.isSpecialist ? -1 : 1;
+    });
+}, [selectedStyle, teachers]);
+
+const specialistTeachers = useMemo(
+  () => availableTeachers.filter((teacher) => teacher.isSpecialist),
+  [availableTeachers]
+);
+
+const fallbackTeachers = useMemo(
+  () => availableTeachers.filter((teacher) => !teacher.isSpecialist),
+  [availableTeachers]
+);
+
+const selectedTeacherIsSpecialist = useMemo(() => {
+  if (!selectedTeacher || !selectedStyle) return true;
+
+  const teacher = teachers.find(
+    (t) => t.userId.toString() === selectedTeacher
+  );
+
+  if (!teacher) return true;
+
+  return teacher.userModality?.some(
+    (um) => um.modality?.modalityId?.toString() === selectedStyle?.toString() || um.modality?.modalityName === selectedStyle // Keep fallback just in case
+  );
+}, [selectedTeacher, selectedStyle, teachers]);
+
+const availableStyles = useMemo(() => {
+  const allowedModalityIds = selectedRoom
+    ? new Set(
+      studioModalities
+        .filter((relation) => String(relation.studioId) === String(selectedRoom))
+        .map((relation) => String(relation.modalityId))
+    )
+    : null;
+
+  if (!selectedTeacher) {
+    return modalities
+      .filter((modality) => !allowedModalityIds || allowedModalityIds.has(String(modality.modalityId)))
+      .map((modality) => ({
+        id: modality.modalityId,
+        name: modality.modalityName,
+        isTeacherModality: false
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  const teacher = teachers.find(
+    (t) => t.userId.toString() === selectedTeacher
+  );
+
+  if (!teacher) {
+    return modalities
+      .filter((modality) => !allowedModalityIds || allowedModalityIds.has(String(modality.modalityId)))
+      .map((modality) => ({
+        id: modality.modalityId,
+        name: modality.modalityName,
+        isTeacherModality: false
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  const teacherModalities =
+    teacher.userModality?.map((um) => um.modality?.modalityName) || [];
+
+  return modalities
+    .filter((modality) => !allowedModalityIds || allowedModalityIds.has(String(modality.modalityId)))
+    .map((modality) => ({
+      id: modality.modalityId,
+      name: modality.modalityName,
+      isTeacherModality: teacherModalities.includes(modality.modalityName)
+    }))
+    .sort((a, b) => {
+      if (a.isTeacherModality === b.isTeacherModality) {
+        return a.name.localeCompare(b.name);
+      }
+
+      return a.isTeacherModality ? -1 : 1;
+    });
+}, [selectedTeacher, selectedRoom, modalities, teachers, studioModalities]);
+
+const teacherStyles = useMemo(
+  () => availableStyles.filter((style) => style.isTeacherModality),
+  [availableStyles]
+);
+
+const fallbackStyles = useMemo(
+  () => availableStyles.filter((style) => !style.isTeacherModality),
+  [availableStyles]
+);
+
   const formatTimeForInput = (decimalTime) => {
     if (decimalTime === undefined || isNaN(decimalTime)) return "10:00";
     const h = Math.floor(decimalTime);
@@ -71,8 +287,18 @@ const ClassModal = ({
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   };
 
-  const handleSubmit = (e) => {
+  const selectedStudio = useMemo(
+    () => studios.find((studio) => String(studio.studioId) === String(selectedRoom)),
+    [selectedRoom, studios]
+  );
+
+  const derivedMaxStudents = selectedStudio?.studioMaxCapacity || effectiveData?.maxStudents || effectiveData?.occupancy?.split('/')?.[1] || '15';
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     const formData = new FormData(e.target);
     const classDate = formData.get('classDate');
 
@@ -85,11 +311,10 @@ const ClassModal = ({
       return;
     }
 
-    // Converter "10:30" de volta para 10.5 para o calendário funcionar
     const startTimeStr = formData.get('startTime');
     const endTimeStr = formData.get('endTime');
-    
-    if(!startTimeStr || !endTimeStr || !formData.get('schoolYear')) {
+
+    if (!startTimeStr || !endTimeStr || !formData.get('schoolYear')) {
       alert("Tem que preencher todos os campos");
       return;
     }
@@ -102,30 +327,43 @@ const ClassModal = ({
 
     const baseData = {
       id: isEditing ? initialData.id : Date.now(),
-      name: formData.get('name'),
+      name: formData.get('name') || effectiveData?.name || initialData?.name || 'Nova Aula',
       schoolYear: formData.get('schoolYear'),
       room: formData.get('room'),
+      studioId: Number(formData.get('room')),
+      roomName: selectedStudio?.studioName || effectiveData?.roomName || effectiveData?.room || '',
       category: formData.get('category'),
+      modalityId: Number(formData.get('category')),
+      categoryName: modalities.find((modality) => String(modality.modalityId) === String(formData.get('category')))?.modalityName || effectiveData?.categoryName || effectiveData?.category || '',
       instructor: selectedTeacher,
+      instructorId: Number(selectedTeacher),
+      instructorName: teachers.find((teacher) => String(teacher.userId) === String(selectedTeacher))?.userName || effectiveData?.instructorName || '',
       class_time_start: formData.get('startTime'),
       class_time_end: formData.get('endTime'),
-      start: startDec, // mantido para o calendário se necessário
-      duration: duration >= 1 ? duration : 1, // evita cartões demasiado pequenos no horário
-      level: formData.get('level'),
-      maxStudents: Number(formData.get('maxStudents')),
-      occupancy: isEditing ? effectiveData.occupancy : `0/${formData.get('maxStudents')}`
+      start: startDec,
+      duration: duration >= 1 ? duration : 1,
+      //level: formData.get('level'),
+      maxStudents: Number(derivedMaxStudents),
+      occupancy: isEditing ? effectiveData.occupancy : `0/${formData.get('maxStudents')}`,
+      classRecurrence: isRecurrent,
+      studioModalityId: effectiveData?.studioModalityId || null,
     };
 
     const classData = isTemplateMode
       ? baseData
       : {
-          ...baseData,
-          day: getDayNameFromIsoDate(classDate),
-          classDate
-        };
+        ...baseData,
+        day: getDayNameFromIsoDate(classDate),
+        classDate
+      };
 
-    onSave(classData);
-    onClose();
+    try {
+      await onSave(classData);
+      onClose();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao guardar a aula.';
+      setSubmitError(formatSubmitErrorMessage(message));
+    }
   };
 
   return (
@@ -137,53 +375,46 @@ const ClassModal = ({
         </div>
 
         <form key={isEditing ? initialData.id : (prefillData ? 'prefill' : 'new')} className="modal-form" onSubmit={handleSubmit}>
-          <div className="form-group full-width">
-            <label>Nome da Aula</label>
-            <input 
-              name="name" 
-              type="text" 
-              defaultValue={effectiveData?.name || ''} 
-              required 
-              onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
-              onInput={(e) => e.target.setCustomValidity('')}
-            />
-          </div>
 
           <div className="form-grid">
             <div className="form-group">
               <label>Ano Letivo</label>
-              <select 
-                name="schoolYear" 
-                defaultValue={effectiveData?.schoolYear || ''} 
+              <select
+                name="schoolYear"
+                value={selectedSchoolYear}
+                onChange={(e) => setSelectedSchoolYear(e.target.value)}
                 required
                 onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
                 onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
-                <option value="2025/2026">2025/2026</option>
-                <option value="2026/2027">2026/2027</option>
-                <option value="2027/2028">2027/2028</option>
+                {schoolYears.map((year) => (
+                  <option key={year.schoolYearId} value={String(year.schoolYearId)}>
+                    {year.schoolYearName}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="form-group">
               <label>Sala</label>
-              <select 
-                name="room" 
-                defaultValue={effectiveData?.room || ''} 
+              <select
+                name="room"
+                value={selectedRoom}
+                onChange={(e) => setSelectedRoom(e.target.value)}
                 required
                 onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
                 onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
-                <option value="Sala Ballet">Sala Ballet</option>
-                <option value="Sala Principal">Sala Principal</option>
-                <option value="Sala Hip Hop">Sala Hip Hop</option>
+                {studios.map(studio => (
+                  <option key={studio.studioId} value={studio.studioId}>{studio.studioName}</option>
+                ))}
               </select>
             </div>
 
             <div className="form-group">
-              <label>Data da Aula (ex.: 20/04/2027)</label>
+              <label>Data da Aula</label>
               {!isTemplateMode && (
                 <input
                   name="classDate"
@@ -198,24 +429,17 @@ const ClassModal = ({
             </div>
 
             <div className="form-group">
-              <label>Estilo de Dança</label>
-              <select
-                name="category"
-                value={selectedStyle}
-                onChange={(e) => {
-                  setSelectedStyle(e.target.value);
-                  setSelectedTeacher('');
-                  setTeacherError('');
-                }}
-                required
-                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
-                onInput={(e) => e.target.setCustomValidity('')}
-              >
-                <option value="" disabled>Selecionar</option>
-                {DANCE_STYLES.map((style) => (
-                  <option key={style} value={style}>{style}</option>
-                ))}
-              </select>
+              <label>Recorrente</label>
+              <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <input
+                  name="recurrence"
+                  type="checkbox"
+                  checked={isRecurrent}
+                  onChange={(e) => setIsRecurrent(e.target.checked)}
+                  style={{ width: '20px', height: '20px' }}
+                />
+                <span style={{ marginLeft: '10px' }}>Sim</span>
+              </div>
             </div>
 
             <div className="form-group">
@@ -227,23 +451,104 @@ const ClassModal = ({
                   setSelectedTeacher(e.target.value);
                   setTeacherError('');
                 }}
-                disabled={!selectedStyle || availableTeachers.length === 0}
-                title={!selectedStyle ? 'Seleciona primeiro o estilo de dança' : ''}
+                disabled={availableTeachers.length === 0}
                 required
                 onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
                 onInput={(e) => e.target.setCustomValidity('')}
               >
                 <option value="" disabled>Selecionar</option>
-                {availableTeachers.map((teacher) => (
-                  <option key={teacher.name} value={teacher.name}>{teacher.name}</option>
-                ))}
+
+                {!selectedStyle && (
+                  <optgroup label="Professores disponíveis">
+                    {availableTeachers.map((teacher) => (
+                      <option key={teacher.userId} value={teacher.userId}>
+                        {teacher.userName}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {selectedStyle && specialistTeachers.length > 0 && (
+                  <optgroup label="Professores especializados">
+                    {specialistTeachers.map((teacher) => (
+                      <option key={teacher.userId} value={teacher.userId}>
+                        {teacher.userName}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {selectedStyle && fallbackTeachers.length > 0 && (
+                  <optgroup label="Professores disponíveis">
+                    {fallbackTeachers.map((teacher) => (
+                      <option key={teacher.userId} value={teacher.userId}>
+                        {teacher.userName}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
-              {selectedStyle && availableTeachers.length === 0 && (
+
+              {availableTeachers.length === 0 && (
                 <p className="form-help form-help--warning">
-                  Tens de adicionar o estilo "{selectedStyle}" a um professor/a ou criar um novo professor/a.
+                  Nenhum professor disponível.
                 </p>
               )}
+
+              {!selectedTeacherIsSpecialist && selectedTeacher && selectedStyle && (
+                <p className="form-help form-help--warning">
+                  Professor selecionado como substituição. Não é especialista neste estilo.
+                </p>
+              )}
+
               {teacherError && <p className="form-help form-help--error">{teacherError}</p>}
+            </div>
+
+            <div className="form-group">
+              <label>Estilo de Dança</label>
+              <select
+                name="category"
+                value={selectedStyle}
+                onChange={(e) => {
+                  setSelectedStyle(e.target.value);
+                  setTeacherError('');
+                }}
+                required
+                onInvalid={(e) => e.target.setCustomValidity('Tem que preencher o campo')}
+                onInput={(e) => e.target.setCustomValidity('')}
+              >
+                <option value="" disabled>Selecionar</option>
+
+                {!selectedTeacher && (
+                  <optgroup label="Modalidades disponíveis">
+                    {availableStyles.map((style) => (
+                      <option key={style.id} value={String(style.id)}>
+                        {style.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {selectedTeacher && teacherStyles.length > 0 && (
+                  <optgroup label="Modalidades do professor">
+                    {teacherStyles.map((style) => (
+                      <option key={style.id} value={String(style.id)}>
+                        {style.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {selectedTeacher && fallbackStyles.length > 0 && (
+                  <optgroup label="Outras modalidades disponíveis">
+                    {fallbackStyles.map((style) => (
+                      <option key={style.id} value={String(style.id)}>
+                        {style.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
             </div>
 
             <div className="form-group">
@@ -270,7 +575,7 @@ const ClassModal = ({
               />
             </div>
 
-            <div className="form-group">
+            {/* <div className="form-group">
               <label>Nível</label>
               <select name="level" defaultValue={effectiveData?.level || ''} required>
                 <option value="" disabled>Selecionar</option>
@@ -279,21 +584,23 @@ const ClassModal = ({
                 <option value="Avançado">Avançado</option>
                 <option value="Todos">Todos</option>
               </select>
-            </div>
+            </div> */}
 
             <div className="form-group">
               <label>Máx. Alunos</label>
-              {/* Extrai o max alunos do campo occupancy "3/15" -> "15" */}
               <input
                 name="maxStudents"
                 type="number"
-                defaultValue={effectiveData?.maxStudents || effectiveData?.occupancy?.split('/')[1] || '15'}
-                required
+                value={derivedMaxStudents}
+                readOnly
+                title="A ocupação é definida pelo estúdio selecionado"
               />
+              <div className="form-help">A ocupação é definida pelo estúdio selecionado. Para alterar, muda a sala.</div>
             </div>
           </div>
 
           <div className="modal-actions">
+            {submitError && <div className="submit-error-banner" role="alert">{submitError}</div>}
             <button type="button" className="btn-cancel" onClick={onClose}>Cancelar</button>
             <button type="submit" className="btn-submit">{submitButtonText}</button>
           </div>
