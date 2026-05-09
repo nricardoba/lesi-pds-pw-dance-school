@@ -5,7 +5,7 @@ import CostumeModal from '../components/costumeModal/CostumeModal';
 import RentalItem from '../components/rentalItem/RentalItem';
 import RentalModal from '../components/rentalModal/RentalModal';
 
-import { getItems, getRentals, createRental, returnRental, createItemCharacteristics, createItem, updateItemCharacteristics, updateItem, uploadCharacteristicImage, deleteItem } from '../services/inventory';
+import { getItems, getRentals, createRental, returnRental, createItemCharacteristics, createItem, updateItemCharacteristics, updateItem, uploadCharacteristicImage, deleteItem, getCategories } from '../services/inventory';
 import { getUsers } from '../services/users';
 import { useAuth } from '../context/useAuth';
 
@@ -37,17 +37,21 @@ const CostumesPage = () => {
   const [costumes, setCostumes] = useState([]);
   const [activeRentals, setActiveRentals] = useState([]);
   const [students, setStudents] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = async () => {
     try {
       setIsLoading(true);
 
-      const [itemsData, rentalsData, usersData] = await Promise.all([
+      const [itemsData, rentalsData, usersData, categoriesData] = await Promise.all([
         getItems(token),
         getRentals(token),
         getUsers(token),
+        getCategories(token),
       ]);
+
+      setCategories(categoriesData || []);
 
       const studentsOnly = usersData.filter((u) => {
         const type = u.userType?.userTypeDesc?.toLowerCase() || '';
@@ -431,13 +435,13 @@ const CostumesPage = () => {
 
             <div className="filter-dropdowns">
               <div className="dropdown">
-                <span className="icon">♈</span>
                 <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
                   <option value="todos">Todos</option>
-                  <option value="ballet">Ballet</option>
-                  <option value="hip hop">Hip Hop</option>
-                  <option value="jazz">Jazz</option>
-                  <option value="contemporâneo">Contemporâneo</option>
+                  {categories.map((category) => (
+                    <option key={category.categoryId} value={category.categoryName}>
+                      {category.categoryName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
