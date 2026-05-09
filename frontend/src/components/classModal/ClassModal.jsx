@@ -13,6 +13,22 @@ const getDayNameFromIsoDate = (isoDate) => {
   return DAY_BY_INDEX[date.getDay()];
 };
 
+const formatSubmitErrorMessage = (message) => {
+  if (!message) {
+    return 'Não foi possível guardar a aula.';
+  }
+
+  if (message.includes('professor')) {
+    return 'Este professor já tem uma aula nesse horário. Escolhe outro professor ou outro horário.';
+  }
+
+  if (message.includes('estúdio')) {
+    return 'Este estúdio já está ocupado nesse horário. Escolhe outra sala ou outro horário.';
+  }
+
+  return message;
+};
+
 const ClassModal = ({
   isOpen,
   onClose,
@@ -40,6 +56,7 @@ const ClassModal = ({
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [selectedRoom, setSelectedRoom] = useState('');
   const [teacherError, setTeacherError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isRecurrent, setIsRecurrent] = useState(false);
 
   const [teachers, setTeachers] = useState([]);
@@ -107,6 +124,7 @@ const ClassModal = ({
     setSelectedRoom(effectiveData?.room || '');
     setIsRecurrent(effectiveData?.classRecurrence || false);
     setTeacherError('');
+    setSubmitError('');
     setSelectedSchoolYear(String(effectiveData?.schoolYear || ''));
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [isOpen, effectiveData]);
@@ -278,8 +296,9 @@ const fallbackStyles = useMemo(
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     const formData = new FormData(e.target);
     const classDate = formData.get('classDate');
 
@@ -338,8 +357,13 @@ const fallbackStyles = useMemo(
         classDate
       };
 
-    onSave(classData);
-    onClose();
+    try {
+      await onSave(classData);
+      onClose();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao guardar a aula.';
+      setSubmitError(formatSubmitErrorMessage(message));
+    }
   };
 
   return (
@@ -576,6 +600,7 @@ const fallbackStyles = useMemo(
           </div>
 
           <div className="modal-actions">
+            {submitError && <div className="submit-error-banner" role="alert">{submitError}</div>}
             <button type="button" className="btn-cancel" onClick={onClose}>Cancelar</button>
             <button type="submit" className="btn-submit">{submitButtonText}</button>
           </div>
