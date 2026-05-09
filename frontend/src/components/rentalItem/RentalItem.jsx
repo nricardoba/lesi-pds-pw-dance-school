@@ -27,7 +27,7 @@ const RentalItem = ({ rental, onReturn, onViewDetails }) => {
           {rental.status}
         </span>
         
-        {!isReturned && (
+        {!isReturned && onReturn && (
           <button className="btn-return" onClick={() => onReturn(rental.id)}>
             Devolver
           </button>
