@@ -37,5 +37,5 @@ export const coachingRouter = Router();
 
 coachingRouter.post('/request',ensureAuth, checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.PARENT,USER_ROLES.STUDENT]), ClassesController.requestCoachingController);
 coachingRouter.patch('/:classId/confirm',ensureAuth, checkRole([USER_ROLES.ADMIN]), ClassesController.confirmCoachingController);
-coachingRouter.post('/:classId/validate',ensureAuth, checkRole([USER_ROLES.TEACHER, USER_ROLES.PARENT, USER_ROLES.STUDENT]), ClassesController.validateCoachingController);
+coachingRouter.post('/:classId/validate',ensureAuth, checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.PARENT, USER_ROLES.STUDENT]), ClassesController.validateCoachingController);
 coachingRouter.post('/:classId/close',ensureAuth, checkRole([USER_ROLES.ADMIN]), ClassesController.closeCoachingController);

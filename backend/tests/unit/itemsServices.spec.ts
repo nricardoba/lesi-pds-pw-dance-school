@@ -29,6 +29,9 @@ import { prisma } from "../../src/config/db";
 const mockPrisma = prisma as any;
 
 describe("Items Services", () => {
+  // Mock actor for services that require audit trail
+  const mockActor = { id: 1, userTypeId: 1 };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -255,7 +258,7 @@ describe("Items Services", () => {
       });
       mockPrisma.item.findUnique.mockResolvedValueOnce(mockUpdatedItem);
 
-      const result = await itemsServices.updateItemService(params, updateData);
+      const result = await itemsServices.updateItemService(params, updateData, mockActor);
 
       expect(result).toEqual(mockUpdatedItem);
       expect(mockPrisma.item.update).toHaveBeenCalled();
@@ -268,7 +271,7 @@ describe("Items Services", () => {
       mockPrisma.item.findUnique.mockResolvedValue(null);
 
       await expect(
-        itemsServices.updateItemService(params, updateData),
+        itemsServices.updateItemService(params, updateData, mockActor),
       ).rejects.toThrow(AppError);
 
       expect(mockPrisma.item.update).not.toHaveBeenCalled();
@@ -307,7 +310,7 @@ describe("Items Services", () => {
       });
       mockPrisma.item.findUnique.mockResolvedValueOnce(mockUpdatedItem);
 
-      const result = await itemsServices.updateItemService(params, updateData);
+      const result = await itemsServices.updateItemService(params, updateData, mockActor);
 
       expect(result).toEqual(mockUpdatedItem);
       expect(mockPrisma.schoolItem.delete).toHaveBeenCalled();
@@ -327,7 +330,7 @@ describe("Items Services", () => {
         itemId: 1,
       });
 
-      const result = await itemsServices.deleteItemService(params);
+      const result = await itemsServices.deleteItemService(params, mockActor);
 
       expect(result).toEqual({ message: "Item removido com sucesso." });
       expect(mockPrisma.item.delete).toHaveBeenCalledWith({
@@ -340,7 +343,7 @@ describe("Items Services", () => {
 
       mockPrisma.item.findUnique.mockResolvedValue(null);
 
-      await expect(itemsServices.deleteItemService(params)).rejects.toThrow(
+      await expect(itemsServices.deleteItemService(params, mockActor)).rejects.toThrow(
         AppError,
       );
 
@@ -352,7 +355,7 @@ describe("Items Services", () => {
 
       mockPrisma.item.findUnique.mockResolvedValue(null);
 
-      await expect(itemsServices.deleteItemService(params)).rejects.toThrow(
+      await expect(itemsServices.deleteItemService(params, mockActor)).rejects.toThrow(
         "Item não encontrado.",
       );
     });

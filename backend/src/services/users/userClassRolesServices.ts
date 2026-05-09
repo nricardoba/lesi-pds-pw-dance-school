@@ -27,7 +27,7 @@ export const updateUserClassRoleService = async (params: unknown, body: unknown)
   const existingRole = await prisma.userClassRole.findUnique({
     where: { userClassRoleId: id }, select: { userClassRoleId: true },
   });
-  if (!existingRole) throw new AppError("Papel de utilizador na aula n�o encontrado.", 404);
+  if (!existingRole) throw new AppError("Papel de utilizador na aula não encontrado.", 404);
   return prisma.userClassRole.update({
     where: { userClassRoleId: id },
     data: {
@@ -41,7 +41,7 @@ export const deleteUserClassRoleService = async (params: unknown) => {
   const existingRole = await prisma.userClassRole.findUnique({
     where: { userClassRoleId: id }, select: { userClassRoleId: true },
   });
-  if (!existingRole) throw new AppError("Papel de utilizador na aula n�o encontrado.", 404);
+  if (!existingRole) throw new AppError("Papel de utilizador na aula não encontrado.", 404);
   await prisma.userClassRole.delete({ where: { userClassRoleId: id } });
   return null;
 };
