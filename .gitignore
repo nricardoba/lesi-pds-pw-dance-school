@@ -43,6 +43,14 @@ node_modules/
 .env.local
 .env.production
 
+
+# ================================
+# Coverage reports
+# ================================
+
+backend/coverage/
+frontend/coverage/
+
 # ================================
 # Logs
 # ================================
