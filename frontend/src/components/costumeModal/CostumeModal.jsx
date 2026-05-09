@@ -244,7 +244,7 @@ const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
           <div className="form-grid-2">
             <ReferenceField
               label="Categoria"
-              placeholder="Escreve para pesquisar ou criar"
+              placeholder="Escreva uma categoria"
               options={categories}
               value={selectedCategoryId}
               onValueChange={setSelectedCategoryId}
@@ -255,7 +255,7 @@ const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
             />
             <ReferenceField
               label="Tamanho"
-              placeholder="Escreve para pesquisar ou criar"
+              placeholder="Escreva um tamanho"
               options={sizes}
               value={selectedSizeId}
               onValueChange={setSelectedSizeId}
@@ -269,7 +269,7 @@ const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
           <div className="form-grid-2">
             <ReferenceField
               label="Cor"
-              placeholder="Escreve para pesquisar ou criar"
+              placeholder="Escreva uma cor"
               options={colors}
               value={selectedColorId}
               onValueChange={setSelectedColorId}
@@ -280,7 +280,7 @@ const CostumeModal = ({ isOpen, onClose, initialData, onSave }) => {
             />
             <ReferenceField
               label="Condição"
-              placeholder="Escreve para pesquisar ou criar"
+              placeholder="Escreva uma condição"
               options={conditions}
               value={selectedConditionId}
               onValueChange={setSelectedConditionId}
