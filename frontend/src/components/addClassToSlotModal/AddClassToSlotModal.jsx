@@ -15,7 +15,9 @@ const AddClassToSlotModal = ({ isOpen, onClose, slotData, studios, onSave }) => 
       studioId: parseInt(formData.get('studioId')),
       day: slotData.day,
       hour: slotData.hour,
-      duration: parseFloat(formData.get('duration'))
+      duration: parseFloat(formData.get('duration')),
+      className: formData.get('className') || 'Aula',
+      teacher: formData.get('teacher') || 'A Definir'
     };
 
     onSave(assignmentData);
@@ -71,10 +73,15 @@ const AddClassToSlotModal = ({ isOpen, onClose, slotData, studios, onSave }) => 
             </div>
           </div>
 
-          {/* Caixa de Aviso igual à da imagem */}
-          <div className="info-box mt-16">
-            Não há aulas sem estúdio atribuída para {slotData.day}.<br/>
-            Crie uma nova aula no Horário de Aulas primeiro.
+          <div className="form-grid-2 mt-16">
+            <div className="form-group">
+              <label>Nome da Aula</label>
+              <input name="className" type="text" placeholder="Ex: Ballet Iniciação" />
+            </div>
+            <div className="form-group">
+              <label>Professor</label>
+              <input name="teacher" type="text" placeholder="Nome do professor" />
+            </div>
           </div>
 
           <div className="modal-actions">

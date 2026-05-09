@@ -21,6 +21,7 @@ export const readScheduleClassesFromStorage = () => {
 
 export const writeScheduleClassesToStorage = (classes) => {
   localStorage.setItem(SCHEDULE_CLASSES_STORAGE_KEY, JSON.stringify(classes));
+  window.dispatchEvent(new Event('scheduleClassesUpdated'));
 };
 
 export const readClassTemplatesFromStorage = () => {

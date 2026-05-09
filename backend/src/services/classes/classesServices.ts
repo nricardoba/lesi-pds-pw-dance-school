@@ -30,6 +30,7 @@ const createClassSchema = z.object({
   modalityId: z.coerce.number().int().positive().optional(),
   classFinalFee: z.coerce.number().nonnegative(),
   classStatusId: z.coerce.number().int().positive(),
+  instructorId: z.coerce.number().int().positive().optional().nullable(),
 });
 
 const createUserClassSchema = z.object({
@@ -147,6 +148,7 @@ export const createClassService = async (body: unknown) => {
     modalityId,
     classFinalFee,
     classStatusId,
+    instructorId,
   } = createClassSchema.parse(body);
 
   if (!studioModalityId && studioId && modalityId) {
@@ -180,26 +182,65 @@ export const createClassService = async (body: unknown) => {
     schoolYearId = defaultYear.schoolYearId;
   }
 
-  return prisma.class.create({
-    data: {
-      schoolYearId,
-      classDateStart: new Date(classDateStart),
-      classDateEnd: new Date(classDateEnd),
-      classRecurrence: classRecurrence ?? false,
-      studioModalityId,
-      classFinalFee,
-      classStatusId,
-    },
-    include: {
-      classStatus: true,
-      schoolYear: true,
-      studioModality: {
-        include: {
-          studio: true,
-          modality: true,
+  const professorRole = instructorId
+    ? await prisma.userClassRole.findFirst({
+        where: { userClassRoleDesc: "Professor Responsável" },
+      })
+    : null;
+
+  if (instructorId && !professorRole) {
+    throw new AppError('Role "Professor Responsável" não encontrado na DB.', 500);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const createdClass = await tx.class.create({
+      data: {
+        schoolYearId,
+        classDateStart: new Date(classDateStart),
+        classDateEnd: new Date(classDateEnd),
+        classRecurrence: classRecurrence ?? false,
+        studioModalityId,
+        classFinalFee,
+        classStatusId,
+      },
+    });
+
+    if (instructorId && professorRole) {
+      await tx.userClass.create({
+        data: {
+          classId: createdClass.classId,
+          userId: instructorId,
+          userClassRoleId: professorRole.userClassRoleId,
+          userValidation: false,
+        },
+      });
+    }
+
+    const createdClassWithRelations = await tx.class.findUnique({
+      where: { classId: createdClass.classId },
+      include: {
+        classStatus: true,
+        schoolYear: true,
+        studioModality: {
+          include: {
+            studio: true,
+            modality: true,
+          },
+        },
+        userClass: {
+          include: {
+            user: true,
+            userClassRole: true,
+          },
         },
       },
-    },
+    });
+
+    if (!createdClassWithRelations) {
+      throw new AppError('Aula criada mas não foi possível carregar os detalhes.', 500);
+    }
+
+    return createdClassWithRelations;
   });
 };
 
