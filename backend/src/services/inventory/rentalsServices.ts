@@ -97,12 +97,24 @@ export const returnRentalService = async (params: unknown, body: unknown) => {
 export const listRentalsService = async () => {
   return await prisma.rentItem.findMany({
     include: {
-      user: true,
+      user: {
+        include: {
+          studentNumber: true,
+        },
+      },
       schoolItem: {
         include: {
           item: {
             include: {
-              itemCharacteristics: true,
+              itemCondition: true,
+              itemCharacteristics: {
+                include: {
+                  category: true,
+                  size: true,
+                  color: true,
+                  itemImage: true,
+                },
+              },
             },
           },
         },
@@ -117,12 +129,24 @@ export const getRentalByIdService = async (params: unknown) => {
   const rental = await prisma.rentItem.findUnique({
     where: { rentId: id },
     include: {
-      user: true,
+      user: {
+        include: {
+          studentNumber: true,
+        },
+      },
       schoolItem: {
         include: {
           item: {
             include: {
-              itemCharacteristics: true,
+              itemCondition: true,
+              itemCharacteristics: {
+                include: {
+                  category: true,
+                  size: true,
+                  color: true,
+                  itemImage: true,
+                },
+              },
             },
           },
         },
