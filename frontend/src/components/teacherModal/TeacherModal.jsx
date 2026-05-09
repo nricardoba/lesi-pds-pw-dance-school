@@ -201,18 +201,7 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         
         if (email) {
           try { 
-            await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token); 
-            
-            // Criar password automático: <prof@dataNascimento>
-            // Ex: dataNascimento="2010-01-13" -> password: "prof@20100113"
-            let birthStr = '12345678';
-            if (payload.userBirthDate) {
-              // Converte "YYYY-MM-DD" para "YYYYMMDD"
-              birthStr = payload.userBirthDate.replace(/-/g, '');
-            }
-          
-            
-            await registerRequest(email, autoPassword);
+            await addUserContact(createdOrUpdatedUserId, { contactValue: email, contactTypeId: 2, isMainContact: false }, token);
           } catch (e) { console.error(e); }
         }
         if (phone) {
