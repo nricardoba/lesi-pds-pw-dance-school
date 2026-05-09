@@ -62,7 +62,7 @@ const WeeklyCalendar = ({
 
                     return (
                       <div key={`${day}-${hour}`} className="calendar-slot-row">
-                        {role === 'admin' && !hasClassInSlot && (
+                        {role === 'admin' || role === 'teacher' && !hasClassInSlot && (
                           <button
                             type="button"
                             className={`calendar-slot-trigger ${isMenuOpen ? 'active' : ''}`}
@@ -76,7 +76,7 @@ const WeeklyCalendar = ({
                           </button>
                         )}
 
-                        {role === 'admin' && isMenuOpen && !hasClassInSlot && (
+                        {role === 'admin' || role === 'teacher' && isMenuOpen && !hasClassInSlot && (
                           <div className="slot-menu-schedule" onClick={(e) => e.stopPropagation()}>
                             <button type="button" onClick={() => openNewClassFromSlot(slotInfo)}>+ Nova Aula</button>
 {/*                             <button type="button" onClick={() => openTemplatePickerFromSlot(slotInfo)}>▶ Usar Template</button>
