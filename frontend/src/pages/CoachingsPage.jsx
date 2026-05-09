@@ -20,30 +20,28 @@ const CoachingsPage = () => {
   const [coachings, setCoachings] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchCoachings = async () => {
-    try {
-      const data = await listClassesRequest(token); // Esta função chama o listClassesService[cite: 11, 16]
-
-      // Filtramos os dados para garantir que mostramos apenas coachings (se necessário) 
-      // e formatamos para as colunas do teu Kanban
-      const formatted = data.map(c => ({
-        id: c.classId,
-        student: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc === "Aluno")?.user.userName || "N/A",
-        teacher: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc.includes("Professor"))?.user.userName || "N/A",
-        status: c.classStatus.classStatusDesc, // "Agendada", "A Decorrer", etc.
-        date: new Date(c.classDateStart).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }),
-        duration: `${(new Date(c.classDateEnd) - new Date(c.classDateStart)) / 60000} min`
-      }));
-
-      setCoachings(formatted);
-    } catch (err) {
-      console.error("Erro ao carregar coachings:", err);
-    }
-  };
-
   useEffect(() => {
     if (token) {
-      fetchCoachings();
+      (async () => {
+        try {
+          const data = await listClassesRequest(token); // Esta função chama o listClassesService[cite: 11, 16]
+
+          // Filtramos os dados para garantir que mostramos apenas coachings (se necessário) 
+          // e formatamos para as colunas do teu Kanban
+          const formatted = data.map(c => ({
+            id: c.classId,
+            student: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc === "Aluno")?.user.userName || "N/A",
+            teacher: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc.includes("Professor"))?.user.userName || "N/A",
+            status: c.classStatus.classStatusDesc, // "Agendada", "A Decorrer", etc.
+            date: new Date(c.classDateStart).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }),
+            duration: `${(new Date(c.classDateEnd) - new Date(c.classDateStart)) / 60000} min`
+          }));
+
+          setCoachings(formatted);
+        } catch (err) {
+          console.error("Erro ao carregar coachings:", err);
+        }
+      })();
     }
   }, [token]);
 
