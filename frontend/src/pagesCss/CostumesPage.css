@@ -301,6 +301,57 @@
   font-weight: 500;
 }
 
+.costumes-page .seller-contact-section {
+  margin-top: 18px;
+}
+
+.costumes-page .seller-contact-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.costumes-page .seller-contact-list {
+  display: grid;
+  gap: 10px;
+}
+
+.costumes-page .seller-contact-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+}
+
+.costumes-page .seller-contact-type {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.costumes-page .seller-contact-value,
+.costumes-page .seller-contact-empty {
+  font-size: 14px;
+  color: #0F172A;
+  font-weight: 500;
+}
+
+.btn-action-full--info {
+  background: #FFFFFF;
+  color: #176B87;
+  border: 1px solid #176B87;
+}
+
+.btn-action-full--info:hover {
+  background: #F0FBFF;
+}
+
 @media (max-width: 700px) {
   .costumes-page .rental-details-card {
     padding: 18px;

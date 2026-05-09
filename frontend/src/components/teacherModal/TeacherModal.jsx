@@ -289,12 +289,12 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
 
           <div className="form-grid-2">
             <div className="form-group">
-              <label>Data de Nascimento</label>
-              <input name="birthdate" type="date" defaultValue={teacherData?.birthdate || ''} />
-            </div>
-            <div className="form-group">
               <label>Data de Início</label>
               <input name="user_start_date" type="date" defaultValue={teacherData?.user_start_date || ''} />
+            </div>
+            <div className="form-group">
+              <label>Data de Nascimento</label>
+              <input name="birthdate" type="date" defaultValue={teacherData?.birthdate || ''} />
             </div>
           </div>
 
@@ -313,28 +313,8 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
             <label>NIF (Opcional)</label>
             <input name="nif" type="text" defaultValue={teacherData?.nif || ''} />
           </div>
-          
-          <div className="form-group full-width mt-16">
-            <h4 style={{ margin: '0 0 10px 0', color: '#334155' }}>Morada</h4>
-            <div className="form-grid-2" style={{ marginBottom: '10px' }}>
-              <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                <label>Rua</label>
-                <input name="street" type="text" defaultValue={teacherData?.address?.street || ''} placeholder="Nome da rua, nº, porta" />
-              </div>
-            </div>
-            <div className="form-grid-2">
-              <div className="form-group">
-                <label>Código Postal</label>
-                <input name="postalCode" type="text" defaultValue={teacherData?.address?.postalCode || ''} placeholder="Ex: 4000-123" />
-              </div>
-              <div className="form-group">
-                <label>Localidade</label>
-                <input name="locality" type="text" defaultValue={teacherData?.address?.locality || ''} placeholder="Ex: Porto" />
-              </div>
-            </div>
-          </div>
 
-          <div className="form-group full-width mt-16 specialty-field" ref={specialtiesRef}>
+                    <div className="form-group full-width mt-16 specialty-field" ref={specialtiesRef}>
             <label>Modalidades</label>
             <button
               type="button"
@@ -361,6 +341,28 @@ const TeacherModal = ({ isOpen, onClose, initialData, onSave, token }) => {
               </div>
             )}
           </div>
+          
+          <div className="form-group full-width mt-16">
+            <h4 style={{ margin: '0 0 10px 0', color: '#334155' }}>Morada</h4>
+            <div className="form-grid-2" style={{ marginBottom: '10px' }}>
+              <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                <label>Rua</label>
+                <input name="street" type="text" defaultValue={teacherData?.address?.street || ''} placeholder="Nome da rua, nº, porta" />
+              </div>
+            </div>
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label>Código Postal</label>
+                <input name="postalCode" type="text" defaultValue={teacherData?.address?.postalCode || ''} placeholder="Ex: 4000-123" />
+              </div>
+              <div className="form-group">
+                <label>Localidade</label>
+                <input name="locality" type="text" defaultValue={teacherData?.address?.locality || ''} placeholder="Ex: Porto" />
+              </div>
+            </div>
+          </div>
+
+
 
           <div style={{ display: 'none' }}>
             <div className="form-group full-width mt-16">
