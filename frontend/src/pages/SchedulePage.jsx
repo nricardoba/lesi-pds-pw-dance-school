@@ -11,7 +11,7 @@ import WeeklyCalendar from '../components/weeklyCalendar/WeeklyCalendar';
 import DeleteConfirmModal from '../components/deleteConfirmModal/DeleteConfirmModal';
 import TemplatePickerModal from '../components/templatePickerModal/TemplatePickerModal';
 import { useScheduleState } from '../Schedule/useScheduleState';
-import { pad2 } from '../utils/scheduleUtils';
+import { formatDateForInput, pad2 } from '../utils/scheduleUtils';
 
 registerLocale('pt', pt);
 
@@ -83,6 +83,8 @@ const SchedulePage = () => {
       ? `${pad2(weekStart.getDate())}/${pad2(weekStart.getMonth() + 1)} - ${pad2(weekEnd.getDate())}/${pad2(weekEnd.getMonth() + 1)}`
       : '';
 
+  const todayDateIso = formatDateForInput(new Date());
+
   const daysToRender = selectedDay === 'Todos os dias' ? daysOfWeek : [selectedDay];
 
   return (
@@ -117,6 +119,7 @@ const SchedulePage = () => {
         monthLabel={monthLabel}
         weekRangeLabel={weekRangeLabel}
         getWeekDayClass={getWeekDayClass}
+        stepDays={7}
       />
 
       <DaysTabs
@@ -125,6 +128,7 @@ const SchedulePage = () => {
         onSelectDay={setSelectedDay}
         currentWeek={currentWeek}
         currentWeekForSchedule={currentWeekForSchedule}
+        todayDateIso={todayDateIso}
       />
 
       {viewMode === 'daily' ? (

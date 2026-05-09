@@ -23,9 +23,8 @@ import {
 
 import {
   readScheduleClassesFromStorage,
+  writeScheduleClassesToStorage,
 } from '../utils/scheduleStorage';
-
-import { useScheduleData } from '../Schedule/useScheduleData';
 
 import { isSameWeek, getISODay } from 'date-fns';
 
@@ -58,6 +57,12 @@ const StudiosPage = () => {
 
   const daysOfWeek = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
   const [activeDay, setActiveDay] = useState('Segunda');
+  const todayDayName = useMemo(() => {
+    const today = new Date();
+    const dayIndex = today.getDay();
+    const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    return dayNames[dayIndex];
+  }, []);
 
 
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
@@ -73,7 +78,7 @@ const StudiosPage = () => {
 
   const [studios, setStudios] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { classesData, setClassesData } = useScheduleData(token);
+  const [classesData, setClassesData] = useState(() => readScheduleClassesFromStorage());
 
   const fetchStudios = async () => {
     try {
@@ -102,29 +107,7 @@ const StudiosPage = () => {
 
   useEffect(() => {
     const syncClassesFromStorage = () => {
-      const persisted = readScheduleClassesFromStorage();
-
-      setClassesData(
-        persisted.map((classItem) => ({
-          id: classItem.id,
-          day: classItem.day,
-          start: typeof classItem.start === 'number' ? classItem.start : toHourDecimal(classItem.class_time_start),
-          duration: typeof classItem.duration === 'number' ? classItem.duration : 1,
-          name: classItem.name,
-          instructor: classItem.instructor,
-          instructorName: classItem.instructorName,
-          room: classItem.room,
-          roomName: classItem.roomName,
-          category: classItem.category,
-          categoryName: classItem.categoryName,
-          occupancy: classItem.occupancy,
-          classDate: classItem.classDate,
-          class_time_start: classItem.class_time_start,
-          class_time_end: classItem.class_time_end,
-          studioId: classItem.studioId,
-          schoolYear: classItem.schoolYear,
-        }))
-      );
+      setClassesData(readScheduleClassesFromStorage());
     };
 
     syncClassesFromStorage();
@@ -145,7 +128,8 @@ const StudiosPage = () => {
       studioId: classItem.studioId || null,
       time: hourFromClass(classItem),
       className: classItem.name,
-      teacher: classItem.instructorName || classItem.instructor || 'A Definir'
+      teacher: classItem.instructorName || classItem.instructor || 'A Definir',
+      classDate: classItem.classDate || ''
     }));
   }, [classesData]);
 
@@ -280,9 +264,9 @@ const StudiosPage = () => {
 
       if (classData.id && classesData.some((c) => c.id === classData.id)) {
         await updateClassRequest(classData.id, backendClassFormat, token);
-        setClassesData((prevData) =>
-          prevData.map((c) => (c.id === classData.id ? { ...c, ...classData } : c))
-        );
+        const nextClasses = classesData.map((c) => (c.id === classData.id ? { ...c, ...classData } : c));
+        setClassesData(nextClasses);
+        writeScheduleClassesToStorage(nextClasses);
       } else {
         const newClass = await createClassRequest(backendClassFormat, token);
 
@@ -290,8 +274,8 @@ const StudiosPage = () => {
         const startDec = toHourDecimal(startHourStr);
         const endDec = toHourDecimal(endHourStr);
 
-        setClassesData((prevData) => [
-          ...prevData,
+        const nextClasses = [
+          ...classesData,
           {
             id: newClass.classId || Date.now(),
             day: classData.day,
@@ -311,7 +295,10 @@ const StudiosPage = () => {
             studioId: Number(classData.room),
             schoolYear: String(classData.schoolYear || 1),
           }
-        ]);
+        ];
+
+        setClassesData(nextClasses);
+        writeScheduleClassesToStorage(nextClasses);
 
         setReferenceDate(startDate);
       }
@@ -332,7 +319,15 @@ const StudiosPage = () => {
   const dayIndex = daysOfWeek.indexOf(activeDay);
   const activeWeekDay = currentWeek[dayIndex];
   const activeDateObj = activeWeekDay ? activeWeekDay.fullDate : new Date(weekStart);
+  const activeDateIso = formatDateForInput(activeDateObj);
   const formattedActiveDate = `${pad2(activeDateObj.getDate())}/${pad2(activeDateObj.getMonth() + 1)}`;
+  const dayEntries = daysOfWeek.map((day, index) => ({
+    day,
+    short: day.slice(0, 3).toUpperCase(),
+    date: currentWeek[index]?.date || '',
+    fullDate: currentWeek[index]?.fullDate || null,
+    isoDate: currentWeek[index]?.fullDate ? formatDateForInput(currentWeek[index].fullDate) : ''
+  }));
 
   const dateForLabel = activeDateObj || new Date(referenceDate);
   const monthLabel = new Intl.DateTimeFormat('pt-PT', { month: 'long', year: 'numeric' }).format(dateForLabel);
@@ -383,13 +378,15 @@ const StudiosPage = () => {
         monthLabel={monthLabel}
         weekRangeLabel={weekRangeLabel}
         getWeekDayClass={getWeekDayClass}
+        stepDays={1}
       />
 
-      <DaysTabs days={daysOfWeek} activeDay={activeDay} onSelectDay={setActiveDay} />
+      <DaysTabs dayEntries={dayEntries} selectedDay={activeDay} onSelectDay={setActiveDay} todayDateIso={formatDateForInput(new Date())} />
 
       <AvailabilityGrid 
         studios={studios} 
         activeDay={activeDay}
+        activeDate={activeDateIso}
         displayDate={formattedActiveDate}
         classes={scheduledClasses}
         maintenances={maintenances} // Passar manutenções

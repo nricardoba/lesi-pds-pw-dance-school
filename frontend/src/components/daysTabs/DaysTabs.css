@@ -49,6 +49,23 @@
   color: #FFFFFF;
 }
 
+.day-tab--today {
+  box-shadow: inset 0 0 0 2px #b8667d;
+  background-color: #FCECF0;
+  color: #8E3D59;
+}
+
+.day-tab--today:not(.active):hover {
+  background-color: #FADFE7;
+  color: #7A3250;
+}
+
+.day-tab.active.day-tab--today {
+  background-color: #176B87;
+  color: #FFFFFF;
+  box-shadow: inset 0 0 0 2px #b8667d;
+}
+
 .day-tab--all {
   min-width: 96px;
 }
