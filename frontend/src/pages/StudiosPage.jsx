@@ -7,7 +7,7 @@ import MaintenanceModal from '../components/maintenanceModal/MaintenanceModal';
 import StudioModal from '../components/studioModal/StudioModal';
 import AddClassToSlotModal from '../components/addClassToSlotModal/AddClassToSlotModal';
 import AddMaintenanceToSlotModal from '../components/addMaintenanceToSlotModal/AddMaintenanceToSlotModal';
-import WeekNavigator from '../components/weekNavigator/WeekNavigator';
+import WeekNavigator from '../components/weekNavigator/weekNavigator';
 
 import { useAuth } from '../context/useAuth';
 import { getStudios, createStudio, updateStudio } from '../services/studios';
