@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as itemsServices from '../../src/services/inventory/itemsServices';
-import { AppError } from '../../src/utils/appError';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as itemsServices from "../../src/services/inventory/itemsServices";
+import { AppError } from "../../src/utils/appError";
 
-vi.mock('../../src/config/db', () => ({
+vi.mock("../../src/config/db", () => ({
   prisma: {
     item: {
       findMany: vi.fn(),
@@ -24,17 +24,17 @@ vi.mock('../../src/config/db', () => ({
   },
 }));
 
-import { prisma } from '../../src/config/db';
+import { prisma } from "../../src/config/db";
 
 const mockPrisma = prisma as any;
 
-describe('Items Services', () => {
+describe("Items Services", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('listItemsService', () => {
-    it('deve listar todos os itens com relações completas', async () => {
+  describe("listItemsService", () => {
+    it("deve listar todos os itens com relações completas", async () => {
       const mockItems = [
         {
           itemId: 1,
@@ -46,7 +46,7 @@ describe('Items Services', () => {
             size: true,
             itemImage: true,
           },
-          itemCondition: { itemConditionId: 1, itemConditionName: 'Novo' },
+          itemCondition: { itemConditionId: 1, itemConditionName: "Novo" },
           schoolItem: null,
           userItem: null,
         },
@@ -60,7 +60,7 @@ describe('Items Services', () => {
       expect(mockPrisma.item.findMany).toHaveBeenCalled();
     });
 
-    it('deve retornar lista vazia quando não há itens', async () => {
+    it("deve retornar lista vazia quando não há itens", async () => {
       mockPrisma.item.findMany.mockResolvedValue([]);
 
       const result = await itemsServices.listItemsService();
@@ -69,8 +69,8 @@ describe('Items Services', () => {
     });
   });
 
-  describe('getItemByIdService', () => {
-    it('deve retornar um item por ID com todas as relações', async () => {
+  describe("getItemByIdService", () => {
+    it("deve retornar um item por ID com todas as relações", async () => {
       const mockItem = {
         itemId: 1,
         itemCharacteristicsId: 1,
@@ -82,7 +82,7 @@ describe('Items Services', () => {
           itemImage: true,
           itemCharacteristicsDanceType: [],
         },
-        itemCondition: { itemConditionId: 1, itemConditionName: 'Novo' },
+        itemCondition: { itemConditionId: 1, itemConditionName: "Novo" },
         schoolItem: { itemId: 1, rentFee: 50 },
         userItem: null,
       };
@@ -95,33 +95,33 @@ describe('Items Services', () => {
       expect(mockPrisma.item.findUnique).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { itemId: 1 },
-        })
+        }),
       );
     });
 
-    it('deve lançar erro quando item não existe', async () => {
+    it("deve lançar erro quando item não existe", async () => {
       mockPrisma.item.findUnique.mockResolvedValue(null);
 
       await expect(
-        itemsServices.getItemByIdService({ id: 999 })
+        itemsServices.getItemByIdService({ id: 999 }),
       ).rejects.toThrow(AppError);
     });
 
-    it('deve lançar erro com mensagem correta', async () => {
+    it("deve lançar erro com mensagem correta", async () => {
       mockPrisma.item.findUnique.mockResolvedValue(null);
 
       await expect(
-        itemsServices.getItemByIdService({ id: 999 })
-      ).rejects.toThrow('Item não encontrado.');
+        itemsServices.getItemByIdService({ id: 999 }),
+      ).rejects.toThrow("Item não encontrado.");
     });
   });
 
-  describe('createItemService', () => {
-    it('deve criar um item escolar com sucesso', async () => {
+  describe("createItemService", () => {
+    it("deve criar um item escolar com sucesso", async () => {
       const inputData = {
         itemCharacteristicsId: 1,
         itemConditionId: 1,
-        ownerType: 'school',
+        ownerType: "school",
         rentFee: 50,
       };
 
@@ -153,15 +153,15 @@ describe('Items Services', () => {
             itemId: 1,
             rentFee: 50,
           },
-        })
+        }),
       );
     });
 
-    it('deve criar um item de usuário com sucesso', async () => {
+    it("deve criar um item de usuário com sucesso", async () => {
       const inputData = {
         itemCharacteristicsId: 1,
         itemConditionId: 1,
-        ownerType: 'user',
+        ownerType: "user",
         userId: 5,
       };
 
@@ -192,40 +192,40 @@ describe('Items Services', () => {
             itemId: 2,
             userId: 5,
           },
-        })
+        }),
       );
     });
 
-    it('deve lançar erro quando itemCharacteristicsId é inválido', async () => {
+    it("deve lançar erro quando itemCharacteristicsId é inválido", async () => {
       const invalidData = {
         itemCharacteristicsId: -1,
         itemConditionId: 1,
-        ownerType: 'school',
+        ownerType: "school",
         rentFee: 50,
       };
 
       await expect(
-        itemsServices.createItemService(invalidData)
+        itemsServices.createItemService(invalidData),
       ).rejects.toThrow();
       expect(mockPrisma.item.create).not.toHaveBeenCalled();
     });
 
-    it('deve lançar erro quando falta campo obrigatório', async () => {
+    it("deve lançar erro quando falta campo obrigatório", async () => {
       const invalidData = {
         itemCharacteristicsId: 1,
-        ownerType: 'school',
+        ownerType: "school",
         rentFee: 50,
       };
 
       await expect(
-        itemsServices.createItemService(invalidData)
+        itemsServices.createItemService(invalidData),
       ).rejects.toThrow();
       expect(mockPrisma.item.create).not.toHaveBeenCalled();
     });
   });
 
-  describe('updateItemService', () => {
-    it('deve atualizar um item com sucesso', async () => {
+  describe("updateItemService", () => {
+    it("deve atualizar um item com sucesso", async () => {
       const params = { id: 1 };
       const updateData = {
         itemCharacteristicsId: 2,
@@ -261,23 +261,23 @@ describe('Items Services', () => {
       expect(mockPrisma.item.update).toHaveBeenCalled();
     });
 
-    it('deve lançar erro ao atualizar item inexistente', async () => {
+    it("deve lançar erro ao atualizar item inexistente", async () => {
       const params = { id: 999 };
       const updateData = { itemCharacteristicsId: 2 };
 
       mockPrisma.item.findUnique.mockResolvedValue(null);
 
       await expect(
-        itemsServices.updateItemService(params, updateData)
+        itemsServices.updateItemService(params, updateData),
       ).rejects.toThrow(AppError);
 
       expect(mockPrisma.item.update).not.toHaveBeenCalled();
     });
 
-    it('deve permitir trocar de item escolar para item de usuário', async () => {
+    it("deve permitir trocar de item escolar para item de usuário", async () => {
       const params = { id: 1 };
       const updateData = {
-        ownerType: 'user',
+        ownerType: "user",
         userId: 5,
       };
 
@@ -315,8 +315,8 @@ describe('Items Services', () => {
     });
   });
 
-  describe('deleteItemService', () => {
-    it('deve deletar um item com sucesso', async () => {
+  describe("deleteItemService", () => {
+    it("deve deletar um item com sucesso", async () => {
       const params = { id: 1 };
 
       mockPrisma.item.findUnique.mockResolvedValue({
@@ -329,32 +329,32 @@ describe('Items Services', () => {
 
       const result = await itemsServices.deleteItemService(params);
 
-      expect(result).toEqual({ message: 'Item removido com sucesso.' });
+      expect(result).toEqual({ message: "Item removido com sucesso." });
       expect(mockPrisma.item.delete).toHaveBeenCalledWith({
         where: { itemId: 1 },
       });
     });
 
-    it('deve lançar erro ao deletar item inexistente', async () => {
+    it("deve lançar erro ao deletar item inexistente", async () => {
       const params = { id: 999 };
 
       mockPrisma.item.findUnique.mockResolvedValue(null);
 
-      await expect(
-        itemsServices.deleteItemService(params)
-      ).rejects.toThrow(AppError);
+      await expect(itemsServices.deleteItemService(params)).rejects.toThrow(
+        AppError,
+      );
 
       expect(mockPrisma.item.delete).not.toHaveBeenCalled();
     });
 
-    it('deve lançar erro com mensagem correta', async () => {
+    it("deve lançar erro com mensagem correta", async () => {
       const params = { id: 999 };
 
       mockPrisma.item.findUnique.mockResolvedValue(null);
 
-      await expect(
-        itemsServices.deleteItemService(params)
-      ).rejects.toThrow('Item não encontrado.');
+      await expect(itemsServices.deleteItemService(params)).rejects.toThrow(
+        "Item não encontrado.",
+      );
     });
   });
 });
