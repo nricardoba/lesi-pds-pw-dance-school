@@ -61,9 +61,9 @@ describe("Testes de Integração - Inventário", () => {
   describe("Referências do Inventário", () => {
     it("1. deve criar uma categoria", async () => {
       const response = await request(app)
-        .post("/inventory/references/categories")
+        .post("/inventory-references/categories")
         .set("Authorization", `Bearer ${accessToken}`)
-        .send({ categoryName: `Categoria Teste ${uniqueSuffix}` });
+        .send({ name: `Categoria Teste ${uniqueSuffix}` });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("categoryId");
@@ -72,9 +72,9 @@ describe("Testes de Integração - Inventário", () => {
 
     it("2. deve criar uma cor", async () => {
       const response = await request(app)
-        .post("/inventory/references/colors")
+        .post("/inventory-references/colors")
         .set("Authorization", `Bearer ${accessToken}`)
-        .send({ colorName: `Cor Teste ${uniqueSuffix}` });
+        .send({ name: `Cor Teste ${uniqueSuffix}` });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("colorId");
@@ -83,9 +83,9 @@ describe("Testes de Integração - Inventário", () => {
 
     it("3. deve criar um tamanho", async () => {
       const response = await request(app)
-        .post("/inventory/references/sizes")
+        .post("/inventory-references/sizes")
         .set("Authorization", `Bearer ${accessToken}`)
-        .send({ sizeName: `Tamanho Teste ${uniqueSuffix}` });
+        .send({ name: `Tamanho Teste ${uniqueSuffix}` });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("sizeId");
@@ -94,9 +94,9 @@ describe("Testes de Integração - Inventário", () => {
 
     it("4. deve criar uma condição de item", async () => {
       const response = await request(app)
-        .post("/inventory/references/item-conditions")
+        .post("/inventory-references/item-conditions")
         .set("Authorization", `Bearer ${accessToken}`)
-        .send({ itemConditionName: `Condição Teste ${uniqueSuffix}` });
+        .send({ name: `Condição Teste ${uniqueSuffix}` });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("itemConditionId");
@@ -116,7 +116,7 @@ describe("Testes de Integração - Inventário", () => {
       };
 
       const response = await request(app)
-        .post("/inventory/characteristics")
+        .post("/characteristics")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(charData);
 
@@ -127,7 +127,7 @@ describe("Testes de Integração - Inventário", () => {
 
     it("2. deve listar as características", async () => {
       const response = await request(app)
-        .get("/inventory/characteristics")
+        .get("/characteristics")
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -146,19 +146,19 @@ describe("Testes de Integração - Inventário", () => {
       };
 
       const response = await request(app)
-        .post("/inventory/items")
+        .post("/items")
         .set("Authorization", `Bearer ${accessToken}`)
         .send(itemData);
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("itemId");
-      expect(response.body.schoolItem).toHaveProperty("rentFee", 20);
+      expect(Number(response.body.schoolItem?.rentFee)).toBe(20);
       itemId = response.body.itemId;
     });
 
     it("2. deve listar os itens", async () => {
       const response = await request(app)
-        .get("/inventory/items")
+        .get("/items")
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
@@ -171,20 +171,19 @@ describe("Testes de Integração - Inventário", () => {
       };
 
       const response = await request(app)
-        .put(`/inventory/items/${itemId}`)
+        .put(`/items/${itemId}`)
         .set("Authorization", `Bearer ${accessToken}`)
         .send(updateData);
 
       expect(response.status).toBe(200);
-      // Depending on how update is implemented, it might return the item or schoolItem updated
     });
   });
 
   describe("Validações", () => {
     it("deve impedir criação de categoria sem autenticação", async () => {
       const response = await request(app)
-        .post("/inventory/references/categories")
-        .send({ categoryName: "Falha" });
+        .post("/inventory-references/categories")
+        .send({ name: "Falha" });
 
       expect(response.status).toBe(401);
     });
