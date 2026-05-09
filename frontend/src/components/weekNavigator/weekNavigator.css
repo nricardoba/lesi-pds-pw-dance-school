@@ -186,6 +186,20 @@
   border-radius: 0 !important;
 }
 
+.custom-week-calendar .today-day {
+  position: relative;
+  font-weight: 700;
+}
+
+.custom-week-calendar .today-day::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 2px solid #F59E0B;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
 /* dias fora do mês */
 .custom-week-calendar .react-datepicker__day--outside-month {
   color: #b8b8c2;
