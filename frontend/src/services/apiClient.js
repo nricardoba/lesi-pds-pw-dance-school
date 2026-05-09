@@ -4,7 +4,7 @@ const handleResponse = async (res) => {
   if (res.status === 204) {
     return null;
   }
-  
+
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
 
@@ -12,12 +12,7 @@ const handleResponse = async (res) => {
     window.dispatchEvent(new Event("auth:unauthorized"));
   }
 
-  if (res.status === 204) {
-    return null;
-  }
-
-  const data = await res.json().catch(() => ({}));
-
+  // Se a resposta não for ok, lança um erro
   if (!res.ok) {
     throw new Error(data?.error?.message || "Erro na API");
   }
