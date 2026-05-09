@@ -30,6 +30,7 @@ const CostumesPage = () => {
   const [isRentalModalOpen, setIsRentalModalOpen] = useState(false);
   const [rentingCostume, setRentingCostume] = useState(null);
   const [costumeToDelete, setCostumeToDelete] = useState(null);
+  const [selectedRental, setSelectedRental] = useState(null);
 
   const [costumes, setCostumes] = useState([]);
   const [activeRentals, setActiveRentals] = useState([]);
@@ -59,10 +60,18 @@ const CostumesPage = () => {
           rental.schoolItem?.item?.itemCharacteristics?.itemCharacteristicsName ||
           'Figurino desconhecido',
         studentName: rental.user?.userName || 'Aluno desconhecido',
+        studentNumber: rental.user?.studentNumber?.studentNumber || '',
         startDate: rental.rentDateStart ? rental.rentDateStart.split('T')[0] : '',
         endDate: rental.rentDateEnd ? rental.rentDateEnd.split('T')[0] : '',
         actualReturnDate: rental.actualRentDateEnd ? rental.actualRentDateEnd.split('T')[0] : '',
         price: Number(rental.schoolItem?.rentFee ?? 0),
+        category:
+          rental.schoolItem?.item?.itemCharacteristics?.category?.categoryName || 'Desconhecida',
+        size:
+          rental.schoolItem?.item?.itemCharacteristics?.size?.sizeName || 'N/A',
+        color:
+          rental.schoolItem?.item?.itemCharacteristics?.color?.colorName || 'N/A',
+        condition: rental.schoolItem?.item?.itemCondition?.itemConditionName || 'Desconhecida',
         status: rental.actualRentDateEnd ? 'Concluído' : 'Ativo',
       }));
 
@@ -214,6 +223,14 @@ const CostumesPage = () => {
       console.error('Erro ao processar devolução:', error);
       alert('Erro ao devolver o equipamento.');
     }
+  };
+
+  const handleOpenRentalDetails = (rental) => {
+    setSelectedRental(rental);
+  };
+
+  const handleCloseRentalDetails = () => {
+    setSelectedRental(null);
   };
 
   const handleSaveCostume = async (costumeData) => {
@@ -438,7 +455,12 @@ const CostumesPage = () => {
           <h3 className="section-title">Alugueres Ativos</h3>
           <div className="rentals-list">
             {activeRentals.map((rental) => (
-              <RentalItem key={rental.id} rental={rental} onReturn={handleReturnRental} />
+              <RentalItem
+                key={rental.id}
+                rental={rental}
+                onReturn={handleReturnRental}
+                onViewDetails={handleOpenRentalDetails}
+              />
             ))}
             {activeRentals.length === 0 && (
               <div style={{ padding: '24px', color: '#64748B' }}>Não existem alugueres registados.</div>
@@ -479,6 +501,70 @@ const CostumesPage = () => {
               <button type="button" className="delete-confirm-btn" onClick={handleConfirmDeleteCostume}>
                 Remover
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedRental && (
+        <div className="rental-details-overlay" onClick={handleCloseRentalDetails}>
+          <div className="rental-details-card" onClick={(e) => e.stopPropagation()}>
+            <div className="rental-details-header">
+              <div>
+                <h3 className="rental-details-title">Detalhes do figurino</h3>
+                <p className="rental-details-subtitle">{selectedRental.costumeName}</p>
+              </div>
+              <button className="rental-details-close" onClick={handleCloseRentalDetails}>
+                &times;
+              </button>
+            </div>
+
+            <div className="rental-details-grid">
+              <div className="rental-details-field">
+                <span className="rental-details-label">Aluno</span>
+                <span className="rental-details-value">
+                  {selectedRental.studentName}
+                  {selectedRental.studentNumber ? ` (${selectedRental.studentNumber})` : ''}
+                </span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Estado</span>
+                <span className="rental-details-value">{selectedRental.status}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Data de início</span>
+                <span className="rental-details-value">{selectedRental.startDate || '-'}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Data prevista</span>
+                <span className="rental-details-value">{selectedRental.endDate || '-'}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Data entregue</span>
+                <span className="rental-details-value">
+                  {selectedRental.actualReturnDate || 'Ainda não entregue'}
+                </span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Preço</span>
+                <span className="rental-details-value">€ {Number(selectedRental.price || 0).toFixed(2)}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Categoria</span>
+                <span className="rental-details-value">{selectedRental.category}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Tamanho</span>
+                <span className="rental-details-value">{selectedRental.size}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Cor</span>
+                <span className="rental-details-value">{selectedRental.color}</span>
+              </div>
+              <div className="rental-details-field">
+                <span className="rental-details-label">Condição</span>
+                <span className="rental-details-value">{selectedRental.condition}</span>
+              </div>
             </div>
           </div>
         </div>
