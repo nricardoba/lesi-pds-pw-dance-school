@@ -56,19 +56,19 @@ itemsRouter.get("/:id", InventoryController.getItemByIdController);
 itemsRouter.post(
     "/",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT, USER_ROLES.STUDENT]),
     InventoryController.createItemController,
 );
 itemsRouter.put(
     "/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT, USER_ROLES.STUDENT]),
     InventoryController.updateItemController,
 );
 itemsRouter.delete(
     "/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.PARENT, USER_ROLES.STUDENT]),
     InventoryController.deleteItemController,
 );
 
@@ -116,19 +116,19 @@ export const inventoryReferencesRouter = Router();
 inventoryReferencesRouter.get(
     "/categories",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.listCategoriesController,
 );
 inventoryReferencesRouter.post(
     "/categories",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.createCategoryController,
 );
 inventoryReferencesRouter.put(
     "/categories/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.updateCategoryController,
 );
 inventoryReferencesRouter.delete(
@@ -142,19 +142,19 @@ inventoryReferencesRouter.delete(
 inventoryReferencesRouter.get(
     "/colors",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.listColorsController,
 );
 inventoryReferencesRouter.post(
     "/colors",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.createColorController,
 );
 inventoryReferencesRouter.put(
     "/colors/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.updateColorController,
 );
 inventoryReferencesRouter.delete(
@@ -168,19 +168,19 @@ inventoryReferencesRouter.delete(
 inventoryReferencesRouter.get(
     "/sizes",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.listSizesController,
 );
 inventoryReferencesRouter.post(
     "/sizes",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.createSizeController,
 );
 inventoryReferencesRouter.put(
     "/sizes/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.updateSizeController,
 );
 inventoryReferencesRouter.delete(
@@ -194,19 +194,19 @@ inventoryReferencesRouter.delete(
 inventoryReferencesRouter.get(
     "/item-conditions",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.listItemConditionsController,
 );
 inventoryReferencesRouter.post(
     "/item-conditions",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.createItemConditionController,
 );
 inventoryReferencesRouter.put(
     "/item-conditions/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.updateItemConditionController,
 );
 inventoryReferencesRouter.delete(
@@ -220,19 +220,19 @@ inventoryReferencesRouter.delete(
 inventoryReferencesRouter.get(
     "/dance-types",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.listDanceTypesController,
 );
 inventoryReferencesRouter.post(
     "/dance-types",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.createDanceTypeController,
 );
 inventoryReferencesRouter.put(
     "/dance-types/:id",
     ensureAuth,
-    checkRole([USER_ROLES.ADMIN]),
+    checkRole([USER_ROLES.ADMIN, USER_ROLES.TEACHER, USER_ROLES.STUDENT]),
     InventoryController.updateDanceTypeController,
 );
 inventoryReferencesRouter.delete(
