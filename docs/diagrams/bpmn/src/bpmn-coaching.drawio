@@ -1,13 +1,13 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0" version="29.6.4">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0">
   <diagram name="Page-1" id="e5i_UGR-G5qkCXt6SjrH">
-    <mxGraphModel dx="1928" dy="799" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3010" dy="1464" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="vXUudnj1Xp-0insUFzaf-1" parent="1" style="swimlane;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=0;startSize=20;horizontalStack=0;html=1;" value="Processo de agendamento e requisição de coaching" vertex="1">
           <mxGeometry height="880" width="2070" x="-560" y="370" as="geometry" />
         </mxCell>
-        <mxCell id="vXUudnj1Xp-0insUFzaf-2" parent="vXUudnj1Xp-0insUFzaf-1" style="swimlane;startSize=20;horizontal=0;html=1;" value="Encarregado de Educação" vertex="1">
+        <mxCell id="vXUudnj1Xp-0insUFzaf-2" parent="vXUudnj1Xp-0insUFzaf-1" style="swimlane;startSize=20;horizontal=0;html=1;" value="Aluno" vertex="1">
           <mxGeometry height="290" width="2050" x="20" as="geometry" />
         </mxCell>
         <mxCell id="vXUudnj1Xp-0insUFzaf-6" parent="vXUudnj1Xp-0insUFzaf-2" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task2;whiteSpace=wrap;rectStyle=rounded;size=10;html=1;container=1;expand=0;collapsible=0;taskMarker=abstract;" value="Selecionar modalidade" vertex="1">
@@ -113,7 +113,7 @@
         <mxCell id="CPgEwDb-VNQfhY89qSaa-9" parent="vXUudnj1Xp-0insUFzaf-3" style="points=[[0.25,0.25,0],[0.5,0,0],[0.75,0.25,0],[1,0.5,0],[0.75,0.75,0],[0.5,1,0],[0.25,0.75,0],[0,0.5,0]];shape=mxgraph.bpmn.gateway2;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=rhombusPerimeter;outlineConnect=0;outline=end;symbol=general;" value="" vertex="1">
           <mxGeometry height="50" width="50" x="1445" y="215" as="geometry" />
         </mxCell>
-        <mxCell id="vXUudnj1Xp-0insUFzaf-4" parent="vXUudnj1Xp-0insUFzaf-1" style="swimlane;startSize=20;horizontal=0;html=1;" value="Coordenação" vertex="1">
+        <mxCell id="vXUudnj1Xp-0insUFzaf-4" parent="vXUudnj1Xp-0insUFzaf-1" style="swimlane;startSize=20;horizontal=0;html=1;" value="&lt;div&gt;Direção&lt;/div&gt;" vertex="1">
           <mxGeometry height="260" width="2050" x="20" y="620" as="geometry" />
         </mxCell>
         <mxCell id="vXUudnj1Xp-0insUFzaf-47" parent="vXUudnj1Xp-0insUFzaf-4" style="points=[[0.25,0.25,0],[0.5,0,0],[0.75,0.25,0],[1,0.5,0],[0.75,0.75,0],[0.5,1,0],[0.25,0.75,0],[0,0.5,0]];shape=mxgraph.bpmn.gateway2;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=rhombusPerimeter;outlineConnect=0;outline=none;symbol=none;gwType=exclusive;" value="&lt;div&gt;Tem estúdios&lt;/div&gt;&lt;div&gt;disponíveis?&lt;/div&gt;" vertex="1">
