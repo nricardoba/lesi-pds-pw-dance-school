@@ -5,16 +5,14 @@ import CostumeModal from '../components/costumeModal/CostumeModal';
 import RentalItem from '../components/rentalItem/RentalItem';
 import RentalModal from '../components/rentalModal/RentalModal';
 
-import { getItems, getRentals, createRental, returnRental } from '../services/inventory';
+import { getItems, getRentals, createRental, returnRental, createItemCharacteristics, createItem, updateItemCharacteristics, updateItem, uploadCharacteristicImage, deleteItem } from '../services/inventory';
 import { getUsers } from '../services/users';
 import { useAuth } from '../context/useAuth';
 
-const getCostumeStatus = (itemId, rentals) => {
-  const hasActiveRental = rentals.some(
-    (rental) => rental.itemId === itemId && !rental.actualRentDateEnd,
-  );
-
-  return hasActiveRental ? 'Alugado' : 'Disponível';
+const getCostumeGroupKey = (item) => {
+  const chars = item.itemCharacteristics || {};
+  const rentFee = Number(item.schoolItem?.rentFee ?? 0).toFixed(2);
+  return `${chars.itemCharacteristicsId || 0}|${item.itemConditionId || 0}|${rentFee}`;
 };
 
 const CostumesPage = () => {
@@ -68,25 +66,64 @@ const CostumesPage = () => {
         status: rental.actualRentDateEnd ? 'Concluído' : 'Ativo',
       }));
 
-      const formattedItems = itemsData.map((item) => {
+      const activeRentalItemIds = new Set(
+        rentalsData
+          .filter((rental) => !rental.actualRentDateEnd)
+          .map((rental) => rental.itemId),
+      );
+
+      const schoolItems = itemsData.filter((item) => !!item.schoolItem);
+      const groupedByCostume = new Map();
+
+      schoolItems.forEach((item) => {
+        const key = getCostumeGroupKey(item);
         const chars = item.itemCharacteristics || {};
-        const category = chars.category?.categoryName || 'Desconhecida';
-        const status = getCostumeStatus(item.itemId, rentalsData);
+        const isAvailable = !activeRentalItemIds.has(item.itemId);
+
+        if (!groupedByCostume.has(key)) {
+          groupedByCostume.set(key, {
+            id: item.itemId,
+            ids: [item.itemId],
+            availableItemIds: isAvailable ? [item.itemId] : [],
+            characteristicsId: chars.itemCharacteristicsId,
+            title: chars.itemCharacteristicsName || 'Sem nome',
+            name: chars.itemCharacteristicsName || '',
+            categoryId: chars.categoryId,
+            sizeId: chars.sizeId,
+            colorId: chars.colorId,
+            category: chars.category?.categoryName || 'Desconhecida',
+            size: chars.size?.sizeName || 'N/A',
+            condition: item.itemCondition?.itemConditionName || 'Novo',
+            itemConditionId: item.itemConditionId,
+            color: chars.color?.colorName || 'N/A',
+            rentFee: Number(item.schoolItem?.rentFee ?? 0),
+            isRental: true,
+            image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150',
+            images: [chars.itemImage?.[0]?.itemImageUrl || ''],
+          });
+          return;
+        }
+
+        const group = groupedByCostume.get(key);
+        group.ids.push(item.itemId);
+        if (isAvailable) {
+          group.availableItemIds.push(item.itemId);
+        }
+      });
+
+      const formattedItems = Array.from(groupedByCostume.values()).map((group) => {
+        const quantity = group.ids.length;
+        const stock = group.availableItemIds.length;
+        const representativeId = stock > 0 ? group.availableItemIds[0] : group.ids[0];
+        const status = stock > 0 ? 'Disponível' : 'Alugado';
 
         return {
-          id: item.itemId,
-          title: chars.itemCharacteristicsName || 'Sem nome',
-          category,
-          size: chars.size?.sizeName || 'N/A',
-          condition: item.itemCondition?.itemConditionName || 'Novo',
-          color: chars.color?.colorName || 'N/A',
-          price: Number(item.schoolItem?.rentFee ?? 0),
-          lateFee: Number(item.schoolItem?.lateFee ?? 0),
-          isRental: true,
-          stock: status === 'Disponível' ? 1 : 0,
+          ...group,
+          id: representativeId,
+          quantity,
+          stock,
           status,
           actionText: status === 'Disponível' ? 'Alugar' : 'Indisponível',
-          image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150',
         };
       });
 
@@ -141,7 +178,7 @@ const CostumesPage = () => {
   const handleSaveRental = async (rentalData) => {
     try {
       if (!rentalData.studentId) {
-        alert('Por favor selecione um aluno válido.');
+        alert('Por favor seleciona um aluno válido.');
         return;
       }
 
@@ -157,7 +194,7 @@ const CostumesPage = () => {
       setIsRentalModalOpen(false);
       setRentingCostume(null);
     } catch (error) {
-      console.error(error);
+      console.error('Erro ao criar aluguer:', error);
       alert('Erro ao criar aluguer.');
     }
   };
@@ -174,18 +211,122 @@ const CostumesPage = () => {
       );
       await fetchData();
     } catch (error) {
-      console.error(error);
+      console.error('Erro ao processar devolução:', error);
       alert('Erro ao devolver o equipamento.');
     }
   };
 
-  const handleSaveCostume = (costumeData) => {
-    costumeData.isRental = true;
-    costumeData.actionText = costumeData.status === 'Disponível' ? 'Alugar' : 'Indisponível';
-    if (editingCostume) {
-      setCostumes(costumes.map((c) => (c.id === costumeData.id ? costumeData : c)));
-    } else {
-      setCostumes([...costumes, costumeData]);
+  const handleSaveCostume = async (costumeData) => {
+    try {
+      if (editingCostume) {
+        const currentQuantity = Math.max(1, Number(editingCostume.quantity || 1));
+        const currentStock = Math.max(0, Number(editingCostume.stock ?? currentQuantity));
+        const rentedQuantity = Math.max(0, currentQuantity - currentStock);
+        const targetQuantity = Math.max(1, Number(costumeData.quantity || currentQuantity));
+
+        if (targetQuantity < rentedQuantity) {
+          alert(`Não é possível reduzir para ${targetQuantity}. Existem ${rentedQuantity} unidades alugadas.`);
+          return;
+        }
+
+        await updateItemCharacteristics(
+          editingCostume.characteristicsId || costumeData.characteristicsId,
+          {
+            name: costumeData.name,
+            categoryId: costumeData.categoryId,
+            sizeId: costumeData.sizeId,
+            colorId: costumeData.colorId,
+          },
+          token
+        );
+
+        const allItemIds = editingCostume.ids?.length ? editingCostume.ids : [editingCostume.id];
+        const availableItemIds = editingCostume.availableItemIds?.length
+          ? editingCostume.availableItemIds
+          : [editingCostume.id];
+
+        const quantityDelta = targetQuantity - currentQuantity;
+        let itemIdsToDelete = [];
+
+        if (quantityDelta < 0) {
+          const removeCount = Math.abs(quantityDelta);
+          itemIdsToDelete = availableItemIds.slice(0, removeCount);
+
+          if (itemIdsToDelete.length < removeCount) {
+            alert('Não foi possível ajustar a quantidade porque algumas unidades estão alugadas.');
+            return;
+          }
+        }
+
+        const deleteSet = new Set(itemIdsToDelete);
+        const itemIdsToUpdate = allItemIds.filter((itemId) => !deleteSet.has(itemId));
+
+        await Promise.all(
+          itemIdsToUpdate.map((itemId) =>
+            updateItem(
+              itemId,
+              {
+                itemConditionId: costumeData.itemConditionId,
+                rentFee: costumeData.rentFee,
+              },
+              token,
+            ),
+          ),
+        );
+
+        if (itemIdsToDelete.length > 0) {
+          await Promise.all(itemIdsToDelete.map((itemId) => deleteItem(itemId, token)));
+        }
+
+        if (quantityDelta > 0) {
+          const createRequests = Array.from({ length: quantityDelta }, () =>
+            createItem(
+              {
+                itemCharacteristicsId: editingCostume.characteristicsId || costumeData.characteristicsId,
+                itemConditionId: costumeData.itemConditionId,
+                ownerType: 'school',
+                rentFee: costumeData.rentFee,
+              },
+              token,
+            ),
+          );
+          await Promise.all(createRequests);
+        }
+
+        if (costumeData.imageFile && costumeData.imageFile.size > 0) {
+          await uploadCharacteristicImage(
+            editingCostume.characteristicsId || costumeData.characteristicsId,
+            costumeData.imageFile,
+            token
+          );
+        }
+      } else {
+        const charRes = await createItemCharacteristics({
+          name: costumeData.name,
+          categoryId: costumeData.categoryId,
+          sizeId: costumeData.sizeId,
+          colorId: costumeData.colorId,
+        }, token);
+
+        const quantity = Math.max(1, Number(costumeData.quantity || 1));
+        const createRequests = Array.from({ length: quantity }, () => createItem({
+          itemCharacteristicsId: charRes.itemCharacteristicsId,
+          itemConditionId: costumeData.itemConditionId,
+          ownerType: 'school',
+          rentFee: costumeData.rentFee,
+        }, token));
+
+        await Promise.all(createRequests);
+
+        if (costumeData.imageFile && costumeData.imageFile.size > 0) {
+          await uploadCharacteristicImage(charRes.itemCharacteristicsId, costumeData.imageFile, token);
+        }
+      }
+      setIsModalOpen(false);
+      await fetchData();
+    } catch (e) {
+      console.error('Erro ao guardar figurino:', e);
+      alert('Erro ao guardar figurino.');
     }
   };
 
@@ -197,10 +338,17 @@ const CostumesPage = () => {
     setCostumeToDelete(null);
   };
 
-  const handleConfirmDeleteCostume = () => {
+  const handleConfirmDeleteCostume = async () => {
     if (!costumeToDelete) return;
-    setCostumes(costumes.filter((costume) => costume.id !== costumeToDelete.id));
-    setCostumeToDelete(null);
+    try {
+      const itemIdsToDelete = costumeToDelete.ids?.length ? costumeToDelete.ids : [costumeToDelete.id];
+      await Promise.all(itemIdsToDelete.map((itemId) => deleteItem(itemId, token)));
+      await fetchData();
+      setCostumeToDelete(null);
+    } catch (e) {
+      console.error('Erro ao remover figurino:', e);
+      alert('Erro ao remover figurino.');
+    }
   };
 
   return (
@@ -300,8 +448,12 @@ const CostumesPage = () => {
       )}
 
       <CostumeModal
+        key={`${isModalOpen ? 'open' : 'closed'}-${editingCostume?.id || 'new'}`}
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingCostume(null);
+        }}
         initialData={editingCostume}
         onSave={handleSaveCostume}
       />
