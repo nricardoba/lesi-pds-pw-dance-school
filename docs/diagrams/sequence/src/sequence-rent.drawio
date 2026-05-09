@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36">
   <diagram name="Página-1" id="1emsTdgzU4ldrmdPlqY5">
-    <mxGraphModel dx="1601" dy="769" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1901" dy="914" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -61,7 +61,7 @@
         <mxCell id="lbRtAsYnGpY23JYOskhz-90" parent="1" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#ff0000;" value="" vertex="1">
           <mxGeometry height="30" width="30" x="1295" y="360" as="geometry" />
         </mxCell>
-        <mxCell id="lbRtAsYnGpY23JYOskhz-101" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Item" vertex="1">
+        <mxCell id="lbRtAsYnGpY23JYOskhz-101" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="RentalService" vertex="1">
           <mxGeometry height="60" width="120" x="250" y="510" as="geometry" />
         </mxCell>
         <mxCell id="lbRtAsYnGpY23JYOskhz-102" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="RentItem" vertex="1">
@@ -103,7 +103,7 @@
         <mxCell id="2MlsQbr22CDIsXf6m-aU-56" parent="1" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#ff0000;" value="" vertex="1">
           <mxGeometry height="30" width="30" x="295" y="890" as="geometry" />
         </mxCell>
-        <mxCell id="2MlsQbr22CDIsXf6m-aU-57" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="RentController" vertex="1">
+        <mxCell id="2MlsQbr22CDIsXf6m-aU-57" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="InventoryController" vertex="1">
           <mxGeometry height="60" width="120" x="66.36000000000001" y="510" as="geometry" />
         </mxCell>
         <mxCell id="2MlsQbr22CDIsXf6m-aU-58" edge="1" parent="1" source="U7_JQCqxN_CUM0cKAl73-29" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" value="">
@@ -253,7 +253,7 @@
             <mxPoint x="1135" y="260" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="U7_JQCqxN_CUM0cKAl73-28" edge="1" parent="1" source="qi57OJDMm1appdSGLCJf-60" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;entryPerimeter=0;" target="U7_JQCqxN_CUM0cKAl73-29" value="createRentalService(req.body)">
+        <mxCell id="U7_JQCqxN_CUM0cKAl73-28" edge="1" parent="1" source="qi57OJDMm1appdSGLCJf-60" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;entryPerimeter=0;" target="U7_JQCqxN_CUM0cKAl73-29" value="returnRentalService(id, body)">
           <mxGeometry relative="1" width="80" as="geometry">
             <mxPoint x="240" y="620" as="sourcePoint" />
             <mxPoint x="410" y="620" as="targetPoint" />
@@ -326,7 +326,7 @@
         <mxCell id="U7_JQCqxN_CUM0cKAl73-40" parent="1" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" value="" vertex="1">
           <mxGeometry height="40" width="10" x="485" y="760" as="geometry" />
         </mxCell>
-        <mxCell id="U7_JQCqxN_CUM0cKAl73-43" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;entryPerimeter=0;" value="update({where: {rentId:id}} data: ...)">
+        <mxCell id="U7_JQCqxN_CUM0cKAl73-43" edge="1" parent="1" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;entryPerimeter=0;" value="update({where: {rentId:id}} data: itemDamaged)">
           <mxGeometry relative="1" width="80" as="geometry">
             <mxPoint x="315" y="770" as="sourcePoint" />
             <mxPoint x="485" y="770" as="targetPoint" />
