@@ -100,7 +100,11 @@ export const listRentalsService = async () => {
       user: true,
       schoolItem: {
         include: {
-          item: true,
+          item: {
+            include: {
+              itemCharacteristics: true,
+            },
+          },
         },
       },
     },
@@ -116,7 +120,11 @@ export const getRentalByIdService = async (params: unknown) => {
       user: true,
       schoolItem: {
         include: {
-          item: true,
+          item: {
+            include: {
+              itemCharacteristics: true,
+            },
+          },
         },
       },
     },
