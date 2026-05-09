@@ -18,6 +18,8 @@ const getCostumeGroupKey = (item) => {
 const CostumesPage = () => {
   const { token, user, role } = useAuth();
   const isAdmin = role === 'admin';
+  const currentUserId = user?.user_id ?? user?.userId ?? user?.id ?? null;
+  const currentUserName = user?.user_name ?? user?.userName ?? user?.name ?? '';
 
   const [activeTab, setActiveTab] = useState('figurinos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +57,7 @@ const CostumesPage = () => {
 
       const formattedRentals = rentalsData.map((rental) => ({
         id: rental.rentId,
+        userId: rental.userId,
         itemId: rental.itemId,
         costumeName:
           rental.schoolItem?.item?.itemCharacteristics?.itemCharacteristicsName ||
@@ -164,6 +167,20 @@ const CostumesPage = () => {
       return true;
     });
   }, [costumes, searchTerm, categoryFilter, statusFilter]);
+
+  const visibleRentals = useMemo(() => {
+    if (isAdmin) return activeRentals;
+    return activeRentals.filter((rental) => {
+      const matchesUserId = currentUserId !== null && currentUserId !== undefined
+        ? String(rental.userId) === String(currentUserId)
+        : false;
+      const matchesUserName = currentUserName
+        ? rental.studentName?.toLowerCase() === currentUserName.toLowerCase()
+        : false;
+
+      return matchesUserId || matchesUserName;
+    });
+  }, [activeRentals, currentUserId, currentUserName, isAdmin]);
 
   const handleOpenNewCostume = () => {
     setEditingCostume(null);
@@ -452,9 +469,9 @@ const CostumesPage = () => {
         </>
       ) : (
         <div className="rentals-section">
-          <h3 className="section-title">Alugueres Ativos</h3>
+          <h3 className="section-title">{isAdmin ? 'Alugueres Ativos' : 'Os Meus Alugueres'}</h3>
           <div className="rentals-list">
-            {activeRentals.map((rental) => (
+            {visibleRentals.map((rental) => (
               <RentalItem
                 key={rental.id}
                 rental={rental}
@@ -462,7 +479,7 @@ const CostumesPage = () => {
                 onViewDetails={handleOpenRentalDetails}
               />
             ))}
-            {activeRentals.length === 0 && (
+            {visibleRentals.length === 0 && (
               <div style={{ padding: '24px', color: '#64748B' }}>Não existem alugueres registados.</div>
             )}
           </div>
