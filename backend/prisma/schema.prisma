@@ -207,6 +207,7 @@ model ScheduleVacancy {
   scheduleVacancyStart      DateTime   @map("schedule_vacancy_start") @db.Timestamptz(6)
   scheduleVacancyEnd        DateTime   @map("schedule_vacancy_end") @db.Timestamptz(6)
   scheduleVacancyRecurrence Boolean?   @default(false) @map("schedule_vacancy_recurrence")
+  scheduleVacancyApproved   Boolean?   @map("schedule_vacancy_approved")
   schoolYear                SchoolYear @relation(fields: [schoolYearId], references: [schoolYearId], onDelete: Cascade, onUpdate: Cascade)
   user                      User       @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
 
