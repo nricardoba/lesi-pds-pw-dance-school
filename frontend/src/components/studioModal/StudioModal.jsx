@@ -5,8 +5,6 @@ import { getStudioModalities } from '../../services/studios';
 import { useAuth } from '../../context/useAuth';
 
 const StudioModal = ({ isOpen, onClose, initialData, onSave }) => {
-  if (!isOpen) return null;
-
   const { token } = useAuth();
 
   const isEditing = !!initialData;
@@ -56,8 +54,8 @@ const StudioModal = ({ isOpen, onClose, initialData, onSave }) => {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   const handleModalClick = (e) => {
@@ -72,8 +70,9 @@ const StudioModal = ({ isOpen, onClose, initialData, onSave }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setDropdownOpen(false);
     const formData = new FormData(e.target);
 
     const studioData = {
@@ -85,12 +84,27 @@ const StudioModal = ({ isOpen, onClose, initialData, onSave }) => {
       notes: formData.get('notes')
     };
 
-    onSave(studioData);
+    try {
+      await onSave(studioData);
+      onClose();
+    } catch (error) {
+      console.error('Erro ao guardar estúdio:', error);
+    }
+  };
+
+  const handleOverlayClick = () => {
+    // If dropdown is open, close only dropdown first to avoid accidental modal close.
+    if (dropdownOpen) {
+      setDropdownOpen(false);
+      return;
+    }
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content" onClick={handleModalClick}>
 
         <div className="modal-header">
@@ -136,12 +150,6 @@ const StudioModal = ({ isOpen, onClose, initialData, onSave }) => {
               )}
             </div>
           </div>
-
-          <div className="form-group full-width mt-16">
-            <label>Notas</label>
-            <textarea name="notes" rows="4" defaultValue={isEditing ? initialData.notes : ''}></textarea>
-          </div>
-
           <div className="modal-actions">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancelar</button>
             <button type="submit" className="btn-submit">{submitButtonText}</button>
