@@ -20,31 +20,26 @@ const CoachingsPage = () => {
   const [coachings, setCoachings] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (token) {
-      (async () => {
-        try {
-          const data = await listClassesRequest(token); // Esta função chama o listClassesService[cite: 11, 16]
-
-          // Filtramos os dados para garantir que mostramos apenas coachings (se necessário) 
-          // e formatamos para as colunas do teu Kanban
-          const formatted = data.map(c => ({
-            id: c.classId,
-            student: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc === "Aluno")?.user.userName || "N/A",
-            teacher: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc.includes("Professor"))?.user.userName || "N/A",
-            status: c.classStatus.classStatusDesc, // "Agendada", "A Decorrer", etc.
-            date: new Date(c.classDateStart).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }),
-            duration: `${(new Date(c.classDateEnd) - new Date(c.classDateStart)) / 60000} min`
-          }));
-
-          setCoachings(formatted);
-        } catch (err) {
-          console.error("Erro ao carregar coachings:", err);
-        }
-      })();
+  // Função reutilizável para carregar coachings (usada inicialmente e após ações)
+  const fetchCoachings = async () => {
+    try {
+      const data = await listClassesRequest(token);
+      const formatted = data.map(c => ({
+        id: c.classId,
+        student: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc === "Aluno")?.user.userName || "N/A",
+        teacher: c.userClass.find(uc => uc.userClassRole?.userClassRoleDesc.includes("Professor"))?.user.userName || "N/A",
+        status: c.classStatus.classStatusDesc,
+        date: new Date(c.classDateStart).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }),
+        duration: `${(new Date(c.classDateEnd) - new Date(c.classDateStart)) / 60000} min`
+      }));
+      setCoachings(formatted);
+    } catch (err) {
+      console.error("Erro ao carregar coachings:", err);
     }
+  };
+  useEffect(() => {
+    if (token) fetchCoachings();
   }, [token]);
-
 
   const [studios, setStudios] = useState([]);
 
@@ -230,7 +225,7 @@ const CoachingsPage = () => {
                   <select
                     value={selectedRoom}
                     onChange={(e) => setSelectedRoom(e.target.value)}
-                    style = {{width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: '4px' }}
+                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: '4px' }}
                   >
                     <option value="" disabled>Selecione uma sala</option>
                     {studios.map(s => (
@@ -240,24 +235,24 @@ const CoachingsPage = () => {
                 </div>
               </>
             ) : (
-            <>
-              <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '1.25rem', color: '#EF4444' }}>Rejeitar Pedido</h3>
-              <p style={{ marginBottom: '16px', color: '#4B5563', fontSize: '0.875rem' }}>Indique o motivo da rejeição (será enviado ao aluno).</p>
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 500 }}>Motivo (Opcional - será enviado ao aluno)</label>
-                <select
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: '4px', marginBottom: '12px' }}
-                >
-                  <option value="">Selecione um motivo rápido... (ou deixe vazio)</option>
-                  <option value="Professor indisponível">Professor indisponível</option>
-                  <option value="Horário sobreposto">Horário sobreposto</option>
-                  <option value="Falta de vagas físicas">Falta de vagas físicas</option>
-                </select>
-              </div>
-            </>
-          )}
+              <>
+                <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '1.25rem', color: '#EF4444' }}>Rejeitar Pedido</h3>
+                <p style={{ marginBottom: '16px', color: '#4B5563', fontSize: '0.875rem' }}>Indique o motivo da rejeição (será enviado ao aluno).</p>
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 500 }}>Motivo (Opcional - será enviado ao aluno)</label>
+                  <select
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #D1D5DB', borderRadius: '4px', marginBottom: '12px' }}
+                  >
+                    <option value="">Selecione um motivo rápido... (ou deixe vazio)</option>
+                    <option value="Professor indisponível">Professor indisponível</option>
+                    <option value="Horário sobreposto">Horário sobreposto</option>
+                    <option value="Falta de vagas físicas">Falta de vagas físicas</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
