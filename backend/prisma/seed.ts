@@ -72,6 +72,25 @@ async function main() {
   }
   console.log("✔ UserClassRole seed complete.");
 
+  // 4.1 Address Core Entities
+  const locality = await prisma.locality.upsert({
+    where: { localityId: 1 },
+    update: { localityName: "Braga" },
+    create: { localityId: 1, localityName: "Braga" },
+  });
+
+  const postalCode = await prisma.postalCode.upsert({
+    where: { postalCode: "4700-000" },
+    update: { localityId: locality.localityId },
+    create: { postalCode: "4700-000", localityId: locality.localityId },
+  });
+
+  const address = await prisma.address.upsert({
+    where: { streetId: 1 },
+    update: { streetName: "Rua do Administrador 123", postalCode: postalCode.postalCode },
+    create: { streetId: 1, streetName: "Rua do Administrador 123", postalCode: postalCode.postalCode },
+  });
+
   // 5. Admin
   const passwordHash = await bcrypt.hash("Admin123!", 10);
 
@@ -81,13 +100,29 @@ async function main() {
       userName: "Administrador",
       userTypeId: 1,
       userIsActive: true,
+      userBirthDate: new Date("1980-01-01T00:00:00Z"),
+      userStartDate: new Date("2020-09-01T00:00:00Z"),
     },
     create: {
       userId: 1,
       userName: "Administrador",
       userTypeId: 1,
       userIsActive: true,
+      userBirthDate: new Date("1980-01-01T00:00:00Z"),
+      userStartDate: new Date("2020-09-01T00:00:00Z"),
     },
+  });
+
+  await prisma.userNIF.upsert({
+    where: { userId: 1 },
+    update: { userNif: "111111111" },
+    create: { userId: 1, userNif: "111111111" },
+  });
+
+  await prisma.userAddress.upsert({
+    where: { userAddressId: 1 },
+    update: { userId: 1, streetId: address.streetId, isMainAddress: true },
+    create: { userAddressId: 1, userId: 1, streetId: address.streetId, isMainAddress: true },
   });
 
   await prisma.contact.upsert({
@@ -118,6 +153,18 @@ async function main() {
     },
   });
 
+  await prisma.contact.upsert({
+    where: { contactId: 4 },
+    update: { contactValue: "+351910000001", contactTypeId: 1 },
+    create: { contactId: 4, contactValue: "+351910000001", contactTypeId: 1 },
+  });
+
+  await prisma.userContact.upsert({
+    where: { userContactId: 4 },
+    update: { userId: 1, contactId: 4, isMainContact: false },
+    create: { userContactId: 4, userId: 1, contactId: 4, isMainContact: false },
+  });
+
   await prisma.userCredential.upsert({
     where: { userId: 1 },
     update: {
@@ -136,19 +183,41 @@ async function main() {
   // 6. Professor
   const profPasswordHash = await bcrypt.hash("Prof123!", 10);
 
+  const addressProf = await prisma.address.upsert({
+    where: { streetId: 2 },
+    update: { streetName: "Rua do Professor Teste 456", postalCode: postalCode.postalCode },
+    create: { streetId: 2, streetName: "Rua do Professor Teste 456", postalCode: postalCode.postalCode },
+  });
+
   await prisma.user.upsert({
     where: { userId: 2 },
     update: {
       userName: "Professor Teste",
       userTypeId: 2,
       userIsActive: true,
+      userBirthDate: new Date("1990-05-15T00:00:00Z"),
+      userStartDate: new Date("2021-09-01T00:00:00Z"),
     },
     create: {
       userId: 2,
       userName: "Professor Teste",
       userTypeId: 2,
       userIsActive: true,
+      userBirthDate: new Date("1990-05-15T00:00:00Z"),
+      userStartDate: new Date("2021-09-01T00:00:00Z"),
     },
+  });
+
+  await prisma.userNIF.upsert({
+    where: { userId: 2 },
+    update: { userNif: "222222222" },
+    create: { userId: 2, userNif: "222222222" },
+  });
+
+  await prisma.userAddress.upsert({
+    where: { userAddressId: 2 },
+    update: { userId: 2, streetId: addressProf.streetId, isMainAddress: true },
+    create: { userAddressId: 2, userId: 2, streetId: addressProf.streetId, isMainAddress: true },
   });
 
   await prisma.contact.upsert({
@@ -179,6 +248,18 @@ async function main() {
     },
   });
 
+  await prisma.contact.upsert({
+    where: { contactId: 5 },
+    update: { contactValue: "+351920000002", contactTypeId: 1 },
+    create: { contactId: 5, contactValue: "+351920000002", contactTypeId: 1 },
+  });
+
+  await prisma.userContact.upsert({
+    where: { userContactId: 5 },
+    update: { userId: 2, contactId: 5, isMainContact: false },
+    create: { userContactId: 5, userId: 2, contactId: 5, isMainContact: false },
+  });
+
   await prisma.userCredential.upsert({
     where: { userId: 2 },
     update: {
@@ -197,19 +278,47 @@ async function main() {
   // 7. Aluno
   const alunoPasswordHash = await bcrypt.hash("Aluno123!", 10);
 
+  const addressAluno = await prisma.address.upsert({
+    where: { streetId: 3 },
+    update: { streetName: "Rua do Aluno Teste 789", postalCode: postalCode.postalCode },
+    create: { streetId: 3, streetName: "Rua do Aluno Teste 789", postalCode: postalCode.postalCode },
+  });
+
   await prisma.user.upsert({
     where: { userId: 3 },
     update: {
       userName: "Aluno Teste",
       userTypeId: 3,
       userIsActive: true,
+      userBirthDate: new Date("2010-10-20T00:00:00Z"),
+      userStartDate: new Date("2023-09-01T00:00:00Z"),
     },
     create: {
       userId: 3,
       userName: "Aluno Teste",
       userTypeId: 3,
       userIsActive: true,
+      userBirthDate: new Date("2010-10-20T00:00:00Z"),
+      userStartDate: new Date("2023-09-01T00:00:00Z"),
     },
+  });
+
+  await prisma.userNIF.upsert({
+    where: { userId: 3 },
+    update: { userNif: "333333333" },
+    create: { userId: 3, userNif: "333333333" },
+  });
+
+  await prisma.userAddress.upsert({
+    where: { userAddressId: 3 },
+    update: { userId: 3, streetId: addressAluno.streetId, isMainAddress: true },
+    create: { userAddressId: 3, userId: 3, streetId: addressAluno.streetId, isMainAddress: true },
+  });
+
+  await prisma.studentNumber.upsert({
+    where: { userId: 3 },
+    update: { studentNumber: "a12345" },
+    create: { userId: 3, studentNumber: "a12345" },
   });
 
   await prisma.contact.upsert({
@@ -240,6 +349,18 @@ async function main() {
     },
   });
 
+  await prisma.contact.upsert({
+    where: { contactId: 6 },
+    update: { contactValue: "+351930000003", contactTypeId: 1 },
+    create: { contactId: 6, contactValue: "+351930000003", contactTypeId: 1 },
+  });
+
+  await prisma.userContact.upsert({
+    where: { userContactId: 6 },
+    update: { userId: 3, contactId: 6, isMainContact: false },
+    create: { userContactId: 6, userId: 3, contactId: 6, isMainContact: false },
+  });
+
   await prisma.userCredential.upsert({
     where: { userId: 3 },
     update: {
@@ -255,7 +376,30 @@ async function main() {
 
   console.log("✔ Aluno user seed complete.");
 
-  // 8. Inventory initial data
+  // 8. Anos Letivos (SchoolYear)
+  console.log("Seeding school years data...");
+  const currentYear = new Date().getFullYear();
+  const schoolYears = [
+    {
+      schoolYearName: `${currentYear}/${currentYear + 1}`,
+      schoolYearStart: new Date(`${currentYear}-09-01T00:00:00Z`),
+      schoolYearEnd: new Date(`${currentYear + 1}-07-31T00:00:00Z`),
+    }
+  ];
+
+  for (const sy of schoolYears) {
+    await prisma.schoolYear.upsert({
+      where: { schoolYearName: sy.schoolYearName },
+      update: {
+        schoolYearStart: sy.schoolYearStart,
+        schoolYearEnd: sy.schoolYearEnd
+      },
+      create: sy,
+    });
+  }
+  console.log("✔ SchoolYear seed complete.");
+
+  // 9. Inventory initial data
   console.log("Seeding inventory data...");
 
   // Add Categories
@@ -351,7 +495,81 @@ async function main() {
 
   console.log("✔ Inventory seed complete.");
 
-  // 9. Sincronizar sequências (Correção para IDs manuais no Postgres)
+  // 10. Core Dance Entities (DanceType, Modality, Studio)
+  console.log("Seeding core dance entities...");
+  const danceTypes = [
+    { danceTypeName: "Clássica" },
+    { danceTypeName: "Contemporânea" },
+    { danceTypeName: "Urbana" }
+  ];
+
+  for (const dt of danceTypes) {
+    await prisma.danceType.upsert({
+      where: { danceTypeName: dt.danceTypeName },
+      update: {},
+      create: dt,
+    });
+  }
+
+  const modalities = [
+    { modalityName: "Ballet Clássico", modalityHourlyFee: 15.0 },
+    { modalityName: "Dança Contemporânea", modalityHourlyFee: 12.5 },
+    { modalityName: "Hip Hop", modalityHourlyFee: 10.0 }
+  ];
+
+  for (const mod of modalities) {
+    await prisma.modality.upsert({
+      where: { modalityName: mod.modalityName },
+      update: { modalityHourlyFee: mod.modalityHourlyFee },
+      create: mod,
+    });
+  }
+
+  const studios = [
+    { studioName: "Estúdio Principal", studioMaxCapacity: 30 },
+    { studioName: "Estúdio B", studioMaxCapacity: 15 }
+  ];
+
+  for (const std of studios) {
+    await prisma.studio.upsert({
+      where: { studioName: std.studioName },
+      update: { studioMaxCapacity: std.studioMaxCapacity },
+      create: std,
+    });
+  }
+  console.log("✔ Core dance entities seed complete.");
+
+  // 10.1 Specialities / User Modalities
+  // Associate Modalities to users (Professor and Student)
+  
+  // Get Modalties
+  const balletModality = await prisma.modality.findUnique({ where: { modalityName: "Ballet Clássico" }});
+  const contempModality = await prisma.modality.findUnique({ where: { modalityName: "Dança Contemporânea" }});
+
+  if (balletModality && contempModality) {
+    // Prof teaches Ballet Clássico and Dança Contemporânea
+    await prisma.userModality.upsert({
+      where: { userId_modalityId: { userId: 2, modalityId: balletModality.modalityId } },
+      update: {},
+      create: { userId: 2, modalityId: balletModality.modalityId },
+    });
+    await prisma.userModality.upsert({
+      where: { userId_modalityId: { userId: 2, modalityId: contempModality.modalityId } },
+      update: {},
+      create: { userId: 2, modalityId: contempModality.modalityId },
+    });
+
+    // Student attends Ballet Clássico
+    await prisma.userModality.upsert({
+      where: { userId_modalityId: { userId: 3, modalityId: balletModality.modalityId } },
+      update: {},
+      create: { userId: 3, modalityId: balletModality.modalityId },
+    });
+    console.log("✔ User Modalities seed complete.");
+  }
+
+
+  // 11. Sincronizar sequências (Correção para IDs manuais no Postgres)
   console.log("Sincronizando sequências da base de dados...");
   try {
     await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"User"', 'user_id'), coalesce(max(user_id), 0) + 1, false) FROM "User"`);
