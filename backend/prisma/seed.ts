@@ -574,7 +574,11 @@ async function main() {
   try {
     await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"User"', 'user_id'), coalesce(max(user_id), 0) + 1, false) FROM "User"`);
     await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"Contact"', 'contact_id'), coalesce(max(contact_id), 0) + 1, false) FROM "Contact"`);
+    await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"User_Address"', 'user_address_id'), coalesce(max(user_address_id), 0) + 1, false) FROM "User_Address"`);
     await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"User_Contact"', 'user_contact_id'), coalesce(max(user_contact_id), 0) + 1, false) FROM "User_Contact"`);
+    await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"User_Credential"', 'user_id'), coalesce(max(user_id), 0) + 1, false) FROM "User_Credential"`);
+    await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"Address"', 'street_id'), coalesce(max(street_id), 0) + 1, false) FROM "Address"`);
+    await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"Locality"', 'locality_id'), coalesce(max(locality_id), 0) + 1, false) FROM "Locality"`);
   } catch (e) {
     console.warn("Aviso ao tentar sincronizar as sequências ID:", e);
   }
