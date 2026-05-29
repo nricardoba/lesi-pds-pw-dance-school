@@ -56,9 +56,23 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
 
   const [costumes, setCostumes] = useState([]);
   const [activeRentals, setActiveRentals] = useState([]);
-  const [students, setStudents] = useState([]);
+  const [rentalUsers, setRentalUsers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const getRoleLabel = (roleDesc = '') => {
+    const normalizedRole = roleDesc.toLowerCase();
+
+    if (normalizedRole === 'teacher' || normalizedRole === 'professor') {
+      return 'Professor';
+    }
+
+    if (normalizedRole === 'student' || normalizedRole === 'aluno') {
+      return 'Aluno';
+    }
+
+    return 'Utilizador';
+  };
 
   const fetchData = async () => {
     try {
@@ -74,20 +88,21 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
 
       setCategories(categoriesData || []);
 
-      const studentsOnly = usersData.filter((u) => {
+      const rentalUsersOnly = usersData.filter((u) => {
         const type = u.userType?.userTypeDesc?.toLowerCase() || '';
-        return type === 'student' || type === 'aluno';
+        return type === 'student' || type === 'aluno' || type === 'teacher' || type === 'professor';
       });
-      setStudents(studentsOnly);
+      setRentalUsers(rentalUsersOnly);
 
       const formattedRentals = rentalsData.map((rental) => ({
         id: rental.rentId,
         userId: rental.userId,
         itemId: rental.itemId,
+        userRole: rental.user?.userType?.userTypeDesc?.toLowerCase() || '',
         costumeName:
           rental.schoolItem?.item?.itemCharacteristics?.itemCharacteristicsName ||
           'Figurino desconhecido',
-        studentName: rental.user?.userName || 'Aluno desconhecido',
+        studentName: rental.user?.userName || 'Utilizador desconhecido',
         studentNumber: rental.user?.studentNumber?.studentNumber || '',
         startDate: rental.rentDateStart ? rental.rentDateStart.split('T')[0] : '',
         endDate: rental.rentDateEnd ? rental.rentDateEnd.split('T')[0] : '',
@@ -304,7 +319,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
   const handleSaveRental = async (rentalData) => {
     try {
       if (!rentalData.studentId) {
-        alert('Por favor seleciona um aluno válido.');
+        alert('Por favor seleciona um utilizador válido.');
         return;
       }
 
@@ -683,7 +698,9 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
         isOpen={isRentalModalOpen}
         onClose={() => setIsRentalModalOpen(false)}
         costume={rentingCostume}
-        students={students}
+        users={rentalUsers}
+        searchByEmail={isAdmin}
+        allowTeacherSelection={isAdmin}
         onSave={handleSaveRental}
       />
 
@@ -721,8 +738,9 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
 
             <div className="rental-details-grid">
               <div className="rental-details-field">
-                <span className="rental-details-label">Aluno</span>
+                <span className="rental-details-label">Utilizador</span>
                 <span className="rental-details-value">
+                  {selectedRental.userRole ? `${getRoleLabel(selectedRental.userRole)}: ` : ''}
                   {selectedRental.studentName}
                   {selectedRental.studentNumber ? ` (${selectedRental.studentNumber})` : ''}
                 </span>
