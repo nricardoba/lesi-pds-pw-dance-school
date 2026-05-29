@@ -13,7 +13,8 @@ const Sidebar = () => {
     { path: '/dashboard', name: 'Dashboard', icon: '▦' },
     { path: '/horario', name: 'Horário de Aulas', icon: '📅' },
     { path: '/coachings', name: 'Coachings', icon: '✨' },
-    { path: '/figurinos', name: 'Figurinos', icon: '👗' },
+    { path: '/figurinos-venda', name: 'Venda de Figurinos', icon: '💸' },
+    { path: '/figurinos-catalogo', name: 'Catálogo de Figurinos', icon: '🏫' },
     { path: '/professores', name: 'Professores', icon: '👨‍🏫' },
     { path: '/estudios', name: 'Estúdios', icon: '🏢' },
     { path: '/alunos', name: 'Alunos', icon: '👥' },
@@ -26,7 +27,7 @@ const Sidebar = () => {
   }
 
   if (role === 'student') {
-    const allowedForStudent = ['/dashboard', '/horario', '/coachings', '/figurinos', '/professores'];
+    const allowedForStudent = ['/dashboard', '/horario', '/coachings', '/figurinos-venda', '/figurinos-catalogo', '/professores'];
     menuItems = menuItems.filter((item) => allowedForStudent.includes(item.path));
   }
 

@@ -54,7 +54,15 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/professores" element={<ProtectedRoute><TeachersPage /></ProtectedRoute>} />
             <Route path="/alunos" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
-            <Route path="/figurinos" element={<ProtectedRoute><CostumesPage /></ProtectedRoute>} />
+            <Route
+              path="/figurinos-venda"
+              element={<ProtectedRoute><CostumesPage moduleType="sales" /></ProtectedRoute>}
+            />
+            <Route
+              path="/figurinos-catalogo"
+              element={<ProtectedRoute><CostumesPage moduleType="catalog" /></ProtectedRoute>}
+            />
+            <Route path="/figurinos" element={<Navigate to="/figurinos-catalogo" replace />} />
             <Route path="/estudios" element={<ProtectedRoute><StudiosPage /></ProtectedRoute>} />
             <Route path="/coachings" element={<ProtectedRoute><CoachingsPage /></ProtectedRoute>} />
             <Route path="/horario" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />

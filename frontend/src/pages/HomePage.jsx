@@ -43,11 +43,19 @@ const HomePage = () => {
               </div>
             </a>
 
-            <a href="/figurinos" className="quick-action-card">
-              <span>🎒</span>
+            <a href="/figurinos-venda" className="quick-action-card">
+              <span>💸</span>
               <div>
-                <h3>Inventário</h3>
-                <p>Gerir inventário</p>
+                <h3>Venda de Figurinos</h3>
+                <p>Figurinos de alunos e professores.</p>
+              </div>
+            </a>
+
+            <a href="/figurinos-catalogo" className="quick-action-card">
+              <span>🏫</span>
+              <div>
+                <h3>Catálogo da Escola</h3>
+                <p>Aluguer e histórico de figurinos alugados.</p>
               </div>
             </a>
 

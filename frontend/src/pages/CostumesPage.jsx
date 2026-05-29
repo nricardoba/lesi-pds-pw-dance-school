@@ -28,7 +28,7 @@ const formatUserContacts = (user) => {
     .filter((contact) => contact.value);
 };
 
-const CostumesPage = () => {
+const CostumesPage = ({ moduleType = 'catalog' }) => {
   const { token, user, role } = useAuth();
   const isAdmin = role === 'admin';
   const isStudent = role === 'student';
@@ -36,7 +36,7 @@ const CostumesPage = () => {
   const currentUserId = user?.user_id ?? user?.userId ?? user?.id ?? null;
   const currentUserName = user?.user_name ?? user?.userName ?? user?.name ?? '';
 
-  const [activeTab, setActiveTab] = useState('figurinos');
+  const [activeTab, setActiveTab] = useState(moduleType === 'catalog' ? 'catalogo' : 'venda');
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('todos');
   const [statusFilter, setStatusFilter] = useState('todas');
@@ -217,6 +217,10 @@ const CostumesPage = () => {
     }
   }, [token]);
 
+  useEffect(() => {
+    setActiveTab(moduleType === 'catalog' ? 'catalogo' : 'venda');
+  }, [moduleType]);
+
   const filteredCostumes = useMemo(() => {
     return costumes.filter((costume) => {
       if (searchTerm && !costume.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
@@ -244,6 +248,30 @@ const CostumesPage = () => {
       return matchesUserId || matchesUserName;
     });
   }, [activeRentals, currentUserId, currentUserName, isAdmin]);
+
+  const canManageCostume = (costume) => {
+    if (isAdmin) return true;
+
+    if (costume.ownerType === 'school') {
+      return role === 'parent';
+    }
+
+    if (costume.ownerType === 'user') {
+      return role === 'student' && String(costume.ownerUserId) === String(currentUserId);
+    }
+
+    return false;
+  };
+
+  const saleCostumes = useMemo(
+    () => filteredCostumes.filter((costume) => costume.ownerType === 'user'),
+    [filteredCostumes],
+  );
+
+  const catalogCostumes = useMemo(
+    () => filteredCostumes.filter((costume) => costume.ownerType === 'school'),
+    [filteredCostumes],
+  );
 
   const handleOpenNewCostume = () => {
     setEditingCostume(null);
@@ -473,8 +501,14 @@ const CostumesPage = () => {
     <div className="costumes-page">
       <header className="page-header">
         <div>
-          <h1 className="page-title">Figurinos</h1>
-          <p className="page-subtitle">Gestão de aluguer e venda de figurinos</p>
+          <h1 className="page-title">
+            {moduleType === 'sales' ? 'Venda de Figurinos' : 'Catálogo de Figurinos da Escola'}
+          </h1>
+          <p className="page-subtitle">
+            {moduleType === 'sales'
+              ? 'Figurinos para venda adicionados por alunos e professores'
+              : 'Catálogo da escola para aluguer e registos de alugueres'}
+          </p>
         </div>
         {canCreateCostume && (
           <button className="btn-primary" onClick={handleOpenNewCostume}>
@@ -483,24 +517,26 @@ const CostumesPage = () => {
         )}
       </header>
 
-      <div className="costumes-tabs">
-        <button
-          className={`tab-btn ${activeTab === 'figurinos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('figurinos')}
-        >
-          <span style={{ opacity: 0.5 }}>📦</span> Figurinos
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'alugueres' ? 'active' : ''}`}
-          onClick={() => setActiveTab('alugueres')}
-        >
-          <span style={{ opacity: 0.5 }}>📋</span> Alugueres
-        </button>
-      </div>
+      {moduleType === 'catalog' && (
+        <div className="costumes-tabs">
+          <button
+            className={`tab-btn ${activeTab === 'catalogo' ? 'active' : ''}`}
+            onClick={() => setActiveTab('catalogo')}
+          >
+            <span style={{ opacity: 0.5 }}>🏫</span> Catálogo (Escola - Aluguer)
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'alugueres' ? 'active' : ''}`}
+            onClick={() => setActiveTab('alugueres')}
+          >
+            <span style={{ opacity: 0.5 }}>📋</span> Registos de Alugueres
+          </button>
+        </div>
+      )}
 
       {isLoading ? (
         <div style={{ padding: '24px', color: '#64748B' }}>A carregar...</div>
-      ) : activeTab === 'figurinos' ? (
+      ) : moduleType === 'sales' ? (
         <>
           <div className="filters-bar">
             <div className="search-box">
@@ -536,28 +572,70 @@ const CostumesPage = () => {
           </div>
 
           <div className="costumes-grid">
-            {filteredCostumes.map((costume) => (
+            {saleCostumes.map((costume) => (
               <CostumeCard
                 isAdmin={isAdmin}
                 key={costume.id}
                 costume={costume}
-                onEdit={
-                  (costume.ownerType === 'school' && (isAdmin || role === 'parent')) ||
-                  (costume.ownerType === 'user' && role === 'student' && String(costume.ownerUserId) === String(currentUserId))
-                    ? () => handleEditCostume(costume)
-                    : undefined
-                }
+                onEdit={canManageCostume(costume) ? () => handleEditCostume(costume) : undefined}
                 onRent={isAdmin && costume.ownerType === 'school' ? () => handleOpenRentalModal(costume) : undefined}
                 onViewInfo={costume.ownerType === 'user' ? () => handleOpenCostumeInfo(costume) : undefined}
-                onDelete={
-                  (costume.ownerType === 'school' && (isAdmin || role === 'parent')) ||
-                  (costume.ownerType === 'user' && role === 'student' && String(costume.ownerUserId) === String(currentUserId))
-                    ? () => handleAskDeleteCostume(costume)
-                    : undefined
-                }
+                onDelete={canManageCostume(costume) ? () => handleAskDeleteCostume(costume) : undefined}
               />
             ))}
-            {filteredCostumes.length === 0 && (
+            {saleCostumes.length === 0 && (
+              <div style={{ padding: '24px', color: '#64748B' }}>Nenhum figurino encontrado.</div>
+            )}
+          </div>
+        </>
+      ) : activeTab === 'catalogo' ? (
+        <>
+          <div className="filters-bar">
+            <div className="search-box">
+              <span className="search-icon">🔍</span>
+              <input
+                type="search"
+                placeholder="Pesquisar figurinos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className="filter-dropdowns">
+              <div className="dropdown">
+                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                  <option value="todos">Todos</option>
+                  {categories.map((category) => (
+                    <option key={category.categoryId} value={category.categoryName}>
+                      {category.categoryName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="dropdown">
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="todas">Todas</option>
+                  <option value="disponivel">Disponíveis</option>
+                  <option value="alugado">Alugados</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="costumes-grid">
+            {catalogCostumes.map((costume) => (
+              <CostumeCard
+                isAdmin={isAdmin}
+                key={costume.id}
+                costume={costume}
+                onEdit={canManageCostume(costume) ? () => handleEditCostume(costume) : undefined}
+                onRent={isAdmin && costume.ownerType === 'school' ? () => handleOpenRentalModal(costume) : undefined}
+                onViewInfo={costume.ownerType === 'user' ? () => handleOpenCostumeInfo(costume) : undefined}
+                onDelete={canManageCostume(costume) ? () => handleAskDeleteCostume(costume) : undefined}
+              />
+            ))}
+            {catalogCostumes.length === 0 && (
               <div style={{ padding: '24px', color: '#64748B' }}>Nenhum figurino encontrado.</div>
             )}
           </div>
