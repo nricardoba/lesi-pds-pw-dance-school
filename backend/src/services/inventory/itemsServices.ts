@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "../../config/db";
 import { AppError } from "../../utils/appError";
+import { USER_ROLES } from "../../utils/permissions";
 
 const itemIdSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -187,14 +188,17 @@ export const updateItemService = async (params: unknown, body: unknown, actor: u
   }
 
   const isStudent = parsedActor.userTypeId === 3;
+  const isAdmin = parsedActor.userTypeId === USER_ROLES.ADMIN;
   const currentUserId = String(parsedActor.id);
 
-  if (existingItem.userItem) {
-    if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+  if (!isAdmin) {
+    if (existingItem.userItem) {
+      if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+        throw new AppError("Sem permissão para editar este figurino.", 403);
+      }
+    } else if (existingItem.schoolItem && isStudent) {
       throw new AppError("Sem permissão para editar este figurino.", 403);
     }
-  } else if (existingItem.schoolItem && isStudent) {
-    throw new AppError("Sem permissão para editar este figurino.", 403);
   }
 
   const dataToUpdate: Record<string, unknown> = {};
@@ -294,14 +298,17 @@ export const deleteItemService = async (params: unknown, actor: unknown) => {
   }
 
   const isStudent = parsedActor.userTypeId === 3;
+  const isAdmin = parsedActor.userTypeId === USER_ROLES.ADMIN;
   const currentUserId = String(parsedActor.id);
 
-  if (existingItem.userItem) {
-    if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+  if (!isAdmin) {
+    if (existingItem.userItem) {
+      if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+        throw new AppError("Sem permissão para remover este figurino.", 403);
+      }
+    } else if (existingItem.schoolItem && isStudent) {
       throw new AppError("Sem permissão para remover este figurino.", 403);
     }
-  } else if (existingItem.schoolItem && isStudent) {
-    throw new AppError("Sem permissão para remover este figurino.", 403);
   }
 
   await prisma.item.delete({
