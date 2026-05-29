@@ -32,8 +32,10 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
   const { token, user, role } = useAuth();
   const isAdmin = role === 'admin';
   const isStudent = role === 'student';
+  const isTeacher = role === 'teacher';
+  const canCreateUserCostume = isStudent || isTeacher;
   const canCreateCostume =
-    (moduleType === 'sales' && isStudent) ||
+    (moduleType === 'sales' && canCreateUserCostume) ||
     (moduleType === 'catalog' && isAdmin);
   const currentUserId = user?.user_id ?? user?.userId ?? user?.id ?? null;
   const currentUserName = user?.user_name ?? user?.userName ?? user?.name ?? '';
@@ -152,6 +154,10 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
         .map((item) => {
           const chars = item.itemCharacteristics || {};
           const owner = item.userItem?.user || {};
+          const ownerRole = owner.userType?.userTypeDesc?.toLowerCase() || '';
+          const sellerRoleLabel = ownerRole === 'teacher' || ownerRole === 'professor'
+            ? 'professor'
+            : 'aluno';
           const contacts = formatUserContacts(owner);
 
           return {
@@ -174,6 +180,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
             isRental: false,
             ownerType: 'user',
             sellerName: owner.userName || 'Aluno',
+            sellerRoleLabel,
             sellerStudentNumber: owner.studentNumber?.studentNumber || '',
             sellerContacts: contacts,
             image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150',
@@ -259,7 +266,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
     }
 
     if (costume.ownerType === 'user') {
-      return role === 'student' && String(costume.ownerUserId) === String(currentUserId);
+      return (role === 'student' || role === 'teacher') && String(costume.ownerUserId) === String(currentUserId);
     }
 
     return false;
@@ -353,7 +360,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
 
   const handleSaveCostume = async (costumeData) => {
     try {
-      const ownerType = costumeData.ownerType || (isStudent ? 'user' : 'school');
+      const ownerType = costumeData.ownerType || (canCreateUserCostume ? 'user' : 'school');
 
       if (editingCostume) {
         const currentQuantity = Math.max(1, Number(editingCostume.quantity || 1));
@@ -669,7 +676,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
           setEditingCostume(null);
         }}
         initialData={editingCostume}
-        ownerType={editingCostume?.ownerType || (isStudent ? 'user' : 'school')}
+        ownerType={editingCostume?.ownerType || (canCreateUserCostume ? 'user' : 'school')}
         onSave={handleSaveCostume}
       />
       <RentalModal

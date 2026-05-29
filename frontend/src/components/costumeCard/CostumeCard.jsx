@@ -61,11 +61,11 @@ import './CostumeCard.css';
                 <span className="price-suffix">/aluguer</span>
               </>
             ) : (
-              <span className="price-suffix">Figurino do aluno</span>
+              <span className="price-suffix">Venda pelo {costume.sellerRoleLabel || 'aluno'}</span>
             )}
           </div>
           <span className="stock-info">
-            {costume.isRental ? `${costume.stock} disponíveis` : 'Venda direta pelo aluno'}
+            {costume.isRental ? `${costume.stock} disponíveis` : ''}
           </span>
         </div>
 
