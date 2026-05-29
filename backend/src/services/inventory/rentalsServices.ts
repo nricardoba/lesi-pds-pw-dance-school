@@ -99,6 +99,7 @@ export const listRentalsService = async () => {
     include: {
       user: {
         include: {
+          userType: true,
           studentNumber: true,
         },
       },
@@ -131,6 +132,7 @@ export const getRentalByIdService = async (params: unknown) => {
     include: {
       user: {
         include: {
+          userType: true,
           studentNumber: true,
         },
       },
