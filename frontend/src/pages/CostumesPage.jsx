@@ -133,6 +133,9 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
         const isAvailable = !activeRentalItemIds.has(item.itemId);
 
         if (!groupedByCostume.has(key)) {
+          const rentFee = Number(item.schoolItem?.rentFee ?? 0);
+          const isRental = rentFee > 0;
+
           groupedByCostume.set(key, {
             id: item.itemId,
             ids: [item.itemId],
@@ -148,8 +151,8 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
             condition: item.itemCondition?.itemConditionName || 'Novo',
             itemConditionId: item.itemConditionId,
             color: chars.color?.colorName || 'N/A',
-            rentFee: Number(item.schoolItem?.rentFee ?? 0),
-            isRental: true,
+            rentFee,
+            isRental,
             ownerType: 'school',
             image: chars.itemImage?.[0]?.itemImageUrl || 'https://via.placeholder.com/150',
             images: [chars.itemImage?.[0]?.itemImageUrl || ''],
@@ -212,7 +215,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
           const quantity = group.ids.length;
           const stock = group.availableItemIds.length;
           const representativeId = stock > 0 ? group.availableItemIds[0] : group.ids[0];
-          const status = stock > 0 ? 'Disponível' : 'Alugado';
+          const status = group.isRental ? (stock > 0 ? 'Disponível' : 'Alugado') : 'Registado';
 
           return {
             ...group,
@@ -220,7 +223,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
             quantity,
             stock,
             status,
-            actionText: status === 'Disponível' ? 'Alugar' : 'Indisponível',
+            actionText: group.isRental ? (status === 'Disponível' ? 'Alugar' : 'Indisponível') : 'Registado',
           };
         }),
         ...userCostumes,
@@ -427,7 +430,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
               {
                 itemConditionId: costumeData.itemConditionId,
                 ...(editingCostume.ownerType === 'school'
-                  ? { rentFee: costumeData.rentFee, ownerType: 'school' }
+                  ? { rentFee: costumeData.isRental ? costumeData.rentFee : 0, ownerType: 'school' }
                   : { ownerType: 'user' }),
               },
               token,
@@ -447,7 +450,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
                 itemConditionId: costumeData.itemConditionId,
                 ownerType: editingCostume.ownerType === 'user' ? 'user' : 'school',
                 ...(editingCostume.ownerType === 'school'
-                  ? { rentFee: costumeData.rentFee }
+                  ? { rentFee: costumeData.isRental ? costumeData.rentFee : 0 }
                   : { userId: currentUserId }),
               },
               token,
@@ -482,7 +485,7 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
           itemConditionId: costumeData.itemConditionId,
           ownerType,
           ...(ownerType === 'school'
-            ? { rentFee: costumeData.rentFee }
+            ? { rentFee: costumeData.isRental ? costumeData.rentFee : 0 }
             : { userId: currentUserId }),
         }, token));
 
