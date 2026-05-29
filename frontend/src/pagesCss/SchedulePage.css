@@ -2,7 +2,7 @@
 .schedule-page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
 }
 
 /* --- Cabeçalho e Botões --- */
@@ -54,8 +54,9 @@
 .schedule-page__filters {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-left: 12px;
+  gap: 10px;
+  margin-left: 0;
+  margin-top: -4px;
 }
 
 .schedule-page__filters label {
