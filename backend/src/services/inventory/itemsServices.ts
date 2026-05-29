@@ -45,6 +45,7 @@ export const listItemsService = async () => {
         include: {
           user: {
             include: {
+              userType: true,
               studentNumber: true,
               userContact: {
                 include: {
@@ -91,6 +92,7 @@ export const getItemByIdService = async (params: unknown) => {
         include: {
           user: {
             include: {
+              userType: true,
               studentNumber: true,
               userContact: {
                 include: {
@@ -152,6 +154,7 @@ export const createItemService = async (body: unknown) => {
         include: {
           user: {
             include: {
+              userType: true,
               studentNumber: true,
               userContact: {
                 include: {
@@ -187,16 +190,18 @@ export const updateItemService = async (params: unknown, body: unknown, actor: u
     throw new AppError("Item não encontrado.", 404);
   }
 
-  const isStudent = parsedActor.userTypeId === 3;
+  const isStudent = parsedActor.userTypeId === USER_ROLES.STUDENT;
+  const isTeacher = parsedActor.userTypeId === USER_ROLES.TEACHER;
+  const isParent = parsedActor.userTypeId === USER_ROLES.PARENT;
   const isAdmin = parsedActor.userTypeId === USER_ROLES.ADMIN;
   const currentUserId = String(parsedActor.id);
 
   if (!isAdmin) {
     if (existingItem.userItem) {
-      if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+      if ((!isStudent && !isTeacher) || String(existingItem.userItem.userId) !== currentUserId) {
         throw new AppError("Sem permissão para editar este figurino.", 403);
       }
-    } else if (existingItem.schoolItem && isStudent) {
+    } else if (existingItem.schoolItem && !isParent) {
       throw new AppError("Sem permissão para editar este figurino.", 403);
     }
   }
@@ -263,6 +268,7 @@ export const updateItemService = async (params: unknown, body: unknown, actor: u
         include: {
           user: {
             include: {
+              userType: true,
               studentNumber: true,
               userContact: {
                 include: {
@@ -297,16 +303,18 @@ export const deleteItemService = async (params: unknown, actor: unknown) => {
     throw new AppError("Item não encontrado.", 404);
   }
 
-  const isStudent = parsedActor.userTypeId === 3;
+  const isStudent = parsedActor.userTypeId === USER_ROLES.STUDENT;
+  const isTeacher = parsedActor.userTypeId === USER_ROLES.TEACHER;
+  const isParent = parsedActor.userTypeId === USER_ROLES.PARENT;
   const isAdmin = parsedActor.userTypeId === USER_ROLES.ADMIN;
   const currentUserId = String(parsedActor.id);
 
   if (!isAdmin) {
     if (existingItem.userItem) {
-      if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+      if ((!isStudent && !isTeacher) || String(existingItem.userItem.userId) !== currentUserId) {
         throw new AppError("Sem permissão para remover este figurino.", 403);
       }
-    } else if (existingItem.schoolItem && isStudent) {
+    } else if (existingItem.schoolItem && !isParent) {
       throw new AppError("Sem permissão para remover este figurino.", 403);
     }
   }
