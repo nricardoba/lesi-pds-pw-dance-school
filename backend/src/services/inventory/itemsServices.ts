@@ -11,7 +11,7 @@ const createItemSchema = z.object({
   itemCharacteristicsId: z.coerce.number().int().positive(),
   itemConditionId: z.coerce.number().int().positive(),
   ownerType: z.enum(["school", "user"]).optional(),
-  rentFee: z.coerce.number().positive().optional(), // for SchoolItem
+  rentFee: z.coerce.number().nonnegative().optional(), // for SchoolItem
   userId: z.coerce.number().int().positive().optional(), // for UserItem
 });
 
@@ -19,8 +19,12 @@ const updateItemSchema = z.object({
   itemCharacteristicsId: z.coerce.number().int().positive().optional(),
   itemConditionId: z.coerce.number().int().positive().optional(),
   ownerType: z.enum(["school", "user"]).optional(),
-  rentFee: z.coerce.number().positive().optional(),
+  rentFee: z.coerce.number().nonnegative().optional(),
   userId: z.coerce.number().int().positive().optional(),
+});
+
+const listItemsActorSchema = z.object({
+  userTypeId: z.coerce.number().int().positive().optional(),
 });
 
 const itemActorSchema = z.object({
@@ -28,8 +32,11 @@ const itemActorSchema = z.object({
   userTypeId: z.coerce.number().int().positive(),
 });
 
-export const listItemsService = async () => {
-  return prisma.item.findMany({
+export const listItemsService = async (actor?: unknown) => {
+  const parsedActor = listItemsActorSchema.parse(actor ?? {});
+  const isAdmin = parsedActor.userTypeId === USER_ROLES.ADMIN;
+
+  const items = await prisma.item.findMany({
     include: {
       itemCharacteristics: {
         include: {
@@ -64,6 +71,18 @@ export const listItemsService = async () => {
     orderBy: {
       itemId: "asc",
     },
+  });
+
+  if (isAdmin) {
+    return items;
+  }
+
+  return items.filter((item) => {
+    if (!item.schoolItem) {
+      return true;
+    }
+
+    return Number(item.schoolItem.rentFee) > 0;
   });
 };
 
@@ -128,11 +147,11 @@ export const createItemService = async (body: unknown) => {
     },
   });
 
-  if (ownerType === "school" && rentFee !== undefined) {
+  if (ownerType === "school") {
     await prisma.schoolItem.create({
       data: {
         itemId: createdItem.itemId,
-        rentFee,
+        rentFee: rentFee ?? 0,
       },
     });
   } else if (ownerType === "user" && userId !== undefined) {
@@ -234,9 +253,9 @@ export const updateItemService = async (params: unknown, body: unknown, actor: u
           data: { rentFee: parsedBody.rentFee },
         });
       }
-    } else if (parsedBody.rentFee !== undefined) {
+    } else if (parsedBody.rentFee !== undefined || parsedBody.ownerType === "school") {
       await prisma.schoolItem.create({
-        data: { itemId: id, rentFee: parsedBody.rentFee },
+        data: { itemId: id, rentFee: parsedBody.rentFee ?? 0 },
       });
     }
   } else if (parsedBody.ownerType === "user") {
