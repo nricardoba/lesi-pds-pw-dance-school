@@ -32,7 +32,9 @@ const CostumesPage = ({ moduleType = 'catalog' }) => {
   const { token, user, role } = useAuth();
   const isAdmin = role === 'admin';
   const isStudent = role === 'student';
-  const canCreateCostume = isAdmin || isStudent;
+  const canCreateCostume =
+    (moduleType === 'sales' && isStudent) ||
+    (moduleType === 'catalog' && isAdmin);
   const currentUserId = user?.user_id ?? user?.userId ?? user?.id ?? null;
   const currentUserName = user?.user_name ?? user?.userName ?? user?.name ?? '';
 
