@@ -1,6 +1,6 @@
 import React from 'react';
 import './WeeklyCalendar.css';
-import { toHourDecimal } from '../../utils/scheduleUtils';
+import { decimalToHourString, toHourDecimal } from '../../utils/scheduleUtils';
 
 const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
 
@@ -21,6 +21,14 @@ const WeeklyCalendar = ({
   handleAskDeleteClass,
   onGoToDailyView
 }) => {
+  const getClassTimeRange = (classItem) => {
+    const startHour = Number(classItem.class_time_start ? toHourDecimal(classItem.class_time_start) : classItem.start);
+    const duration = Number(classItem.duration || 1);
+    const endHour = Number(classItem.class_time_end ? toHourDecimal(classItem.class_time_end) : startHour + duration);
+
+    return `${decimalToHourString(startHour)} - ${decimalToHourString(endHour)}`;
+  };
+
   return (
     <div className="mt-2 calendar-container" onClick={() => { setActiveSlotMenu(null); setActiveClassMenu(null); }}>
       <div className="calendar-header">
@@ -62,7 +70,7 @@ const WeeklyCalendar = ({
 
                     return (
                       <div key={`${day}-${hour}`} className="calendar-slot-row">
-                        {role === 'admin' || role === 'teacher' && !hasClassInSlot && (
+                        {(role === 'admin' || role === 'teacher') && (
                           <button
                             type="button"
                             className={`calendar-slot-trigger ${isMenuOpen ? 'active' : ''}`}
@@ -76,7 +84,7 @@ const WeeklyCalendar = ({
                           </button>
                         )}
 
-                        {role === 'admin' || role === 'teacher' && isMenuOpen && !hasClassInSlot && (
+                        {(role === 'admin' || role === 'teacher') && isMenuOpen && (
                           <div className="slot-menu-schedule" onClick={(e) => e.stopPropagation()}>
                             <button type="button" onClick={() => openNewClassFromSlot(slotInfo)}>+ Nova Aula</button>
 {/*                             <button type="button" onClick={() => openTemplatePickerFromSlot(slotInfo)}>▶ Usar Template</button>
@@ -192,6 +200,9 @@ const WeeklyCalendar = ({
                         </div>
                       )}
                       <h4 className="class-card_schedule__title">{classItem.categoryName || classItem.name || 'Aula'}</h4>
+                      <p className="class-card_schedule__details class-card_schedule__details--time">
+                        Horário: {getClassTimeRange(classItem)}
+                      </p>
                       <p className="class-card_schedule__details">Professor: {classItem.instructorName || classItem.instructor || 'Sem professor'}</p>
                       <p className="class-card_schedule__details">Sala: {classItem.roomName || classItem.room || 'Sem sala'}</p>
                       <div className="class-card_schedule__footer">

@@ -141,7 +141,7 @@ const SchedulePage = () => {
         </div>
 
 
-        {role === 'admin' || role === 'teacher' && (
+        {(role === 'admin' || role === 'teacher') && (
           <button className="btn-primary" onClick={handleOpenNewClass}>
             + Nova Aula
           </button>

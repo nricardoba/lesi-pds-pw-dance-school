@@ -47,7 +47,7 @@ describe('WeeklyCalendar', () => {
     renderWithState();
 
     const createButtons = screen.getAllByTitle('Adicionar aula neste slot');
-    expect(createButtons).toHaveLength(10);
+    expect(createButtons).toHaveLength(14);
 
     fireEvent.click(createButtons[1]);
 
@@ -60,7 +60,7 @@ describe('WeeklyCalendar', () => {
     });
 
     const createButtons = screen.getAllByTitle('Adicionar aula neste slot');
-    expect(createButtons).toHaveLength(9);
+    expect(createButtons).toHaveLength(14);
     expect(screen.getByText('Ballet')).toBeInTheDocument();
   });
 
