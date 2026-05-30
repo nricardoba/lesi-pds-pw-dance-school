@@ -70,7 +70,8 @@
 .students-page .table-header,
 .students-page .table-row {
   display: grid;
-  grid-template-columns: 3fr 3fr 3fr 1.4fr 100px;
+  /* ALUNO | CONTACTO | ESPECIALIDADES | MORADA | AÇÕES */
+  grid-template-columns: 2.6fr 2.6fr 2fr 2.6fr 100px;
   padding: 24px;
   gap: 16px;
 }
@@ -127,6 +128,10 @@
 .students-page .col-guardian {
   justify-content: flex-start;
   gap: 16px;
+  padding-top: 8px;
+}
+
+.students-page .col-modalities {
   padding-top: 8px;
 }
 
@@ -312,6 +317,17 @@
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
 
+
+/* Modality chip */
+.students-page .mod-chip {
+  display: inline-block;
+  background: #F1F5F9;
+  color: #0F172A;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid #E6EEF3;
+}
 .student-hero h1 {
   margin: 0;
   font-size: 28px;

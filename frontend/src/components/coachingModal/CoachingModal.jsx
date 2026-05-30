@@ -142,11 +142,33 @@ const CoachingModal = ({ isOpen, onClose, onSave }) => {
     };
 
     try {
-      await requestCoachingRequest(payload, token);
+      const result = await requestCoachingRequest(payload, token);
 
-      if (onSave) {
-        onSave(formData);
-      }
+      // Build a display-friendly object to add immediately to the coachings list
+      const studentName = role === 'student'
+        ? user?.user_name || user?.userName || 'Aluno'
+        : (dbData.students.find(s => Number(s.userId) === Number(formData.studentId))?.userName || 'Aluno');
+
+      const teacherName = dbData.teachers.find(t => Number(t.userId) === Number(formData.teacherId))?.userName || '';
+      const modalityName = dbData.modalities.find(m => Number(m.modalityId) === Number(formData.modalityId))?.modalityName || '';
+      const schoolYearName = dbData.schoolYears.find(y => Number(y.schoolYearId) === Number(formData.schoolYearId))?.schoolYearName || '';
+
+      const savedCoaching = {
+        id: result?.classId || Date.now(),
+        student: studentName,
+        teacher: teacherName,
+        status: 'Agendada',
+        date: `${formData.date} às ${formData.time}`,
+        rawDate: formData.date,
+        rawTime: formData.time,
+        duration: formData.duration,
+        note: formData.note,
+        schoolYear: schoolYearName,
+        coachingType: formData.coachingType,
+        danceType: modalityName
+      };
+
+      if (onSave) onSave(savedCoaching);
       onClose();
     } catch (error) {
       console.error("Erro ao salvar:", error);

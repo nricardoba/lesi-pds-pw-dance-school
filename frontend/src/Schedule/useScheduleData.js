@@ -78,6 +78,27 @@ export const useScheduleData = (token) => {
   }, [token]);
 
   useEffect(() => {
+    const syncFromStorage = () => {
+      const nextClasses = readScheduleClassesFromStorage();
+      setClassesData((prevClasses) => {
+        if (JSON.stringify(prevClasses) === JSON.stringify(nextClasses)) {
+          return prevClasses;
+        }
+
+        return nextClasses;
+      });
+    };
+
+    window.addEventListener('scheduleClassesUpdated', syncFromStorage);
+    window.addEventListener('storage', syncFromStorage);
+
+    return () => {
+      window.removeEventListener('scheduleClassesUpdated', syncFromStorage);
+      window.removeEventListener('storage', syncFromStorage);
+    };
+  }, []);
+
+  useEffect(() => {
     writeScheduleClassesToStorage(classesData);
   }, [classesData]);
 

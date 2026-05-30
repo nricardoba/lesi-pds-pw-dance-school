@@ -25,6 +25,7 @@ const createClassSchema = z.object({
   classDateStart: z.string().min(1),
   classDateEnd: z.string().min(1),
   classRecurrence: z.boolean().optional().nullable(),
+  autoEnrollStudents: z.boolean().optional(),
   studioModalityId: z.coerce.number().int().positive().optional(),
   studioId: z.coerce.number().int().positive().optional(),
   modalityId: z.coerce.number().int().positive().optional(),
@@ -248,6 +249,7 @@ export const createClassService = async (body: unknown) => {
     classDateStart,
     classDateEnd,
     classRecurrence,
+    autoEnrollStudents,
     studioModalityId,
     studioId,
     modalityId,
@@ -300,6 +302,11 @@ export const createClassService = async (body: unknown) => {
       })
     : null;
 
+  // role for students (used when auto-associating students to recurring classes)
+  const alunoRole = await prisma.userClassRole.findFirst({
+    where: { userClassRoleDesc: "Aluno" },
+  });
+
   if (instructorId && !professorRole) {
     throw new AppError('Role "Professor Responsável" não encontrado na DB.', 500);
   }
@@ -326,6 +333,32 @@ export const createClassService = async (body: unknown) => {
           userValidation: false,
         },
       });
+    }
+
+    // Auto-associate students with the same modality unless explicitly disabled.
+    if (autoEnrollStudents !== false && alunoRole) {
+      // find users linked to this modality
+      const usersWithModality = await tx.userModality.findMany({
+        where: { modalityId: studioContext.modalityId },
+        include: { user: { include: { userType: true } } },
+      });
+
+      for (const um of usersWithModality) {
+        const u = um.user;
+        if (!u || u.userIsActive === false) continue;
+        const typeDesc = u.userType?.userTypeDesc?.toLowerCase() || '';
+        if (!typeDesc.includes('aluno') && !typeDesc.includes('student')) continue;
+
+        // create userClass link for the student
+        await tx.userClass.create({
+          data: {
+            classId: createdClass.classId,
+            userId: u.userId,
+            userClassRoleId: alunoRole.userClassRoleId,
+            userValidation: false,
+          },
+        });
+      }
     }
 
     const createdClassWithRelations = await tx.class.findUnique({
@@ -798,6 +831,7 @@ export const requestCoachingService = async (body: unknown) => {
     schoolYearId: school_year_id,
     classDateStart: start_time,
     classDateEnd: end_time,
+    autoEnrollStudents: false,
     studioModalityId: studioModality.studioModalityId,
     classFinalFee: Number(studioModality.modality.modalityHourlyFee),
     classStatusId: agendadaStatus.classStatusId,
