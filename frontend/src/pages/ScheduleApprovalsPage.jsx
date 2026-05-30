@@ -6,6 +6,7 @@ import ScheduleApprovalsStats from '../components/scheduleApprovals/ScheduleAppr
 import ScheduleApprovalsControls from '../components/scheduleApprovals/ScheduleApprovalsControls';
 import ScheduleApprovalsTable from '../components/scheduleApprovals/ScheduleApprovalsTable';
 import ScheduleApprovalModal from '../components/scheduleApprovals/ScheduleApprovalModal';
+import SchoolYearsManagement from '../components/scheduleApprovals/SchoolYearsManagement';
 
 const ScheduleApprovalsPage = () => {
   const { token } = useAuth();
@@ -13,6 +14,7 @@ const ScheduleApprovalsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('Todos');
   const [selectedRequestId, setSelectedRequestId] = useState(null);
+  const [activeTab, setActiveTab] = useState('requests');
 
   useEffect(() => {
     if (!token) return;
@@ -34,7 +36,7 @@ const ScheduleApprovalsPage = () => {
       setRequests(formattedRequests);
     })
     .catch(error => console.error('Error fetching schedule requests:', error));
-  }, []);
+  }, [token]);
 
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) || null;
 
@@ -74,24 +76,51 @@ const ScheduleApprovalsPage = () => {
         </div>
       </header>
 
-      <ScheduleApprovalsStats 
-        pendingCount={pendingCount} 
-        approvedCount={approvedCount} 
-        rejectedCount={rejectedCount} 
-      />
+      <div className="page-tabs" role="tablist" aria-label="Secções da página de aprovações">
+        <button
+          type="button"
+          className={`page-tab ${activeTab === 'requests' ? 'active' : ''}`}
+          onClick={() => setActiveTab('requests')}
+          role="tab"
+          aria-selected={activeTab === 'requests'}
+        >
+          Pedidos de horário
+        </button>
+        <button
+          type="button"
+          className={`page-tab ${activeTab === 'schoolYears' ? 'active' : ''}`}
+          onClick={() => setActiveTab('schoolYears')}
+          role="tab"
+          aria-selected={activeTab === 'schoolYears'}
+        >
+          Anos letivos
+        </button>
+      </div>
 
-      <ScheduleApprovalsControls 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-      />
+      {activeTab === 'requests' && (
+        <>
+          <ScheduleApprovalsStats 
+            pendingCount={pendingCount} 
+            approvedCount={approvedCount} 
+            rejectedCount={rejectedCount} 
+          />
 
-      <ScheduleApprovalsTable 
-        filteredRequests={filteredRequests}
-        onSelectRequest={setSelectedRequestId}
-        markRequest={markRequest}
-      />
+          <ScheduleApprovalsControls 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+          />
+
+          <ScheduleApprovalsTable 
+            filteredRequests={filteredRequests}
+            onSelectRequest={setSelectedRequestId}
+            markRequest={markRequest}
+          />
+        </>
+      )}
+
+      {activeTab === 'schoolYears' && <SchoolYearsManagement token={token} />}
 
       <ScheduleApprovalModal 
         selectedRequest={selectedRequest}

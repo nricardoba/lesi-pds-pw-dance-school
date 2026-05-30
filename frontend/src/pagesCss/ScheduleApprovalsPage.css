@@ -22,6 +22,149 @@
   color: #64748B;
 }
 
+.schedule-approvals-page .page-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  background: #FFFFFF;
+  width: fit-content;
+}
+
+.schedule-approvals-page .page-tab {
+  border: none;
+  background: transparent;
+  color: #475569;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.schedule-approvals-page .page-tab.active {
+  background: #176B87;
+  color: #FFFFFF;
+}
+
+.schedule-approvals-page .school-years-management-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.schedule-approvals-page .school-years-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.schedule-approvals-page .school-years-management-title {
+  margin: 0;
+  font-size: 18px;
+  color: #0F172A;
+}
+
+.schedule-approvals-page .school-years-management-subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #64748B;
+}
+
+.schedule-approvals-page .school-years-list-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.schedule-approvals-page .school-years-list-header,
+.schedule-approvals-page .school-year-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 140px;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+}
+
+.schedule-approvals-page .school-years-list-header {
+  background: #FAFAFA;
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #94A3B8;
+}
+
+.schedule-approvals-page .school-year-row {
+  border-bottom: 1px solid #F1F5F9;
+  background: #FFFFFF;
+}
+
+.schedule-approvals-page .school-year-row:last-child {
+  border-bottom: none;
+}
+
+.schedule-approvals-page .school-year-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.schedule-approvals-page .school-year-main strong {
+  font-size: 14px;
+  color: #1E293B;
+}
+
+.schedule-approvals-page .school-year-main span,
+.schedule-approvals-page .school-year-date {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.schedule-approvals-page .school-year-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.schedule-approvals-page .school-year-delete-btn {
+  border: 1px solid #FECACA;
+  background: #FEF2F2;
+  color: #B91C1C;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.schedule-approvals-page .school-year-delete-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.schedule-approvals-page .school-years-empty {
+  padding: 18px 16px;
+  text-align: center;
+  color: #64748B;
+  font-size: 14px;
+}
+
+.schedule-approvals-page .school-years-error {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border-top: 1px solid #FECACA;
+  border-bottom: 1px solid #FECACA;
+}
+
 .schedule-approvals-page .stats-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
