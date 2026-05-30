@@ -26,6 +26,14 @@ const formatDate = (dateString) => {
 
 const WEEK_DAYS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
+const findCurrentSchoolYear = (schoolYears, referenceDate = new Date()) => {
+  return schoolYears.find((schoolYear) => {
+    const startDate = new Date(schoolYear.schoolYearStart);
+    const endDate = new Date(schoolYear.schoolYearEnd);
+    return startDate <= referenceDate && referenceDate <= endDate;
+  }) || null;
+};
+
 const TeacherSchedulePage = () => {
   const { token, user } = useAuth();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -35,7 +43,7 @@ const TeacherSchedulePage = () => {
   const [schoolYearId, setSchoolYearId] = useState(null);
   const [schoolYearName, setSchoolYearName] = useState('');
   const [schoolYears, setSchoolYears] = useState([]);
-  const [selectedSchoolYearId, setSelectedSchoolYearId] = useState('current');
+  const [selectedSchoolYearId, setSelectedSchoolYearId] = useState('');
 
   const schoolYearNameById = useMemo(() => {
     return new Map(
@@ -43,12 +51,27 @@ const TeacherSchedulePage = () => {
     );
   }, [schoolYears]);
 
+  const currentSchoolYear = useMemo(() => {
+    const byDate = findCurrentSchoolYear(schoolYears);
+    if (byDate) {
+      return byDate;
+    }
+
+    if (schoolYearId != null) {
+      return schoolYears.find((schoolYear) => schoolYear.schoolYearId === schoolYearId) || null;
+    }
+
+    return schoolYears[0] || null;
+  }, [schoolYears, schoolYearId]);
+
+  const currentSchoolYearLabel = currentSchoolYear?.schoolYearName || schoolYearName || 'A carregar...';
+
   const selectedSchoolYearName = useMemo(() => {
     if (selectedSchoolYearId === 'all') {
       return 'Todos os anos letivos';
     }
 
-    if (selectedSchoolYearId === 'current') {
+    if (!selectedSchoolYearId) {
       return schoolYearName || 'Ano letivo atual';
     }
 
@@ -59,9 +82,9 @@ const TeacherSchedulePage = () => {
     const effectiveSchoolYearId =
       selectedSchoolYearId === 'all'
         ? null
-        : selectedSchoolYearId === 'current'
-          ? schoolYearId
-          : Number(selectedSchoolYearId);
+        : selectedSchoolYearId
+          ? Number(selectedSchoolYearId)
+          : schoolYearId;
 
     const currentYearVacancies = teacherVacancies.filter(slot => {
       if (effectiveSchoolYearId == null) {
@@ -101,19 +124,15 @@ const TeacherSchedulePage = () => {
 
         setSchoolYears(normalizedSchoolYears);
 
-        const now = new Date();
-        const currentSchoolYear = normalizedSchoolYears.find(schoolYear => {
-          const startDate = new Date(schoolYear.schoolYearStart);
-          const endDate = new Date(schoolYear.schoolYearEnd);
-          return startDate <= now && now <= endDate;
-        }) || normalizedSchoolYears[normalizedSchoolYears.length - 1];
+        const currentSchoolYear = findCurrentSchoolYear(normalizedSchoolYears);
 
         if (currentSchoolYear?.schoolYearId) {
           setSchoolYearId(currentSchoolYear.schoolYearId);
           setSchoolYearName(currentSchoolYear.schoolYearName || 'Ano letivo atual');
-          setSelectedSchoolYearId((previous) => (
-            previous === 'current' ? String(currentSchoolYear.schoolYearId) : previous
-          ));
+          setSelectedSchoolYearId(String(currentSchoolYear.schoolYearId));
+        } else {
+          setSchoolYearId(null);
+          setSchoolYearName('');
         }
       })
       .catch(error => {
@@ -168,6 +187,13 @@ const TeacherSchedulePage = () => {
   }, [token, user, fetchSchoolYears, fetchScheduleData]);
 
   const handleOpenModal = () => {
+    const currentSchoolYear = findCurrentSchoolYear(schoolYears);
+
+    if (currentSchoolYear?.schoolYearId) {
+      setSchoolYearId(currentSchoolYear.schoolYearId);
+      setSchoolYearName(currentSchoolYear.schoolYearName || 'Ano letivo atual');
+    }
+
     setIsSubmitModalOpen(true);
   };
 
@@ -176,13 +202,16 @@ const TeacherSchedulePage = () => {
   };
 
   const handleSubmitSchedule = (newSlots) => {
-    if (!schoolYearId) {
+    const currentSchoolYear = findCurrentSchoolYear(schoolYears);
+    const currentSchoolYearId = currentSchoolYear?.schoolYearId || schoolYearId;
+
+    if (!currentSchoolYearId) {
       console.error('School year not loaded yet');
       return;
     }
 
     const submissionData = {
-      schoolYearId,
+      schoolYearId: currentSchoolYearId,
       vacancies: newSlots.map(slot => ({
         day_of_week: slot.day,
         start_time: slot.time.split(' - ')[0],
@@ -210,7 +239,7 @@ const TeacherSchedulePage = () => {
         <div>
           <h1 className="page-title">Meu Horário</h1>
           <p className="page-subtitle">Gerir e enviar disponibilidades para aprovação</p>
-          <p className="page-subtitle">Ano letivo associado: {schoolYearName || 'A carregar...'}</p>
+          <p className="page-subtitle">Ano letivo associado: {currentSchoolYearLabel}</p>
         </div>
         <button type="button" className="submit-schedule-btn" onClick={handleOpenModal}>
           <span className="submit-schedule-btn__icon">＋</span>
@@ -225,7 +254,6 @@ const TeacherSchedulePage = () => {
           value={selectedSchoolYearId}
           onChange={(event) => setSelectedSchoolYearId(event.target.value)}
         >
-          <option value="current">Ano letivo atual</option>
           <option value="all">Todos os anos letivos</option>
           {schoolYears.map((schoolYear) => (
             <option key={schoolYear.schoolYearId} value={String(schoolYear.schoolYearId)}>
@@ -249,7 +277,7 @@ const TeacherSchedulePage = () => {
         onClose={handleCloseModal} 
         onSubmit={handleSubmitSchedule} 
         teacherName={user?.userName || "Professor"}
-        schoolYearName={schoolYearName || 'A carregar...'}
+        schoolYearName={currentSchoolYearLabel}
         vacancies={teacherVacancies}
         schoolYearId={schoolYearId}
       />
