@@ -390,13 +390,21 @@
   transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 
-.teacher-schedule-cell:hover {
+.teacher-schedule-cell:not(:disabled):hover {
   background: #E2E8F0;
 }
 
 .teacher-schedule-cell.selected {
   background: #DCFCE7;
   border-color: #86EFAC;
+}
+
+.teacher-schedule-cell.blocked,
+.teacher-schedule-cell:disabled {
+  background: #CBD5E1;
+  border-color: #94A3B8;
+  cursor: not-allowed;
+  opacity: 1;
 }
 
 .teacher-schedule-modal__footer {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { scheduleService } from '../services/scheduleService';
 import { apiClient } from '../services/apiClient';
 import { useAuth } from '../context/useAuth';
@@ -24,14 +24,39 @@ const formatDate = (dateString) => {
   return `${day}/${month}/${year}`;
 };
 
+const WEEK_DAYS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
 const TeacherSchedulePage = () => {
   const { token, user } = useAuth();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState({});
-  const [availableSlots, setAvailableSlots] = useState([]);
+  const [teacherVacancies, setTeacherVacancies] = useState([]);
   const [history, setHistory] = useState([]);
   const [schoolYearId, setSchoolYearId] = useState(null);
   const [schoolYearName, setSchoolYearName] = useState('');
+
+  const availableSlots = useMemo(() => {
+    const currentYearVacancies = teacherVacancies.filter(slot => {
+      if (schoolYearId == null) {
+        return slot.scheduleVacancyRecurrence === true;
+      }
+
+      return slot.schoolYearId === schoolYearId && slot.scheduleVacancyRecurrence === true;
+    });
+
+    return currentYearVacancies.map(slot => {
+      const startDate = new Date(slot.scheduleVacancyStart);
+      const endDate = new Date(slot.scheduleVacancyEnd);
+      const startStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+      const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+
+      return {
+        id: slot.scheduleVacancyId,
+        day: WEEK_DAYS[startDate.getDay()],
+        time: `${startStr} - ${endStr}`
+      };
+    });
+  }, [teacherVacancies, schoolYearId]);
 
   const fetchCurrentSchoolYear = useCallback(() => {
     apiClient('/school-years', { token })
@@ -56,24 +81,7 @@ const TeacherSchedulePage = () => {
   const fetchScheduleData = useCallback(() => {
     scheduleService.getMyScheduleVacancies(token)
       .then(response => {
-        // Show PENDING slots (scheduleVacancyRecurrence === true) - slots submitted and awaiting approval
-        const pendingSlots = response.filter(slot => slot.scheduleVacancyRecurrence === true);
-        
-        const formattedSlots = pendingSlots.map(slot => {
-          const startDate = new Date(slot.scheduleVacancyStart);
-          const endDate = new Date(slot.scheduleVacancyEnd);
-          const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-          
-          const startStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
-          const endStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-
-          return {
-            id: slot.scheduleVacancyId,
-            day: days[startDate.getDay()],
-            time: `${startStr} - ${endStr}`
-          };
-        });
-        setAvailableSlots(formattedSlots);
+        setTeacherVacancies(response);
       })
       .catch(error => {
         console.error('Error fetching schedule vacancies:', error);
@@ -178,7 +186,9 @@ const TeacherSchedulePage = () => {
         onClose={handleCloseModal} 
         onSubmit={handleSubmitSchedule} 
         teacherName={user?.userName || "Professor"}
-        schoolYearName={schoolYearName || 'A carregar...'} 
+        schoolYearName={schoolYearName || 'A carregar...'}
+        vacancies={teacherVacancies}
+        schoolYearId={schoolYearId}
       />
     </div>
   );

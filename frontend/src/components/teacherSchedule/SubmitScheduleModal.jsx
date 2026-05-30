@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const WEEK_DAYS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+const DAY_LABELS_BY_INDEX = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 const HOURS = Array.from({ length: 12 }, (_, index) => `${String(8 + index).padStart(2, '0')}:00`);
 
 const toHourNumber = (hourText) => Number(hourText.split(':')[0]);
@@ -45,14 +46,46 @@ export const buildSlotRanges = (selectedKeys) => {
   return slotRanges;
 };
 
-const SubmitScheduleModal = ({ isOpen, onClose, onSubmit, teacherName, schoolYearName }) => {
+const buildBlockedSlotKeys = (vacancies, schoolYearId) => {
+  const blockedKeys = new Set();
+
+  vacancies
+    .filter((vacancy) => (schoolYearId == null || vacancy.schoolYearId === schoolYearId) && vacancy.scheduleVacancyApproved !== false)
+    .forEach((vacancy) => {
+      const startDate = new Date(vacancy.scheduleVacancyStart);
+      const endDate = new Date(vacancy.scheduleVacancyEnd);
+      const dayLabel = DAY_LABELS_BY_INDEX[startDate.getDay()];
+      const startHour = startDate.getHours() + startDate.getMinutes() / 60;
+      const endHour = endDate.getHours() + endDate.getMinutes() / 60;
+
+      for (let hour = Math.floor(startHour); hour < Math.ceil(endHour); hour += 1) {
+        blockedKeys.add(`${dayLabel}|${String(hour).padStart(2, '0')}:00`);
+      }
+    });
+
+  return blockedKeys;
+};
+
+const SubmitScheduleModal = ({ isOpen, onClose, onSubmit, teacherName, schoolYearName, vacancies = [], schoolYearId }) => {
   const [selectedSlots, setSelectedSlots] = useState([]);
 
   const selectedSlotsCount = selectedSlots.length;
+  const blockedSlotKeys = useMemo(() => buildBlockedSlotKeys(vacancies, schoolYearId), [vacancies, schoolYearId]);
   const selectedSlotRangesPreview = useMemo(() => buildSlotRanges(selectedSlots), [selectedSlots]);
+
+  useEffect(() => {
+    setSelectedSlots((previous) => {
+      const filtered = previous.filter((slotKey) => !blockedSlotKeys.has(slotKey));
+      return filtered.length === previous.length ? previous : filtered;
+    });
+  }, [blockedSlotKeys]);
 
   const toggleSlot = (day, hour) => {
     const key = `${day}|${hour}`;
+    if (blockedSlotKeys.has(key)) {
+      return;
+    }
+
     setSelectedSlots((previous) =>
       previous.includes(key) ? previous.filter((slotKey) => slotKey !== key) : [...previous, key]
     );
@@ -90,7 +123,7 @@ const SubmitScheduleModal = ({ isOpen, onClose, onSubmit, teacherName, schoolYea
         </p>
 
         <p className="teacher-schedule-modal__legend">
-          Legenda: As células verdes indicam horários disponíveis. As células cinzas indicam horários não disponíveis.
+          Legenda: as células verdes continuam disponíveis. As células cinza-escuras já foram enviadas e estão pendentes ou aprovadas.
         </p>
 
         <div className="teacher-schedule-modal__grid-wrapper">
@@ -107,14 +140,17 @@ const SubmitScheduleModal = ({ isOpen, onClose, onSubmit, teacherName, schoolYea
               {WEEK_DAYS.map((day) => {
                 const slotKey = `${day}|${hour}`;
                 const isSelected = selectedSlots.includes(slotKey);
+                const isBlocked = blockedSlotKeys.has(slotKey);
 
                 return (
                   <button
                     key={slotKey}
                     type="button"
-                    className={`teacher-schedule-cell ${isSelected ? 'selected' : ''}`}
+                    className={`teacher-schedule-cell ${isSelected ? 'selected' : ''} ${isBlocked ? 'blocked' : ''}`}
                     onClick={() => toggleSlot(day, hour)}
+                    disabled={isBlocked}
                     aria-label={`${day} às ${hour}`}
+                    title={isBlocked ? 'Horário já enviado e indisponível para novo envio' : `${day} às ${hour}`}
                   />
                 );
               })}
