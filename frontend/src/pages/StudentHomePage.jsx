@@ -37,11 +37,19 @@ const StudentHomePage = () => {
           </div>
         </a>
 
-        <a href="/figurinos" className="student-card">
-          <span>🎒</span>
+        <a href="/figurinos-venda" className="student-card">
+          <span>💸</span>
           <div>
-            <h3>Figurinos</h3>
-            <p>Consulta os figurinos disponíveis e alugados.</p>
+            <h3>Venda de Figurinos</h3>
+            <p>Consulta figurinos adicionados por alunos e professores.</p>
+          </div>
+        </a>
+
+        <a href="/figurinos-catalogo" className="student-card">
+          <span>🏫</span>
+          <div>
+            <h3>Catálogo da Escola</h3>
+            <p>Consulta catálogo para aluguer e os teus registos.</p>
           </div>
         </a>
       </section>

@@ -148,7 +148,7 @@ export const removeItemImageController = catchAsync(
 
 export const listItemsController = catchAsync(
   async (_req: Request, res: Response) => {
-    const data = await listItemsService();
+    const data = await listItemsService(res.locals.user);
     return res.json(data);
   },
 );

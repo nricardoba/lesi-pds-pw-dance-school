@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "../../config/db";
 import { AppError } from "../../utils/appError";
+import { USER_ROLES } from "../../utils/permissions";
 
 const itemIdSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -10,7 +11,7 @@ const createItemSchema = z.object({
   itemCharacteristicsId: z.coerce.number().int().positive(),
   itemConditionId: z.coerce.number().int().positive(),
   ownerType: z.enum(["school", "user"]).optional(),
-  rentFee: z.coerce.number().positive().optional(), // for SchoolItem
+  rentFee: z.coerce.number().nonnegative().optional(), // for SchoolItem
   userId: z.coerce.number().int().positive().optional(), // for UserItem
 });
 
@@ -18,8 +19,12 @@ const updateItemSchema = z.object({
   itemCharacteristicsId: z.coerce.number().int().positive().optional(),
   itemConditionId: z.coerce.number().int().positive().optional(),
   ownerType: z.enum(["school", "user"]).optional(),
-  rentFee: z.coerce.number().positive().optional(),
+  rentFee: z.coerce.number().nonnegative().optional(),
   userId: z.coerce.number().int().positive().optional(),
+});
+
+const listItemsActorSchema = z.object({
+  userTypeId: z.coerce.number().int().positive().optional(),
 });
 
 const itemActorSchema = z.object({
@@ -27,8 +32,11 @@ const itemActorSchema = z.object({
   userTypeId: z.coerce.number().int().positive(),
 });
 
-export const listItemsService = async () => {
-  return prisma.item.findMany({
+export const listItemsService = async (actor?: unknown) => {
+  const parsedActor = listItemsActorSchema.parse(actor ?? {});
+  const isAdmin = parsedActor.userTypeId === USER_ROLES.ADMIN;
+
+  const items = await prisma.item.findMany({
     include: {
       itemCharacteristics: {
         include: {
@@ -44,6 +52,7 @@ export const listItemsService = async () => {
         include: {
           user: {
             include: {
+              userType: true,
               studentNumber: true,
               userContact: {
                 include: {
@@ -62,6 +71,18 @@ export const listItemsService = async () => {
     orderBy: {
       itemId: "asc",
     },
+  });
+
+  if (isAdmin) {
+    return items;
+  }
+
+  return items.filter((item) => {
+    if (!item.schoolItem) {
+      return true;
+    }
+
+    return Number(item.schoolItem.rentFee) > 0;
   });
 };
 
@@ -90,6 +111,7 @@ export const getItemByIdService = async (params: unknown) => {
         include: {
           user: {
             include: {
+              userType: true,
               studentNumber: true,
               userContact: {
                 include: {
@@ -125,11 +147,11 @@ export const createItemService = async (body: unknown) => {
     },
   });
 
-  if (ownerType === "school" && rentFee !== undefined) {
+  if (ownerType === "school") {
     await prisma.schoolItem.create({
       data: {
         itemId: createdItem.itemId,
-        rentFee,
+        rentFee: rentFee ?? 0,
       },
     });
   } else if (ownerType === "user" && userId !== undefined) {
@@ -151,6 +173,7 @@ export const createItemService = async (body: unknown) => {
         include: {
           user: {
             include: {
+              userType: true,
               studentNumber: true,
               userContact: {
                 include: {
@@ -186,15 +209,20 @@ export const updateItemService = async (params: unknown, body: unknown, actor: u
     throw new AppError("Item não encontrado.", 404);
   }
 
-  const isStudent = parsedActor.userTypeId === 3;
+  const isStudent = parsedActor.userTypeId === USER_ROLES.STUDENT;
+  const isTeacher = parsedActor.userTypeId === USER_ROLES.TEACHER;
+  const isParent = parsedActor.userTypeId === USER_ROLES.PARENT;
+  const isAdmin = parsedActor.userTypeId === USER_ROLES.ADMIN;
   const currentUserId = String(parsedActor.id);
 
-  if (existingItem.userItem) {
-    if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+  if (!isAdmin) {
+    if (existingItem.userItem) {
+      if ((!isStudent && !isTeacher) || String(existingItem.userItem.userId) !== currentUserId) {
+        throw new AppError("Sem permissão para editar este figurino.", 403);
+      }
+    } else if (existingItem.schoolItem && !isParent) {
       throw new AppError("Sem permissão para editar este figurino.", 403);
     }
-  } else if (existingItem.schoolItem && isStudent) {
-    throw new AppError("Sem permissão para editar este figurino.", 403);
   }
 
   const dataToUpdate: Record<string, unknown> = {};
@@ -225,9 +253,9 @@ export const updateItemService = async (params: unknown, body: unknown, actor: u
           data: { rentFee: parsedBody.rentFee },
         });
       }
-    } else if (parsedBody.rentFee !== undefined) {
+    } else if (parsedBody.rentFee !== undefined || parsedBody.ownerType === "school") {
       await prisma.schoolItem.create({
-        data: { itemId: id, rentFee: parsedBody.rentFee },
+        data: { itemId: id, rentFee: parsedBody.rentFee ?? 0 },
       });
     }
   } else if (parsedBody.ownerType === "user") {
@@ -259,6 +287,7 @@ export const updateItemService = async (params: unknown, body: unknown, actor: u
         include: {
           user: {
             include: {
+              userType: true,
               studentNumber: true,
               userContact: {
                 include: {
@@ -293,15 +322,20 @@ export const deleteItemService = async (params: unknown, actor: unknown) => {
     throw new AppError("Item não encontrado.", 404);
   }
 
-  const isStudent = parsedActor.userTypeId === 3;
+  const isStudent = parsedActor.userTypeId === USER_ROLES.STUDENT;
+  const isTeacher = parsedActor.userTypeId === USER_ROLES.TEACHER;
+  const isParent = parsedActor.userTypeId === USER_ROLES.PARENT;
+  const isAdmin = parsedActor.userTypeId === USER_ROLES.ADMIN;
   const currentUserId = String(parsedActor.id);
 
-  if (existingItem.userItem) {
-    if (!isStudent || String(existingItem.userItem.userId) !== currentUserId) {
+  if (!isAdmin) {
+    if (existingItem.userItem) {
+      if ((!isStudent && !isTeacher) || String(existingItem.userItem.userId) !== currentUserId) {
+        throw new AppError("Sem permissão para remover este figurino.", 403);
+      }
+    } else if (existingItem.schoolItem && !isParent) {
       throw new AppError("Sem permissão para remover este figurino.", 403);
     }
-  } else if (existingItem.schoolItem && isStudent) {
-    throw new AppError("Sem permissão para remover este figurino.", 403);
   }
 
   await prisma.item.delete({

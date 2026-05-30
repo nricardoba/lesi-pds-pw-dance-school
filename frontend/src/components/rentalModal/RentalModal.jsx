@@ -1,43 +1,79 @@
 import { useEffect, useMemo, useState } from 'react';
 import './RentalModal.css';
 
-const RentalModal = ({ isOpen, onClose, costume, onSave, students = [] }) => {
-  const [studentNumberInput, setStudentNumberInput] = useState('');
+const RentalModal = ({ isOpen, onClose, costume, onSave, users = [], searchByEmail = false, allowTeacherSelection = false }) => {
+  const [userInput, setUserInput] = useState('');
 
-  const normalizedStudents = useMemo(
+  const normalizedUsers = useMemo(
     () =>
-      students.map((std) => ({
-        id: std.userId || std.id,
-        name: std.userName || std.name,
-        studentNumber: std.studentNumber?.studentNumber || std.student_number || std.studentNumber || '',
+      users.map((user) => ({
+        id: user.userId || user.id,
+        name: user.userName || user.name,
+        email:
+          user.userContact?.find((contactLink) => {
+            const contactType = contactLink.contact?.contactType?.contactTypeDesc?.toLowerCase();
+            return contactType === 'email';
+          })?.contact?.contactValue || user.email || '',
+        studentNumber: user.studentNumber?.studentNumber || user.student_number || user.studentNumber || '',
+        role: user.userType?.userTypeDesc?.toLowerCase() || user.role || '',
       })),
-    [students],
+    [users],
   );
 
-  const filteredStudents = useMemo(() => {
-    const query = studentNumberInput.trim().toLowerCase();
+  const selectableUsers = useMemo(() => {
+    return normalizedUsers.filter((user) => {
+      if (!allowTeacherSelection) {
+        return user.role === 'student' || user.role === 'aluno';
+      }
+
+      return user.role === 'student' || user.role === 'aluno' || user.role === 'teacher' || user.role === 'professor';
+    });
+  }, [allowTeacherSelection, normalizedUsers]);
+
+  const filteredUsers = useMemo(() => {
+    const query = userInput.trim().toLowerCase();
 
     if (!query) {
-      return normalizedStudents;
+      return selectableUsers;
     }
 
-    return normalizedStudents.filter((std) => std.studentNumber.toLowerCase().includes(query));
-  }, [normalizedStudents, studentNumberInput]);
+    if (searchByEmail) {
+      return selectableUsers.filter((user) => user.email.toLowerCase().includes(query));
+    }
 
-  const selectedStudent = useMemo(
+    return selectableUsers.filter((user) => {
+      const searchableValues = [user.email, user.studentNumber, user.name]
+        .filter(Boolean)
+        .map((value) => value.toLowerCase());
+
+      return searchableValues.some((value) => value.includes(query));
+    });
+  }, [selectableUsers, userInput]);
+
+  const selectedUser = useMemo(
     () =>
-      normalizedStudents.find(
-        (std) => std.studentNumber.trim().toLowerCase() === studentNumberInput.trim().toLowerCase(),
-      ),
-    [normalizedStudents, studentNumberInput],
+      selectableUsers.find((user) => {
+        if (searchByEmail) {
+          return user.email.trim().toLowerCase() === userInput.trim().toLowerCase();
+        }
+
+        return user.studentNumber.trim().toLowerCase() === userInput.trim().toLowerCase();
+      }),
+    [selectableUsers, searchByEmail, userInput],
   );
+
+  const inputLabel = searchByEmail ? 'Email' : 'Número de Aluno';
+  const inputPlaceholder = searchByEmail
+    ? 'Pesquisar e selecionar email'
+    : 'Pesquisar e selecionar número de aluno';
+  const inputListId = searchByEmail ? 'user-email-options' : 'user-number-options';
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
 
-    setStudentNumberInput('');
+    setUserInput('');
   }, [isOpen]);
 
   if (!isOpen || !costume) return null;
@@ -50,17 +86,17 @@ const RentalModal = ({ isOpen, onClose, costume, onSave, students = [] }) => {
     e.preventDefault();
     const formData = new FormData(e.target);
 
-    if (!selectedStudent) {
-      alert('Seleciona um aluno válido pelo número de aluno.');
+    if (!selectedUser) {
+      alert(searchByEmail ? 'Seleciona um utilizador válido pelo email.' : 'Seleciona um utilizador válido pelo número de aluno.');
       return;
     }
 
-    const studentId = parseInt(selectedStudent.id, 10);
+    const userId = parseInt(selectedUser.id, 10);
 
     const rentalData = {
       // Backend ignorara estes, mas mantemos caso precisemos no frontend
       costumeName: costume.title,
-      studentId: studentId,
+      studentId: userId,
       startDate: formData.get('startDate'),
       endDate: formData.get('endDate'),
     };
@@ -80,23 +116,23 @@ const RentalModal = ({ isOpen, onClose, costume, onSave, students = [] }) => {
         <form className="modal-form" onSubmit={handleSubmit}>
           
           <div className="form-group full-width">
-            <label>Número de Aluno</label>
+            <label>{inputLabel}</label>
             <input
-              name="studentNumber"
+              name={searchByEmail ? 'email' : 'studentNumber'}
               type="search"
-              list="student-number-options"
-              value={studentNumberInput}
-              onChange={(e) => setStudentNumberInput(e.target.value)}
-              placeholder="Pesquisar e selecionar número de aluno"
+              list={inputListId}
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder={inputPlaceholder}
               required
             />
-            <datalist id="student-number-options">
-              {filteredStudents.map((std) => (
-                <option key={std.id} value={std.studentNumber || ''} />
+            <datalist id={inputListId}>
+              {filteredUsers.map((user) => (
+                <option key={user.id} value={searchByEmail ? user.email || '' : user.studentNumber || ''} />
               ))}
             </datalist>
-            {selectedStudent && (
-              <p className="selected-student-name">Nome: {selectedStudent.name}</p>
+            {selectedUser && (
+              <p className="selected-student-name">Nome: {selectedUser.name}</p>
             )}
           </div>
 

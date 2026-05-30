@@ -51,6 +51,7 @@ import './CostumeCard.css';
           <span className="size-text">Tam: {costume.size}</span>
           <span className="size-text">Condição: {costume.condition}</span>
           <span className="size-text">Cor: {costume.color}</span>
+          <span className="size-text">Qtd: {typeof costume.quantity === 'number' ? costume.quantity : (costume.quantity || 0)}</span>
         </div>
 
         <div className="costume-price-row">
@@ -60,12 +61,14 @@ import './CostumeCard.css';
                 <span className="price-value">€{(costume.rentFee || 0).toFixed(2)}</span>
                 <span className="price-suffix">/aluguer</span>
               </>
+            ) : costume.ownerType === 'school' ? (
+              <span className="price-suffix">Registo interno da escola</span>
             ) : (
-              <span className="price-suffix">Figurino do aluno</span>
+              <span className="price-suffix">Venda pelo {costume.sellerRoleLabel || 'aluno'}</span>
             )}
           </div>
           <span className="stock-info">
-            {costume.isRental ? `${costume.stock} disponíveis` : 'Venda direta pelo aluno'}
+            {costume.isRental ? `${costume.stock} disponíveis` : ''}
           </span>
         </div>
 

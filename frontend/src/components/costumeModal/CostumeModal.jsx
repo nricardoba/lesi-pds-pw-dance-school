@@ -128,6 +128,8 @@ const CostumeModal = ({ isOpen, onClose, initialData, ownerType = 'school', onSa
   const [selectedSizeId, setSelectedSizeId] = useState('');
   const [selectedConditionId, setSelectedConditionId] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [rentFee, setRentFee] = useState('0');
+  const [isRentalEnabled, setIsRentalEnabled] = useState(true);
 
   useEffect(() => {
     if (isOpen && token) {
@@ -156,12 +158,16 @@ const CostumeModal = ({ isOpen, onClose, initialData, ownerType = 'school', onSa
       setSelectedSizeId(initialData?.sizeId ? String(initialData.sizeId) : '');
       setSelectedConditionId(initialData?.itemConditionId ? String(initialData.itemConditionId) : '');
       setQuantity(initialData?.quantity ? Number(initialData.quantity) : 1);
+      setIsRentalEnabled(initialData?.isRental !== false);
+      setRentFee(initialData?.rentFee !== undefined ? String(initialData.rentFee) : '0');
     } else {
       setSelectedCategoryId('');
       setSelectedColorId('');
       setSelectedSizeId('');
       setSelectedConditionId('');
       setQuantity(1);
+      setIsRentalEnabled(true);
+      setRentFee('0');
     }
   }, [initialData, isOpen]);
 
@@ -219,7 +225,8 @@ const CostumeModal = ({ isOpen, onClose, initialData, ownerType = 'school', onSa
       colorId: parseInt(selectedColorId, 10),
       itemConditionId: parseInt(selectedConditionId, 10),
       ownerType: isUserCostume ? 'user' : 'school',
-      rentFee: isUserCostume ? undefined : parseFloat(formData.get('rentFee') || 0),
+      rentFee: isUserCostume ? undefined : (isRentalEnabled ? Number(rentFee || 0) : 0),
+      isRental: isUserCostume ? false : isRentalEnabled,
       quantity: isUserCostume ? 1 : parseInt(formData.get('quantity') || quantity || 1, 10),
       imageFile: formData.get('imageFile'),
     };
@@ -298,43 +305,70 @@ const CostumeModal = ({ isOpen, onClose, initialData, ownerType = 'school', onSa
           </div>
 
           {!isUserCostume && (
-            <div className="form-grid-2">
-              <div className="form-group">
-                <label>Quantidade</label>
-                <input
-                  name="quantity"
-                  type="number"
-                  min={minQuantity}
-                  step="1"
-                  value={quantity}
-                  onChange={(event) => {
-                    const nextQuantity = Number(event.target.value);
-                    if (!Number.isFinite(nextQuantity)) {
-                      setQuantity(minQuantity);
-                      return;
-                    }
-                    setQuantity(Math.max(minQuantity, nextQuantity));
-                  }}
-                  required
-                />
-                {isEditing && (
-                  <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#64748B' }}>
-                    Não pode ser inferior a {minQuantity} porque existem unidades atualmente alugadas.
+            <>
+              <div className="form-grid-2">
+                <div className="form-group">
+                  <label>Quantidade</label>
+                  <input
+                    name="quantity"
+                    type="number"
+                    min={minQuantity}
+                    step="1"
+                    value={quantity}
+                    onChange={(event) => {
+                      const nextQuantity = Number(event.target.value);
+                      if (!Number.isFinite(nextQuantity)) {
+                        setQuantity(minQuantity);
+                        return;
+                      }
+                      setQuantity(Math.max(minQuantity, nextQuantity));
+                    }}
+                    required
+                  />
+                  {isEditing && (
+                    <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#64748B' }}>
+                      Não pode ser inferior a {minQuantity} porque existem unidades atualmente alugadas.
+                    </div>
+                  )}
+                </div>
+
+                {/* Mostrar o campo Preço de Aluguer apenas quando a checkbox estiver ATIVADA */}
+                {isRentalEnabled && (
+                  <div className="form-group">
+                    <label>Preço de Aluguer (€)</label>
+                    <input
+                      name="rentFee"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={rentFee}
+                      onChange={(event) => setRentFee(event.target.value)}
+                      required
+                    />
                   </div>
                 )}
               </div>
-              <div className="form-group">
-                <label>Preço de Aluguer (€)</label>
-                <input
-                  name="rentFee"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  defaultValue={isEditing ? initialData.rentFee : '0'}
-                  required
-                />
+
+              <div className="form-group full-width mt-16">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={isRentalEnabled}
+                    onChange={(event) => {
+                      const nextChecked = event.target.checked;
+                      setIsRentalEnabled(nextChecked);
+                      if (!nextChecked) {
+                        setRentFee('0');
+                      }
+                    }}
+                  />
+                  Disponível para aluguer
+                </label>
+                <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#64748B' }}>
+                  Se desativado, o figurino fica apenas registado na escola e não aparece para alunos ou professores.
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           {isUserCostume && (
