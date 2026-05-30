@@ -53,9 +53,42 @@ const ScheduleApprovalsPage = () => {
     });
   }, [requests, searchTerm, selectedStatus]);
 
-  const pendingCount = requests.filter((request) => request.status === 'Pendente').length;
-  const approvedCount = requests.filter((request) => request.status === 'Aprovado').length;
-  const rejectedCount = requests.filter((request) => request.status === 'Rejeitado').length;
+  const vacancyCounts = useMemo(() => {
+    const counts = {
+      Pendente: 0,
+      Aprovado: 0,
+      Rejeitado: 0,
+    };
+
+    const seenIdsByStatus = {
+      Pendente: new Set(),
+      Aprovado: new Set(),
+      Rejeitado: new Set(),
+    };
+
+    requests.forEach((request) => {
+      const statusKey = request.status;
+      if (!(statusKey in seenIdsByStatus)) {
+        return;
+      }
+
+      request.vacancyIds.forEach((vacancyId) => {
+        const normalizedId = String(vacancyId);
+        if (seenIdsByStatus[statusKey].has(normalizedId)) {
+          return;
+        }
+
+        seenIdsByStatus[statusKey].add(normalizedId);
+        counts[statusKey] += 1;
+      });
+    });
+
+    return counts;
+  }, [requests]);
+
+  const pendingCount = vacancyCounts.Pendente;
+  const approvedCount = vacancyCounts.Aprovado;
+  const rejectedCount = vacancyCounts.Rejeitado;
 
   const markRequest = (requestId, nextStatus, rejectionReason = '') => {
     if (!canReview) return;
