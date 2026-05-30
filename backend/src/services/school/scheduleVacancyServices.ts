@@ -164,12 +164,9 @@ export const getScheduleSubmissionsService = async (userId: number) => {
         include: { user: true }
     });
 
-    // Group by schoolYearId and submission date (using creation date which we don't have, so we group by schoolYearId and scheduleVacancyRecurrence)
-    // To simulate submission we'll just return a single pseudo-group for "pending" ones if they exist
-    // and another for "approved". Let's group by scheduleVacancyRecurrence as a proxy for the submission status
-
-    const pendingVacancies = vacancies.filter(v => v.scheduleVacancyRecurrence === true);
-    const approvedVacancies = vacancies.filter(v => v.scheduleVacancyRecurrence === false);
+    const pendingVacancies = vacancies.filter(v => v.scheduleVacancyApproved == null);
+    const approvedVacancies = vacancies.filter(v => v.scheduleVacancyApproved === true);
+    const rejectedVacancies = vacancies.filter(v => v.scheduleVacancyApproved === false);
 
     const submissions = [];
 
@@ -191,20 +188,37 @@ export const getScheduleSubmissionsService = async (userId: number) => {
     }
 
     if (approvedVacancies.length > 0) {
-        submissions.push({
-            scheduleSubmissionId: 2, // pseudo ID
-            userId: userId,
-            schoolYearId: approvedVacancies[0].schoolYearId,
-            submissionDate: new Date(),
-            status: { scheduleSubmissionStatusDesc: 'Aprovado' },
-            user: approvedVacancies[0].user,
-            scheduleVacancies: approvedVacancies.map(v => ({
-                ...v,
-                day_of_week: getDayOfWeek(v.scheduleVacancyStart),
-                start_time: formatTime(v.scheduleVacancyStart),
-                end_time: formatTime(v.scheduleVacancyEnd)
-            }))
-        });
+      submissions.push({
+        scheduleSubmissionId: 2, // pseudo ID
+        userId: userId,
+        schoolYearId: approvedVacancies[0].schoolYearId,
+        submissionDate: new Date(),
+        status: { scheduleSubmissionStatusDesc: 'Aprovado' },
+        user: approvedVacancies[0].user,
+        scheduleVacancies: approvedVacancies.map(v => ({
+          ...v,
+          day_of_week: getDayOfWeek(v.scheduleVacancyStart),
+          start_time: formatTime(v.scheduleVacancyStart),
+          end_time: formatTime(v.scheduleVacancyEnd)
+        }))
+      });
+    }
+
+    if (rejectedVacancies.length > 0) {
+      submissions.push({
+        scheduleSubmissionId: 3, // pseudo ID
+        userId: userId,
+        schoolYearId: rejectedVacancies[0].schoolYearId,
+        submissionDate: new Date(),
+        status: { scheduleSubmissionStatusDesc: 'Rejeitado' },
+        user: rejectedVacancies[0].user,
+        scheduleVacancies: rejectedVacancies.map(v => ({
+          ...v,
+          day_of_week: getDayOfWeek(v.scheduleVacancyStart),
+          start_time: formatTime(v.scheduleVacancyStart),
+          end_time: formatTime(v.scheduleVacancyEnd)
+        }))
+      });
     }
 
     return submissions;
@@ -221,8 +235,9 @@ export const getAllScheduleSubmissionsService = async ( ) => {
 
     for (const userId of userIds) {
         const userVacancies = vacancies.filter(v => v.userId === userId);
-        const pendingVacancies = userVacancies.filter(v => v.scheduleVacancyRecurrence === true);
-        const approvedVacancies = userVacancies.filter(v => v.scheduleVacancyRecurrence === false);
+      const pendingVacancies = userVacancies.filter(v => v.scheduleVacancyApproved == null);
+      const approvedVacancies = userVacancies.filter(v => v.scheduleVacancyApproved === true);
+      const rejectedVacancies = userVacancies.filter(v => v.scheduleVacancyApproved === false);
 
         if (pendingVacancies.length > 0) {
             submissions.push({
@@ -257,6 +272,23 @@ export const getAllScheduleSubmissionsService = async ( ) => {
                 }))
             });
         }
+
+            if (rejectedVacancies.length > 0) {
+              submissions.push({
+                scheduleSubmissionId: `${userId}_rejected`, // Pseudo ID
+                userId: userId,
+                schoolYearId: rejectedVacancies[0].schoolYearId,
+                submissionDate: new Date(),
+                status: { scheduleSubmissionStatusDesc: 'Rejeitado' },
+                user: rejectedVacancies[0].user,
+                scheduleVacancies: rejectedVacancies.map(v => ({
+                  ...v,
+                  day_of_week: getDayOfWeek(v.scheduleVacancyStart),
+                  start_time: formatTime(v.scheduleVacancyStart),
+                  end_time: formatTime(v.scheduleVacancyEnd)
+                }))
+              });
+            }
     }
 
     return submissions;
@@ -264,9 +296,8 @@ export const getAllScheduleSubmissionsService = async ( ) => {
 
 export const getLatestSubmissionStatusService = async (userId: number) => {
     
-    // Simplest logic: if there are pending vacanices, return pending, else if approved, return approved
     const pendingVacancies = await prisma.scheduleVacancy.findMany({
-        where: { userId, scheduleVacancyRecurrence: true }
+      where: { userId, scheduleVacancyApproved: null }
     });
 
     if (pendingVacancies.length > 0) {
@@ -279,7 +310,7 @@ export const getLatestSubmissionStatusService = async (userId: number) => {
     }
 
     const approvedVacancies = await prisma.scheduleVacancy.findMany({
-        where: { userId, scheduleVacancyRecurrence: false }
+      where: { userId, scheduleVacancyApproved: true }
     });
 
     if (approvedVacancies.length > 0) {
@@ -291,15 +322,28 @@ export const getLatestSubmissionStatusService = async (userId: number) => {
       };
     }
 
+    const rejectedVacancies = await prisma.scheduleVacancy.findMany({
+        where: { userId, scheduleVacancyApproved: false }
+    });
+
+    if (rejectedVacancies.length > 0) {
+      return {
+        submissionDate: new Date(),
+        reviewDate: new Date(),
+        status: { scheduleSubmissionStatusDesc: 'Rejeitado' },
+        scheduleVacancies: rejectedVacancies
+      };
+    }
+
     return null;
   };
 
 export const submitScheduleService = async (userId: number, schoolYearId: number, vacancies: any[]) => {
-    // Delete existing pending vacancies for this user to simplify
+  // Delete only the current pending draft so rejected history remains visible.
     await prisma.scheduleVacancy.deleteMany({
         where: {
-        userId,
-            scheduleVacancyRecurrence: true
+      userId,
+      scheduleVacancyApproved: null
         }
     });
 
@@ -315,7 +359,8 @@ export const submitScheduleService = async (userId: number, schoolYearId: number
             schoolYearId,
                 scheduleVacancyStart: startDate,
                 scheduleVacancyEnd: endDate,
-                scheduleVacancyRecurrence: true // true means PENDENTE
+            scheduleVacancyRecurrence: true,
+            scheduleVacancyApproved: null
             }
         });
         createdVacancies.push(newV);
@@ -333,16 +378,17 @@ export const reviewScheduleSubmissionService = async (userId: number, status: st
     // And actually we need the `userId` to update.
     // The frontend passes `submissionId`. Which we set to 1 for 'Pendent' user.
     // Let's assume `submissionId` is the `userId` for now to make it easy, or we can just update all pending.
-    // We'll update all pending vacancies globally to false if state is 'Aprovado', or delete them if 'Rejeitado'
+    // We'll update all pending vacancies globally to approved/rejected flags while keeping the record.
 
-    if (status === 'Rejeitado') {
-        await prisma.scheduleVacancy.deleteMany({
-            where: { userId: userId, scheduleVacancyRecurrence: true }
-        });
-    } else if (status === 'Aprovado') {
+    if (status === 'Aprovado') {
         await prisma.scheduleVacancy.updateMany({
-            where: { userId: userId, scheduleVacancyRecurrence: true },
-            data: { scheduleVacancyRecurrence: false } // false means APROVADO
+        where: { userId: userId, scheduleVacancyApproved: null },
+        data: { scheduleVacancyApproved: true }
+      });
+    } else if (status === 'Rejeitado') {
+      await prisma.scheduleVacancy.updateMany({
+        where: { userId: userId, scheduleVacancyApproved: null },
+        data: { scheduleVacancyApproved: false }
         });
     }
 
