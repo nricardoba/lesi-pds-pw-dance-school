@@ -45,7 +45,7 @@ export const buildSlotRanges = (selectedKeys) => {
   return slotRanges;
 };
 
-const SubmitScheduleModal = ({ isOpen, onClose, onSubmit, teacherName }) => {
+const SubmitScheduleModal = ({ isOpen, onClose, onSubmit, teacherName, schoolYearName }) => {
   const [selectedSlots, setSelectedSlots] = useState([]);
 
   const selectedSlotsCount = selectedSlots.length;
@@ -84,6 +84,10 @@ const SubmitScheduleModal = ({ isOpen, onClose, onSubmit, teacherName }) => {
             ×
           </button>
         </div>
+
+        <p className="teacher-schedule-modal__legend">
+          Ano letivo associado: <strong>{schoolYearName}</strong>
+        </p>
 
         <p className="teacher-schedule-modal__legend">
           Legenda: As células verdes indicam horários disponíveis. As células cinzas indicam horários não disponíveis.

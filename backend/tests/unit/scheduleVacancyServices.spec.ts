@@ -46,6 +46,7 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
     scheduleVacancyStart: new Date('2026-05-04T09:00:00.000Z'),
     scheduleVacancyEnd: new Date('2026-05-04T10:00:00.000Z'),
     scheduleVacancyRecurrence: false,
+    scheduleVacancyApproved: null,
     user: {
       userName: 'Professor Teste',
     },
@@ -395,21 +396,31 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
         ...baseVacancy,
         scheduleVacancyId: 1,
         scheduleVacancyRecurrence: true,
+        scheduleVacancyApproved: null,
       };
 
       const approved = {
         ...baseVacancy,
         scheduleVacancyId: 2,
         scheduleVacancyRecurrence: false,
+        scheduleVacancyApproved: true,
       };
 
-      (prisma.scheduleVacancy.findMany as any).mockResolvedValue([pending, approved]);
+      const rejected = {
+        ...baseVacancy,
+        scheduleVacancyId: 3,
+        scheduleVacancyRecurrence: true,
+        scheduleVacancyApproved: false,
+      };
+
+      (prisma.scheduleVacancy.findMany as any).mockResolvedValue([pending, approved, rejected]);
 
       const result = await getScheduleSubmissionsService(1);
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(3);
       expect(result[0].status.scheduleSubmissionStatusDesc).toBe('Pendente');
       expect(result[1].status.scheduleSubmissionStatusDesc).toBe('Aprovado');
+      expect(result[2].status.scheduleSubmissionStatusDesc).toBe('Rejeitado');
       expect(result[0].scheduleVacancies[0]).toHaveProperty('day_of_week');
       expect(result[0].scheduleVacancies[0]).toHaveProperty('start_time');
       expect(result[0].scheduleVacancies[0]).toHaveProperty('end_time');
@@ -432,13 +443,23 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
           userId: 1,
           scheduleVacancyId: 1,
           scheduleVacancyRecurrence: true,
+          scheduleVacancyApproved: null,
         },
         {
           ...baseVacancy,
           userId: 2,
           scheduleVacancyId: 2,
           scheduleVacancyRecurrence: false,
+          scheduleVacancyApproved: true,
           user: { userName: 'Professor Dois' },
+        },
+        {
+          ...baseVacancy,
+          userId: 3,
+          scheduleVacancyId: 3,
+          scheduleVacancyRecurrence: true,
+          scheduleVacancyApproved: false,
+          user: { userName: 'Professor Três' },
         },
       ];
 
@@ -446,11 +467,13 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
 
       const result = await getAllScheduleSubmissionsService();
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(3);
       expect(result[0]).toHaveProperty('scheduleSubmissionId');
       expect(result[0]).toHaveProperty('scheduleVacancies');
       expect(result[1]).toHaveProperty('scheduleSubmissionId');
       expect(result[1]).toHaveProperty('scheduleVacancies');
+      expect(result[2]).toHaveProperty('scheduleSubmissionId');
+      expect(result[2]).toHaveProperty('scheduleVacancies');
     });
 
     it('deve devolver array vazio quando não existem disponibilidades', async () => {
@@ -467,6 +490,7 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
       const pending = {
         ...baseVacancy,
         scheduleVacancyRecurrence: true,
+        scheduleVacancyApproved: null,
       };
 
       (prisma.scheduleVacancy.findMany as any).mockResolvedValueOnce([pending]);
@@ -481,6 +505,7 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
       const approved = {
         ...baseVacancy,
         scheduleVacancyRecurrence: false,
+        scheduleVacancyApproved: true,
       };
 
       (prisma.scheduleVacancy.findMany as any)
@@ -491,6 +516,24 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
 
       expect(result).toBeDefined();
       expect(result?.status.scheduleSubmissionStatusDesc).toBe('Aprovado');
+    });
+
+    it('deve devolver estado rejeitado se não houver pendentes nem aprovadas mas houver rejeitadas', async () => {
+      const rejected = {
+        ...baseVacancy,
+        scheduleVacancyRecurrence: true,
+        scheduleVacancyApproved: false,
+      };
+
+      (prisma.scheduleVacancy.findMany as any)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([rejected]);
+
+      const result = await getLatestSubmissionStatusService(1);
+
+      expect(result).toBeDefined();
+      expect(result?.status.scheduleSubmissionStatusDesc).toBe('Rejeitado');
     });
 
     it('deve devolver null se não houver pendentes nem aprovadas', async () => {
@@ -540,7 +583,7 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
       expect(prisma.scheduleVacancy.deleteMany).toHaveBeenCalledWith({
         where: {
           userId: 1,
-          scheduleVacancyRecurrence: true,
+          scheduleVacancyApproved: null,
         },
       });
       expect(prisma.scheduleVacancy.create).toHaveBeenCalledTimes(2);
@@ -566,24 +609,27 @@ describe('Schedule Vacancy Services - Unit Tests', () => {
       expect(prisma.scheduleVacancy.updateMany).toHaveBeenCalledWith({
         where: {
           userId: 1,
-          scheduleVacancyRecurrence: true,
+          scheduleVacancyApproved: null,
         },
         data: {
-          scheduleVacancyRecurrence: false,
+          scheduleVacancyApproved: true,
         },
       });
     });
 
     it('deve rejeitar disponibilidades pendentes', async () => {
-      (prisma.scheduleVacancy.deleteMany as any).mockResolvedValue({ count: 2 });
+      (prisma.scheduleVacancy.updateMany as any).mockResolvedValue({ count: 2 });
 
       const result = await reviewScheduleSubmissionService(1, 'Rejeitado');
 
       expect(result).toEqual({ success: true });
-      expect(prisma.scheduleVacancy.deleteMany).toHaveBeenCalledWith({
+      expect(prisma.scheduleVacancy.updateMany).toHaveBeenCalledWith({
         where: {
           userId: 1,
-          scheduleVacancyRecurrence: true,
+          scheduleVacancyApproved: null,
+        },
+        data: {
+          scheduleVacancyApproved: false,
         },
       });
     });

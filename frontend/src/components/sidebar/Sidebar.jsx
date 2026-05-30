@@ -22,7 +22,7 @@ const Sidebar = () => {
  */    { path: '/modalidades', name: 'Modalidades', icon: '🩰' },
   ];
 
-  if (role === 'admin') {
+  if (role === 'admin' || role === 'teacher') {
     menuItems.push({ path: '/aprovacao-horarios', name: 'Aprovação Horários', icon: '✅' });
   }
 

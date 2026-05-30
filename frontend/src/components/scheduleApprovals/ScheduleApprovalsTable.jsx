@@ -1,11 +1,12 @@
 import React from 'react';
 
-const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest }) => {
+const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, reviewVacancies, canReview }) => {
   return (
     <section className="table-container">
       <div className="table-header">
         <span>PROFESSOR</span>
         <span>ENVIADO EM</span>
+        <span>ANO LETIVO</span>
         <span>STATUS</span>
         <span>AÇÕES</span>
       </div>
@@ -15,9 +16,10 @@ const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest
           <div key={request.id} className="table-row">
             <div className="teacher-col">
               <strong>{request.teacherName}</strong>
-              <span className="request-id">Pedido #{request.id}</span>
+              <span className="request-id">Pedido #{request.vacancyIds.join(', ')}</span>
             </div>
             <span className="date-col">{request.submittedAt}</span>
+            <span className="year-col">{request.schoolYearName}</span>
             <span className={`status-badge ${request.status.toLowerCase()}`}>{request.status}</span>
             <div className="actions-col">
               <button
@@ -27,19 +29,19 @@ const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest
               >
                 Ver Detalhes
               </button>
-              {request.status === 'Pendente' && (
+              {canReview && request.status === 'Pendente' && (
                 <div className="decision-actions">
                   <button
                     type="button"
                     className="action-btn action-btn--approve"
-                    onClick={() => markRequest(request.id, 'Aprovado')}
+                    onClick={() => reviewVacancies(request.vacancyIds, 'Aprovado')}
                   >
-                    Aprovar
+                    Aprovar tudo
                   </button>
                   <button
                     type="button"
                     className="action-btn action-btn--reject"
-                    onClick={() => markRequest(request.id, 'Rejeitado')}
+                    onClick={() => reviewVacancies(request.vacancyIds, 'Rejeitado')}
                   >
                     Rejeitar
                   </button>

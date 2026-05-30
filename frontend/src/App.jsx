@@ -68,7 +68,7 @@ function App() {
             <Route path="/horario" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
              <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/horario-professor" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherSchedulePage /></ProtectedRoute>} />
-            <Route path="/aprovacao-horarios" element={<ProtectedRoute allowedRoles={['admin']}><ScheduleApprovalsPage /></ProtectedRoute>} />
+            <Route path="/aprovacao-horarios" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><ScheduleApprovalsPage /></ProtectedRoute>} />
             <Route path="templates-aulas" element={<ProtectedRoute><ClassTemplatesPage /></ProtectedRoute>} />
             <Route path="/modalidades" element={<ProtectedRoute><ModalitiesPage /></ProtectedRoute>} />
           </Route>

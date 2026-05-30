@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { scheduleService } from '../services/scheduleService';
 import { useAuth } from '../context/useAuth';
 import '../pagesCss/ScheduleApprovalsPage.css';
@@ -9,11 +9,54 @@ import ScheduleApprovalModal from '../components/scheduleApprovals/ScheduleAppro
 import SchoolYearsManagement from '../components/scheduleApprovals/SchoolYearsManagement';
 
 const ScheduleApprovalsPage = () => {
-  const { token } = useAuth();
+  const { token, role } = useAuth();
   const [requests, setRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('Todos');
+  const [selectedSchoolYear, setSelectedSchoolYear] = useState('Todos');
   const [selectedRequestId, setSelectedRequestId] = useState(null);
+  const canReview = role === 'admin';
+
+  const loadRequests = useCallback(() => {
+    if (!token) return Promise.resolve();
+
+    const requestLoader = role === 'teacher'
+      ? scheduleService.getMyScheduleSubmissions(token)
+      : scheduleService.getAllScheduleSubmissions(token);
+
+    return requestLoader
+      .then(res => {
+        const allSubmissions = res;
+        const formattedRequests = allSubmissions.map(req => ({
+          id: req.scheduleSubmissionId,
+          reviewTargetUserId: req.user?.userId ?? null,
+          teacherName: req.user.userName,
+          submittedAt: new Date(req.submissionDate).toLocaleDateString(),
+          status: req.status.scheduleSubmissionStatusDesc,
+          schoolYearId: String(req.schoolYearId ?? ''),
+          schoolYearName: req.schoolYear?.schoolYearName || 'Não definido',
+          note: req.rejectionReason || '',
+          vacancyIds: req.scheduleVacancies.map(v => v.scheduleVacancyId),
+          vacancies: req.scheduleVacancies.map(v => ({
+            id: v.scheduleVacancyId,
+            day: v.day_of_week,
+            time: `${v.start_time} - ${v.end_time}`,
+            status: v.scheduleVacancyApproved
+          })),
+          slots: req.scheduleVacancies.map(v => ({
+            day: v.day_of_week,
+            time: `${v.start_time} - ${v.end_time}`
+          })),
+          decisionDate: req.reviewDate ? new Date(req.reviewDate).toLocaleDateString() : null
+        }));
+        setRequests(formattedRequests);
+      })
+      .catch(error => console.error('Error fetching schedule requests:', error));
+  }, [token, role]);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
   const [activeTab, setActiveTab] = useState('requests');
 
   useEffect(() => {
@@ -44,24 +87,68 @@ const ScheduleApprovalsPage = () => {
     return requests.filter((request) => {
       const bySearch = request.teacherName.toLowerCase().includes(searchTerm.toLowerCase());
       const byStatus = selectedStatus === 'Todos' || request.status === selectedStatus;
-      return bySearch && byStatus;
+      const bySchoolYear = selectedSchoolYear === 'Todos' || request.schoolYearId === selectedSchoolYear;
+      return bySearch && byStatus && bySchoolYear;
     });
-  }, [requests, searchTerm, selectedStatus]);
+  }, [requests, searchTerm, selectedStatus, selectedSchoolYear]);
 
-  const pendingCount = requests.filter((request) => request.status === 'Pendente').length;
-  const approvedCount = requests.filter((request) => request.status === 'Aprovado').length;
-  const rejectedCount = requests.filter((request) => request.status === 'Rejeitado').length;
+  const schoolYearOptions = useMemo(() => {
+    const seenYears = new Map();
 
-  const markRequest = (requestId, nextStatus, rejectionReason = '') => {
-    scheduleService.reviewScheduleSubmission(requestId, { status: nextStatus, rejectionReason }, token)
+    requests.forEach((request) => {
+      if (request.schoolYearId && !seenYears.has(request.schoolYearId)) {
+        seenYears.set(request.schoolYearId, request.schoolYearName);
+      }
+    });
+
+    return Array.from(seenYears.entries()).map(([id, name]) => ({ id, name }));
+  }, [requests]);
+
+  const vacancyCounts = useMemo(() => {
+    const counts = {
+      Pendente: 0,
+      Aprovado: 0,
+      Rejeitado: 0,
+    };
+
+    const seenIdsByStatus = {
+      Pendente: new Set(),
+      Aprovado: new Set(),
+      Rejeitado: new Set(),
+    };
+
+    requests.forEach((request) => {
+      const statusKey = request.status;
+      if (!(statusKey in seenIdsByStatus)) {
+        return;
+      }
+
+      request.vacancyIds.forEach((vacancyId) => {
+        const normalizedId = String(vacancyId);
+        if (seenIdsByStatus[statusKey].has(normalizedId)) {
+          return;
+        }
+
+        seenIdsByStatus[statusKey].add(normalizedId);
+        counts[statusKey] += 1;
+      });
+    });
+
+    return counts;
+  }, [requests]);
+
+  const pendingCount = vacancyCounts.Pendente;
+  const approvedCount = vacancyCounts.Aprovado;
+  const rejectedCount = vacancyCounts.Rejeitado;
+
+  const reviewVacancies = (vacancyIds, nextStatus, rejectionReason = '') => {
+    if (!canReview) return;
+
+    scheduleService.reviewScheduleVacancies(vacancyIds, { status: nextStatus, rejectionReason }, token)
       .then(() => {
-        setRequests(prev =>
-          prev.map(req =>
-            req.id === requestId
-              ? { ...req, status: nextStatus, decisionDate: new Date().toLocaleDateString(), note: rejectionReason }
-              : req
-          )
-        );
+        return loadRequests();
+      })
+      .then(() => {
         setSelectedRequestId(null);
       })
       .catch(error => console.error(`Error ${nextStatus === 'Aprovado' ? 'approving' : 'rejecting'} schedule:`, error));
@@ -72,7 +159,11 @@ const ScheduleApprovalsPage = () => {
       <header className="page-header">
         <div>
           <h1 className="page-title">Pedidos de Horário</h1>
-          <p className="page-subtitle">Aprovação de disponibilidades enviadas pelos professores</p>
+          <p className="page-subtitle">
+            {canReview
+              ? 'Aprovação de disponibilidades enviadas pelos professores'
+              : 'Consulta das disponibilidades que enviaste'}
+          </p>
         </div>
       </header>
 
@@ -97,6 +188,22 @@ const ScheduleApprovalsPage = () => {
         </button>
       </div>
 
+      <ScheduleApprovalsControls 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
+        selectedSchoolYear={selectedSchoolYear}
+        setSelectedSchoolYear={setSelectedSchoolYear}
+        schoolYearOptions={schoolYearOptions}
+      />
+
+      <ScheduleApprovalsTable 
+        filteredRequests={filteredRequests}
+        onSelectRequest={setSelectedRequestId}
+        reviewVacancies={reviewVacancies}
+        canReview={canReview}
+      />
       {activeTab === 'requests' && (
         <>
           <ScheduleApprovalsStats 
@@ -125,7 +232,8 @@ const ScheduleApprovalsPage = () => {
       <ScheduleApprovalModal 
         selectedRequest={selectedRequest}
         onClose={() => setSelectedRequestId(null)}
-        markRequest={markRequest}
+        reviewVacancies={reviewVacancies}
+        canReview={canReview}
       />
     </div>
   );

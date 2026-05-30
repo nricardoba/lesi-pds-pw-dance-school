@@ -27,6 +27,7 @@ scheduleVacanciesRouter.get('/me/latest', checkRole([USER_ROLES.TEACHER]), Schoo
 scheduleVacanciesRouter.get('/user/:userId/submissions', checkRole([USER_ROLES.ADMIN]), SchoolController.getScheduleSubmissionsController);
 scheduleVacanciesRouter.get('/user/:userId/latest', checkRole([USER_ROLES.ADMIN]), SchoolController.getLatestSubmissionStatusController);
 scheduleVacanciesRouter.post('/submit', checkRole([USER_ROLES.TEACHER]), SchoolController.submitScheduleController);
+scheduleVacanciesRouter.put('/review', checkRole([USER_ROLES.ADMIN]), SchoolController.reviewScheduleVacanciesController);
 scheduleVacanciesRouter.put('/:submissionId/review', checkRole([USER_ROLES.ADMIN]), SchoolController.reviewScheduleSubmissionController);
 scheduleVacanciesRouter.get('/:id', checkRole([USER_ROLES.ADMIN]), SchoolController.getScheduleVacancyByIdController);
 scheduleVacanciesRouter.get('/user/:userId', checkRole([USER_ROLES.ADMIN]), SchoolController.getScheduleVacanciesByUserIdController);

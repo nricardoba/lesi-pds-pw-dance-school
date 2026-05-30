@@ -218,6 +218,15 @@
   gap: 16px;
 }
 
+.schedule-approvals-page .controls-filters {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
 .schedule-approvals-page .search-container {
   display: flex;
   align-items: center;
@@ -249,6 +258,29 @@
   gap: 8px;
 }
 
+.schedule-approvals-page .year-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.schedule-approvals-page .year-filter span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.schedule-approvals-page .year-select {
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #334155;
+  border-radius: 8px;
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+}
+
 .schedule-approvals-page .filter-pill {
   border: 1px solid #CBD5E1;
   background: #FFFFFF;
@@ -277,7 +309,7 @@
 .schedule-approvals-page .table-header,
 .schedule-approvals-page .table-row {
   display: grid;
-  grid-template-columns: 2.2fr 1.2fr 1fr 2.6fr;
+  grid-template-columns: 2.1fr 1.2fr 1.5fr 1fr 2.6fr;
   gap: 16px;
   align-items: center;
   padding: 14px 16px;
@@ -318,6 +350,11 @@
 }
 
 .schedule-approvals-page .date-col {
+  font-size: 13px;
+  color: #475569;
+}
+
+.schedule-approvals-page .year-col {
   font-size: 13px;
   color: #475569;
 }
@@ -411,7 +448,7 @@
   border-radius: 12px;
   background: #FFFFFF;
   box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
-  padding: 20px;
+  padding: 24px;
 }
 
 .request-modal-header {
@@ -419,6 +456,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  margin-bottom: 8px;
 }
 
 .request-modal-header h2 {
@@ -437,49 +475,97 @@
 }
 
 .request-modal-note {
-  margin: 12px 0;
-  padding: 10px 12px;
+  margin: 14px 0;
+  padding: 14px 16px;
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.5;
   color: #475569;
 }
 
 .slots-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 12px;
 }
 
 .slot-item {
   border: 1px solid #E2E8F0;
   background: #FFFFFF;
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 14px;
   color: #334155;
 }
 
+/* Separate day and time onto their own lines for clarity */
+.slot-item > div span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.slot-item > div strong {
+  display: block;
+  font-size: 15px;
+  color: #0F172A;
+}
+
+.slot-item--reviewable {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.slot-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.slot-action-btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.slot-action-btn--approve {
+  background: #16A34A;
+  color: #FFFFFF;
+}
+
+.slot-action-btn--reject {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
 .request-meta-row {
-  margin-top: 14px;
+  margin-top: 18px;
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
-  font-size: 13px;
+  font-size: 14px;
   color: #475569;
 }
 
 .request-modal-actions {
-  margin-top: 16px;
+  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .modal-cancel-btn,
