@@ -31,6 +31,7 @@ const TeacherSchedulePage = () => {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [history, setHistory] = useState([]);
   const [schoolYearId, setSchoolYearId] = useState(null);
+  const [schoolYearName, setSchoolYearName] = useState('');
 
   const fetchCurrentSchoolYear = useCallback(() => {
     apiClient('/school-years', { token })
@@ -44,6 +45,7 @@ const TeacherSchedulePage = () => {
 
         if (currentSchoolYear?.schoolYearId) {
           setSchoolYearId(currentSchoolYear.schoolYearId);
+          setSchoolYearName(currentSchoolYear.schoolYearName || 'Ano letivo atual');
         }
       })
       .catch(error => {
@@ -157,6 +159,7 @@ const TeacherSchedulePage = () => {
         <div>
           <h1 className="page-title">Meu Horário</h1>
           <p className="page-subtitle">Gerir e enviar disponibilidades para aprovação</p>
+          <p className="page-subtitle">Ano letivo associado: {schoolYearName || 'A carregar...'}</p>
         </div>
         <button type="button" className="submit-schedule-btn" onClick={handleOpenModal}>
           <span className="submit-schedule-btn__icon">＋</span>
@@ -174,7 +177,8 @@ const TeacherSchedulePage = () => {
         isOpen={isSubmitModalOpen} 
         onClose={handleCloseModal} 
         onSubmit={handleSubmitSchedule} 
-        teacherName={user?.userName || "Professor"} 
+        teacherName={user?.userName || "Professor"}
+        schoolYearName={schoolYearName || 'A carregar...'} 
       />
     </div>
   );
