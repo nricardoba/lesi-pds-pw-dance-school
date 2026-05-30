@@ -12,6 +12,7 @@ const ScheduleApprovalsPage = () => {
   const [requests, setRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('Todos');
+  const [selectedSchoolYear, setSelectedSchoolYear] = useState('Todos');
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const canReview = role === 'admin';
 
@@ -31,6 +32,8 @@ const ScheduleApprovalsPage = () => {
           teacherName: req.user.userName,
           submittedAt: new Date(req.submissionDate).toLocaleDateString(),
           status: req.status.scheduleSubmissionStatusDesc,
+          schoolYearId: String(req.schoolYearId ?? ''),
+          schoolYearName: req.schoolYear?.schoolYearName || 'Não definido',
           note: req.rejectionReason || '',
           vacancyIds: req.scheduleVacancies.map(v => v.scheduleVacancyId),
           vacancies: req.scheduleVacancies.map(v => ({
@@ -60,9 +63,22 @@ const ScheduleApprovalsPage = () => {
     return requests.filter((request) => {
       const bySearch = request.teacherName.toLowerCase().includes(searchTerm.toLowerCase());
       const byStatus = selectedStatus === 'Todos' || request.status === selectedStatus;
-      return bySearch && byStatus;
+      const bySchoolYear = selectedSchoolYear === 'Todos' || request.schoolYearId === selectedSchoolYear;
+      return bySearch && byStatus && bySchoolYear;
     });
-  }, [requests, searchTerm, selectedStatus]);
+  }, [requests, searchTerm, selectedStatus, selectedSchoolYear]);
+
+  const schoolYearOptions = useMemo(() => {
+    const seenYears = new Map();
+
+    requests.forEach((request) => {
+      if (request.schoolYearId && !seenYears.has(request.schoolYearId)) {
+        seenYears.set(request.schoolYearId, request.schoolYearName);
+      }
+    });
+
+    return Array.from(seenYears.entries()).map(([id, name]) => ({ id, name }));
+  }, [requests]);
 
   const vacancyCounts = useMemo(() => {
     const counts = {
@@ -138,6 +154,9 @@ const ScheduleApprovalsPage = () => {
         setSearchTerm={setSearchTerm}
         selectedStatus={selectedStatus}
         setSelectedStatus={setSelectedStatus}
+        selectedSchoolYear={selectedSchoolYear}
+        setSelectedSchoolYear={setSelectedSchoolYear}
+        schoolYearOptions={schoolYearOptions}
       />
 
       <ScheduleApprovalsTable 

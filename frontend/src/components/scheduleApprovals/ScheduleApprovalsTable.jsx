@@ -6,6 +6,7 @@ const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, reviewVacan
       <div className="table-header">
         <span>PROFESSOR</span>
         <span>ENVIADO EM</span>
+        <span>ANO LETIVO</span>
         <span>STATUS</span>
         <span>AÇÕES</span>
       </div>
@@ -18,6 +19,7 @@ const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, reviewVacan
               <span className="request-id">Pedido #{request.vacancyIds.join(', ')}</span>
             </div>
             <span className="date-col">{request.submittedAt}</span>
+            <span className="year-col">{request.schoolYearName}</span>
             <span className={`status-badge ${request.status.toLowerCase()}`}>{request.status}</span>
             <div className="actions-col">
               <button

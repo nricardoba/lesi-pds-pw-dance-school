@@ -75,6 +75,15 @@
   gap: 16px;
 }
 
+.schedule-approvals-page .controls-filters {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
 .schedule-approvals-page .search-container {
   display: flex;
   align-items: center;
@@ -106,6 +115,29 @@
   gap: 8px;
 }
 
+.schedule-approvals-page .year-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.schedule-approvals-page .year-filter span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.schedule-approvals-page .year-select {
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #334155;
+  border-radius: 8px;
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+}
+
 .schedule-approvals-page .filter-pill {
   border: 1px solid #CBD5E1;
   background: #FFFFFF;
@@ -134,7 +166,7 @@
 .schedule-approvals-page .table-header,
 .schedule-approvals-page .table-row {
   display: grid;
-  grid-template-columns: 2.2fr 1.2fr 1fr 2.6fr;
+  grid-template-columns: 2.1fr 1.2fr 1.5fr 1fr 2.6fr;
   gap: 16px;
   align-items: center;
   padding: 14px 16px;
@@ -175,6 +207,11 @@
 }
 
 .schedule-approvals-page .date-col {
+  font-size: 13px;
+  color: #475569;
+}
+
+.schedule-approvals-page .year-col {
   font-size: 13px;
   color: #475569;
 }
