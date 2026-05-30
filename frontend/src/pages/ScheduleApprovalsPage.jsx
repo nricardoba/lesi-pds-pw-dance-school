@@ -8,15 +8,20 @@ import ScheduleApprovalsTable from '../components/scheduleApprovals/ScheduleAppr
 import ScheduleApprovalModal from '../components/scheduleApprovals/ScheduleApprovalModal';
 
 const ScheduleApprovalsPage = () => {
-  const { token } = useAuth();
+  const { token, role } = useAuth();
   const [requests, setRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('Todos');
   const [selectedRequestId, setSelectedRequestId] = useState(null);
+  const canReview = role === 'admin';
 
   useEffect(() => {
     if (!token) return;
-    scheduleService.getAllScheduleSubmissions(token)
+    const requestLoader = role === 'teacher'
+      ? scheduleService.getMyScheduleSubmissions(token)
+      : scheduleService.getAllScheduleSubmissions(token);
+
+    requestLoader
     .then(res => {
       const allSubmissions = res;
       const formattedRequests = allSubmissions.map(req => ({
@@ -34,7 +39,7 @@ const ScheduleApprovalsPage = () => {
       setRequests(formattedRequests);
     })
     .catch(error => console.error('Error fetching schedule requests:', error));
-  }, []);
+  }, [token, role]);
 
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) || null;
 
@@ -51,6 +56,8 @@ const ScheduleApprovalsPage = () => {
   const rejectedCount = requests.filter((request) => request.status === 'Rejeitado').length;
 
   const markRequest = (requestId, nextStatus, rejectionReason = '') => {
+    if (!canReview) return;
+
     scheduleService.reviewScheduleSubmission(requestId, { status: nextStatus, rejectionReason }, token)
       .then(() => {
         setRequests(prev =>
@@ -70,7 +77,11 @@ const ScheduleApprovalsPage = () => {
       <header className="page-header">
         <div>
           <h1 className="page-title">Pedidos de Horário</h1>
-          <p className="page-subtitle">Aprovação de disponibilidades enviadas pelos professores</p>
+          <p className="page-subtitle">
+            {canReview
+              ? 'Aprovação de disponibilidades enviadas pelos professores'
+              : 'Consulta das disponibilidades que enviaste'}
+          </p>
         </div>
       </header>
 
@@ -91,12 +102,14 @@ const ScheduleApprovalsPage = () => {
         filteredRequests={filteredRequests}
         onSelectRequest={setSelectedRequestId}
         markRequest={markRequest}
+        canReview={canReview}
       />
 
       <ScheduleApprovalModal 
         selectedRequest={selectedRequest}
         onClose={() => setSelectedRequestId(null)}
         markRequest={markRequest}
+        canReview={canReview}
       />
     </div>
   );

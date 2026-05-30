@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest }) => {
+const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest, canReview }) => {
   return (
     <section className="table-container">
       <div className="table-header">
@@ -27,7 +27,7 @@ const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest
               >
                 Ver Detalhes
               </button>
-              {request.status === 'Pendente' && (
+              {canReview && request.status === 'Pendente' && (
                 <div className="decision-actions">
                   <button
                     type="button"

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ScheduleApprovalModal = ({ selectedRequest, onClose, markRequest }) => {
+const ScheduleApprovalModal = ({ selectedRequest, onClose, markRequest, canReview }) => {
   if (!selectedRequest) return null;
 
   return (
@@ -33,7 +33,7 @@ const ScheduleApprovalModal = ({ selectedRequest, onClose, markRequest }) => {
           <button type="button" className="modal-cancel-btn" onClick={onClose}>
             Fechar
           </button>
-          {selectedRequest.status === 'Pendente' && (
+          {canReview && selectedRequest.status === 'Pendente' && (
             <>
               <button
                 type="button"
