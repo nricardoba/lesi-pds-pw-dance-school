@@ -59,28 +59,6 @@ const ScheduleApprovalsPage = () => {
   }, [loadRequests]);
   const [activeTab, setActiveTab] = useState('requests');
 
-  useEffect(() => {
-    if (!token) return;
-    scheduleService.getAllScheduleSubmissions(token)
-    .then(res => {
-      const allSubmissions = res;
-      const formattedRequests = allSubmissions.map(req => ({
-        id: req.scheduleSubmissionId, // This is acting as userId underneath based on our mock logic
-        teacherName: req.user.userName,
-        submittedAt: new Date(req.submissionDate).toLocaleDateString(),
-        status: req.status.scheduleSubmissionStatusDesc,
-        note: req.rejectionReason || '',
-        slots: req.scheduleVacancies.map(v => ({
-          day: v.day_of_week,
-          time: `${v.start_time} - ${v.end_time}`
-        })),
-        decisionDate: req.reviewDate ? new Date(req.reviewDate).toLocaleDateString() : null
-      }));
-      setRequests(formattedRequests);
-    })
-    .catch(error => console.error('Error fetching schedule requests:', error));
-  }, [token]);
-
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) || null;
 
   const filteredRequests = useMemo(() => {
@@ -188,22 +166,6 @@ const ScheduleApprovalsPage = () => {
         </button>
       </div>
 
-      <ScheduleApprovalsControls 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-        selectedSchoolYear={selectedSchoolYear}
-        setSelectedSchoolYear={setSelectedSchoolYear}
-        schoolYearOptions={schoolYearOptions}
-      />
-
-      <ScheduleApprovalsTable 
-        filteredRequests={filteredRequests}
-        onSelectRequest={setSelectedRequestId}
-        reviewVacancies={reviewVacancies}
-        canReview={canReview}
-      />
       {activeTab === 'requests' && (
         <>
           <ScheduleApprovalsStats 
@@ -217,12 +179,16 @@ const ScheduleApprovalsPage = () => {
             setSearchTerm={setSearchTerm}
             selectedStatus={selectedStatus}
             setSelectedStatus={setSelectedStatus}
+            selectedSchoolYear={selectedSchoolYear}
+            setSelectedSchoolYear={setSelectedSchoolYear}
+            schoolYearOptions={schoolYearOptions}
           />
 
           <ScheduleApprovalsTable 
             filteredRequests={filteredRequests}
             onSelectRequest={setSelectedRequestId}
-            markRequest={markRequest}
+            reviewVacancies={reviewVacancies}
+            canReview={canReview}
           />
         </>
       )}
