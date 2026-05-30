@@ -155,15 +155,17 @@ const ScheduleApprovalsPage = () => {
         >
           Pedidos de horário
         </button>
-        <button
-          type="button"
-          className={`page-tab ${activeTab === 'schoolYears' ? 'active' : ''}`}
-          onClick={() => setActiveTab('schoolYears')}
-          role="tab"
-          aria-selected={activeTab === 'schoolYears'}
-        >
-          Anos letivos
-        </button>
+        {canReview && (
+          <button
+            type="button"
+            className={`page-tab ${activeTab === 'schoolYears' ? 'active' : ''}`}
+            onClick={() => setActiveTab('schoolYears')}
+            role="tab"
+            aria-selected={activeTab === 'schoolYears'}
+          >
+            Anos letivos
+          </button>
+        )}
       </div>
 
       {activeTab === 'requests' && (
@@ -193,7 +195,7 @@ const ScheduleApprovalsPage = () => {
         </>
       )}
 
-      {activeTab === 'schoolYears' && <SchoolYearsManagement token={token} />}
+      {canReview && activeTab === 'schoolYears' && <SchoolYearsManagement token={token} />}
 
       <ScheduleApprovalModal 
         selectedRequest={selectedRequest}
