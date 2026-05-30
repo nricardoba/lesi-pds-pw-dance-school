@@ -8,6 +8,7 @@ import {
   addUserAddress,
   getUserById
 } from '../../services/users';
+import { apiClient } from '../../services/apiClient';
 import { registerRequest } from '../../services/auth';
 import './StudentModal.css';
 
@@ -15,6 +16,9 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [studentData, setStudentData] = useState(null);
+  const [modalitiesList, setModalitiesList] = useState([]);
+  const [selectedModalities, setSelectedModalities] = useState([]);
+  const [modalitiesOpen, setModalitiesOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -47,6 +51,8 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
               locality: mainAddress.postalCodeRel?.locality?.localityName || ''
             } : (initialData.address || {})
           });
+          // set selected modalities when editing
+          setSelectedModalities(data.userModality ? data.userModality.map(um => um.modalityId) : []);
         })
         .catch((err) => {
           console.error("Erro a obter dados do aluno", err);
@@ -57,6 +63,12 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         });
     } else {
       setStudentData(initialData || null);
+    }
+    // load modalities list whenever modal opens
+    if (isOpen) {
+      apiClient('/modalities', { token })
+        .then(list => { if (active) setModalitiesList(list || []); })
+        .catch(err => console.error('Erro a carregar modalidades', err));
     }
     return () => { active = false; };
   }, [isOpen, initialData, token]);
@@ -86,6 +98,8 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
       studentNumber: formData.get('student_number') || undefined,
       userNif: formData.get('nif') || undefined,
     };
+    // use selectedModalities from custom multi-select
+    const modalities = Array.isArray(selectedModalities) ? selectedModalities.map(v => Number(v)).filter(Boolean) : [];
 
     try {
       let createdOrUpdatedUserId;
@@ -94,7 +108,8 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
         await updateUser(studentData.id, { 
           userName: payload.userName, 
           userBirthDate: payload.userBirthDate, 
-          userStartDate: payload.userStartDate 
+          userStartDate: payload.userStartDate,
+          modalities: modalities
         }, token);
         createdOrUpdatedUserId = studentData.id;
         
@@ -142,6 +157,8 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
           }
         }
       } else {
+        // include modalities in create payload
+        if (modalities.length) payload.modalities = modalities;
         const response = await createUser(payload, token);
         createdOrUpdatedUserId = response.userId;
         
@@ -253,6 +270,45 @@ const StudentModal = ({ isOpen, onClose, initialData, onSave, token }) => {
             <div className="form-group">
               <label>Telefone</label>
               <input name="phone" type="tel" defaultValue={isEditing ? studentData.phone : ''} required />
+            </div>
+          </div>
+
+          <div className="form-group full-width mt-8">
+            <label>Modalidades</label>
+            <div className="multi-select">
+              <button type="button" className="multi-select__toggle" onClick={() => setModalitiesOpen(v => !v)} aria-expanded={modalitiesOpen}>
+                {selectedModalities.length === 0 ? (
+                  <span className="multi-select__placeholder">Selecionar modalidades</span>
+                ) : (
+                  <span className="multi-select__values">
+                    {modalitiesList
+                      .filter(m => selectedModalities.includes(m.modalityId))
+                      .map(m => m.modalityName)
+                      .join(', ')}
+                  </span>
+                )}
+                <span className="multi-select__caret">▾</span>
+              </button>
+
+              {modalitiesOpen && (
+                <div className="multi-select__menu">
+                  {modalitiesList.map(m => (
+                    <label key={m.modalityId} className="multi-select__option">
+                      <input
+                        type="checkbox"
+                        value={m.modalityId}
+                        checked={selectedModalities.includes(m.modalityId)}
+                        onChange={(e) => {
+                          const id = m.modalityId;
+                          if (e.target.checked) setSelectedModalities(prev => Array.from(new Set([...(prev || []), id])));
+                          else setSelectedModalities(prev => (prev || []).filter(x => x !== id));
+                        }}
+                      />
+                      <span className="multi-select__label">{m.modalityName}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

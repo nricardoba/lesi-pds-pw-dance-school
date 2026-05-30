@@ -302,7 +302,7 @@ const StudiosPage = () => {
         schoolYearId: Number(classData.schoolYear) || 1,
         classDateStart: `${classData.classDate}T${startHourStr}:00`,
         classDateEnd: `${classData.classDate}T${endHourStr}:00`,
-        classRecurrence: false,
+        classRecurrence: classData.classRecurrence ?? false,
         studioId: Number(classData.room),
         modalityId: Number(classData.category),
         instructorId: classData.instructorId ? Number(classData.instructorId) : Number(classData.instructor) || undefined,

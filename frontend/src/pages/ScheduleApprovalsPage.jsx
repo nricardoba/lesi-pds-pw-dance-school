@@ -6,6 +6,7 @@ import ScheduleApprovalsStats from '../components/scheduleApprovals/ScheduleAppr
 import ScheduleApprovalsControls from '../components/scheduleApprovals/ScheduleApprovalsControls';
 import ScheduleApprovalsTable from '../components/scheduleApprovals/ScheduleApprovalsTable';
 import ScheduleApprovalModal from '../components/scheduleApprovals/ScheduleApprovalModal';
+import SchoolYearsManagement from '../components/scheduleApprovals/SchoolYearsManagement';
 
 const ScheduleApprovalsPage = () => {
   const { token, role } = useAuth();
@@ -56,6 +57,29 @@ const ScheduleApprovalsPage = () => {
   useEffect(() => {
     loadRequests();
   }, [loadRequests]);
+  const [activeTab, setActiveTab] = useState('requests');
+
+  useEffect(() => {
+    if (!token) return;
+    scheduleService.getAllScheduleSubmissions(token)
+    .then(res => {
+      const allSubmissions = res;
+      const formattedRequests = allSubmissions.map(req => ({
+        id: req.scheduleSubmissionId, // This is acting as userId underneath based on our mock logic
+        teacherName: req.user.userName,
+        submittedAt: new Date(req.submissionDate).toLocaleDateString(),
+        status: req.status.scheduleSubmissionStatusDesc,
+        note: req.rejectionReason || '',
+        slots: req.scheduleVacancies.map(v => ({
+          day: v.day_of_week,
+          time: `${v.start_time} - ${v.end_time}`
+        })),
+        decisionDate: req.reviewDate ? new Date(req.reviewDate).toLocaleDateString() : null
+      }));
+      setRequests(formattedRequests);
+    })
+    .catch(error => console.error('Error fetching schedule requests:', error));
+  }, [token]);
 
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) || null;
 
@@ -143,11 +167,26 @@ const ScheduleApprovalsPage = () => {
         </div>
       </header>
 
-      <ScheduleApprovalsStats 
-        pendingCount={pendingCount} 
-        approvedCount={approvedCount} 
-        rejectedCount={rejectedCount} 
-      />
+      <div className="page-tabs" role="tablist" aria-label="Secções da página de aprovações">
+        <button
+          type="button"
+          className={`page-tab ${activeTab === 'requests' ? 'active' : ''}`}
+          onClick={() => setActiveTab('requests')}
+          role="tab"
+          aria-selected={activeTab === 'requests'}
+        >
+          Pedidos de horário
+        </button>
+        <button
+          type="button"
+          className={`page-tab ${activeTab === 'schoolYears' ? 'active' : ''}`}
+          onClick={() => setActiveTab('schoolYears')}
+          role="tab"
+          aria-selected={activeTab === 'schoolYears'}
+        >
+          Anos letivos
+        </button>
+      </div>
 
       <ScheduleApprovalsControls 
         searchTerm={searchTerm}
@@ -165,6 +204,30 @@ const ScheduleApprovalsPage = () => {
         reviewVacancies={reviewVacancies}
         canReview={canReview}
       />
+      {activeTab === 'requests' && (
+        <>
+          <ScheduleApprovalsStats 
+            pendingCount={pendingCount} 
+            approvedCount={approvedCount} 
+            rejectedCount={rejectedCount} 
+          />
+
+          <ScheduleApprovalsControls 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+          />
+
+          <ScheduleApprovalsTable 
+            filteredRequests={filteredRequests}
+            onSelectRequest={setSelectedRequestId}
+            markRequest={markRequest}
+          />
+        </>
+      )}
+
+      {activeTab === 'schoolYears' && <SchoolYearsManagement token={token} />}
 
       <ScheduleApprovalModal 
         selectedRequest={selectedRequest}

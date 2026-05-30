@@ -47,6 +47,7 @@ const StudentsPage = () => {
           name: u.userName,
           email: emailContact?.contact?.contactValue || '',
           phone: phoneContact?.contact?.contactValue || '',
+          modalities: u.userModality ? u.userModality.map(um => (um.modality?.modalityName || um.modalityName || String(um.modalityId))) : [],
           nif: u.userNIF?.userNif || '',
           student_number: u.studentNumber?.studentNumber || '',
           user_start_date: u.userStartDate ? u.userStartDate.split('T')[0] : '',
@@ -160,8 +161,8 @@ const StudentsPage = () => {
         <div className="table-header">
           <div className="th-col">ALUNO</div>
           <div className="th-col">CONTACTO</div>
+          <div className="th-col">ESPECIALIDADES</div>
           <div className="th-col">MORADA</div>
-          <div className="th-col" style={{ display: 'none' }}>ENCARREGADO</div>
           <div className="th-col text-right">AÇÕES</div>
         </div>
 
@@ -178,7 +179,9 @@ const StudentsPage = () => {
                 >
                   {getInitials(student.name)}
                 </div>
-                <span className="student-name">{student.name}</span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className="student-name">{student.name}</span>
+                </div>
               </div>
 
               {/* Coluna 2: Contacto */}
@@ -191,7 +194,20 @@ const StudentsPage = () => {
                 </div>
               </div>
 
-              {/* Coluna 3: Morada */}
+              {/* Coluna 3: Especialidades (modalidades) */}
+              <div className="td-col col-modalities">
+                {student.modalities && student.modalities.length > 0 ? (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {student.modalities.map((m, idx) => (
+                      <span key={idx} className="mod-chip">{m}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-muted">—</div>
+                )}
+              </div>
+
+              {/* Coluna 4: Morada */}
               <div className="td-col col-address">
                 <div className="info-item">
                   <span className="info-icon">📍</span> {student.addressStr && student.addressStr !== '-' ? student.addressStr : 'Sem morada'}

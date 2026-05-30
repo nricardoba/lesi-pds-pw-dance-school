@@ -216,7 +216,7 @@ export const useScheduleState = (token, daysOfWeek) => {
             classDateEnd: `${classData.classDate}T${endHourStr}:00`,
             classRecurrence: classData.recurrence || false,
             studioId: Number(classData.studioId || classData.room),
-            modalityId: Number(classData.modalityId || classData.category),
+              classRecurrence: classData.classRecurrence ?? false,
             instructorId: classData.instructorId ? Number(classData.instructorId) : Number(classData.instructor) || undefined,
             classStatusId: 1
           };
@@ -264,7 +264,7 @@ export const useScheduleState = (token, daysOfWeek) => {
           schoolYearId: Number(classData.schoolYear) || 1,
           classDateStart: `${classData.classDate}T${startHourStr}:00`,
           classDateEnd: `${classData.classDate}T${endHourStr}:00`,
-          classRecurrence: false,
+            classRecurrence: classData.classRecurrence ?? false,
           studioId: Number(classData.room),
           modalityId: Number(classData.category),
           instructorId: classData.instructorId ? Number(classData.instructorId) : Number(classData.instructor) || undefined,
@@ -308,6 +308,7 @@ export const useScheduleState = (token, daysOfWeek) => {
             category: classData.category || 'Geral',
             categoryName: classData.categoryName || classData.category || 'Geral',
             occupancy: '0/20',
+              occupancy: `${newClass.userClass?.filter((uc) => uc.userClassRole?.userClassRoleDesc === 'Aluno').length || 0}/${newClass.studioModality?.studio?.studioMaxCapacity || 20}`,
             classDate: classData.classDate
           };
 
