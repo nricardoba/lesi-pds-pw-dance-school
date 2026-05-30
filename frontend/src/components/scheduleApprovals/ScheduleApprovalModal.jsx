@@ -13,8 +13,6 @@ const ScheduleApprovalModal = ({ selectedRequest, onClose, reviewVacancies, canR
           </button>
         </div>
 
-        <p className="request-modal-note">{selectedRequest.note}</p>
-
         <div className="slots-list">
           {selectedRequest.vacancies.map((vacancy) => (
             <div key={vacancy.id} className="slot-item slot-item--reviewable">
@@ -49,29 +47,6 @@ const ScheduleApprovalModal = ({ selectedRequest, onClose, reviewVacancies, canR
           {selectedRequest.decisionDate && <span>Decisão em: {selectedRequest.decisionDate}</span>}
         </div>
 
-        <div className="request-modal-actions">
-          <button type="button" className="modal-cancel-btn" onClick={onClose}>
-            Fechar
-          </button>
-          {canReview && selectedRequest.status === 'Pendente' && (
-            <>
-              <button
-                type="button"
-                className="modal-approve-btn"
-                onClick={() => reviewVacancies(selectedRequest.vacancyIds, 'Aprovado')}
-              >
-                Aprovar tudo
-              </button>
-              <button
-                type="button"
-                className="modal-reject-btn"
-                onClick={() => reviewVacancies(selectedRequest.vacancyIds, 'Rejeitado')}
-              >
-                Rejeitar tudo
-              </button>
-            </>
-          )}
-        </div>
       </div>
     </div>
   );

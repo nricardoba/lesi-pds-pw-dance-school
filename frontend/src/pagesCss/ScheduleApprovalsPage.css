@@ -268,7 +268,7 @@
   border-radius: 12px;
   background: #FFFFFF;
   box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
-  padding: 20px;
+  padding: 24px;
 }
 
 .request-modal-header {
@@ -276,6 +276,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  margin-bottom: 8px;
 }
 
 .request-modal-header h2 {
@@ -294,43 +295,58 @@
 }
 
 .request-modal-note {
-  margin: 12px 0;
-  padding: 10px 12px;
+  margin: 14px 0;
+  padding: 14px 16px;
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.5;
   color: #475569;
 }
 
 .slots-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 12px;
 }
 
 .slot-item {
   border: 1px solid #E2E8F0;
   background: #FFFFFF;
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 14px;
   color: #334155;
+}
+
+/* Separate day and time onto their own lines for clarity */
+.slot-item > div span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.slot-item > div strong {
+  display: block;
+  font-size: 15px;
+  color: #0F172A;
 }
 
 .slot-item--reviewable {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .slot-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -338,8 +354,8 @@
 .slot-action-btn {
   border: 1px solid transparent;
   border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -355,21 +371,21 @@
 }
 
 .request-meta-row {
-  margin-top: 14px;
+  margin-top: 18px;
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
-  font-size: 13px;
+  font-size: 14px;
   color: #475569;
 }
 
 .request-modal-actions {
-  margin-top: 16px;
+  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .modal-cancel-btn,
