@@ -20,7 +20,8 @@ import {
   getAllScheduleSubmissionsService,
   getLatestSubmissionStatusService,
   submitScheduleService,
-  reviewScheduleSubmissionService
+  reviewScheduleSubmissionService,
+  reviewScheduleVacanciesService
 } from '../services/school';
 
 const getAuthenticatedUserId = (res: Response): number => {
@@ -153,4 +154,10 @@ export const reviewScheduleSubmissionController = catchAsync(async (req: Request
     const userId = parseInt(submissionIdStr, 10);
     await reviewScheduleSubmissionService(userId, status);
     res.status(200).json({ message: `Submission for user ${userId} reviewed with status: ${status}` });
+});
+
+export const reviewScheduleVacanciesController = catchAsync(async (req: Request, res: Response) => {
+  const { status, vacancyIds } = req.body;
+  await reviewScheduleVacanciesService(vacancyIds, status);
+  res.status(200).json({ message: `Vacancies reviewed with status: ${status}` });
 });

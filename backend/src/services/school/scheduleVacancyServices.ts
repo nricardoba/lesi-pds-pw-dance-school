@@ -395,6 +395,28 @@ export const reviewScheduleSubmissionService = async (userId: number, status: st
     return { success: true };
 };
 
+export const reviewScheduleVacanciesService = async (vacancyIds: number[], status: string) => {
+  if (!Array.isArray(vacancyIds) || vacancyIds.length === 0) {
+    throw new AppError('Nenhuma disponibilidade selecionada', 400);
+  }
+
+  if (status !== 'Aprovado' && status !== 'Rejeitado') {
+    throw new AppError('Estado de revisão inválido', 400);
+  }
+
+  await prisma.scheduleVacancy.updateMany({
+    where: {
+      scheduleVacancyId: { in: vacancyIds },
+      scheduleVacancyApproved: null
+    },
+    data: {
+      scheduleVacancyApproved: status === 'Aprovado'
+    }
+  });
+
+  return { success: true };
+};
+
 // Helper functions to map days of week strings to dates back and forth
 function getDayOfWeek(date: Date): string {
     const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
