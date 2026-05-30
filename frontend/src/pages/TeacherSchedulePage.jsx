@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { scheduleService } from '../services/scheduleService';
-import { apiClient } from '../services/apiClient';
+import { getSchoolYears } from '../services/schoolYears';
 import { useAuth } from '../context/useAuth';
 import '../pagesCss/TeacherSchedulePage.css';
 import TeacherScheduleStatus from '../components/teacherSchedule/TeacherScheduleStatus';
@@ -34,14 +34,41 @@ const TeacherSchedulePage = () => {
   const [history, setHistory] = useState([]);
   const [schoolYearId, setSchoolYearId] = useState(null);
   const [schoolYearName, setSchoolYearName] = useState('');
+  const [schoolYears, setSchoolYears] = useState([]);
+  const [selectedSchoolYearId, setSelectedSchoolYearId] = useState('current');
+
+  const schoolYearNameById = useMemo(() => {
+    return new Map(
+      schoolYears.map((schoolYear) => [String(schoolYear.schoolYearId), schoolYear.schoolYearName])
+    );
+  }, [schoolYears]);
+
+  const selectedSchoolYearName = useMemo(() => {
+    if (selectedSchoolYearId === 'all') {
+      return 'Todos os anos letivos';
+    }
+
+    if (selectedSchoolYearId === 'current') {
+      return schoolYearName || 'Ano letivo atual';
+    }
+
+    return schoolYearNameById.get(String(selectedSchoolYearId)) || 'Ano letivo';
+  }, [selectedSchoolYearId, schoolYearName, schoolYearNameById]);
 
   const availableSlots = useMemo(() => {
+    const effectiveSchoolYearId =
+      selectedSchoolYearId === 'all'
+        ? null
+        : selectedSchoolYearId === 'current'
+          ? schoolYearId
+          : Number(selectedSchoolYearId);
+
     const currentYearVacancies = teacherVacancies.filter(slot => {
-      if (schoolYearId == null) {
+      if (effectiveSchoolYearId == null) {
         return slot.scheduleVacancyRecurrence === true;
       }
 
-      return slot.schoolYearId === schoolYearId && slot.scheduleVacancyRecurrence === true;
+      return slot.schoolYearId === effectiveSchoolYearId && slot.scheduleVacancyRecurrence === true;
     });
 
     return currentYearVacancies.map(slot => {
@@ -53,24 +80,40 @@ const TeacherSchedulePage = () => {
       return {
         id: slot.scheduleVacancyId,
         day: WEEK_DAYS[startDate.getDay()],
-        time: `${startStr} - ${endStr}`
+        time: `${startStr} - ${endStr}`,
+        schoolYearName:
+          slot.schoolYear?.schoolYearName ||
+          schoolYearNameById.get(String(slot.schoolYearId)) ||
+          'Ano letivo não definido'
       };
     });
-  }, [teacherVacancies, schoolYearId]);
+  }, [teacherVacancies, schoolYearId, selectedSchoolYearId, schoolYearNameById]);
 
-  const fetchCurrentSchoolYear = useCallback(() => {
-    apiClient('/school-years', { token })
+  const fetchSchoolYears = useCallback(() => {
+    getSchoolYears(token)
       .then(response => {
+        const normalizedSchoolYears = response.map((schoolYear) => ({
+          schoolYearId: schoolYear.schoolYearId,
+          schoolYearName: schoolYear.schoolYearName,
+          schoolYearStart: schoolYear.schoolYearStart,
+          schoolYearEnd: schoolYear.schoolYearEnd
+        }));
+
+        setSchoolYears(normalizedSchoolYears);
+
         const now = new Date();
-        const currentSchoolYear = response.find(schoolYear => {
+        const currentSchoolYear = normalizedSchoolYears.find(schoolYear => {
           const startDate = new Date(schoolYear.schoolYearStart);
           const endDate = new Date(schoolYear.schoolYearEnd);
           return startDate <= now && now <= endDate;
-        }) || response[response.length - 1];
+        }) || normalizedSchoolYears[normalizedSchoolYears.length - 1];
 
         if (currentSchoolYear?.schoolYearId) {
           setSchoolYearId(currentSchoolYear.schoolYearId);
           setSchoolYearName(currentSchoolYear.schoolYearName || 'Ano letivo atual');
+          setSelectedSchoolYearId((previous) => (
+            previous === 'current' ? String(currentSchoolYear.schoolYearId) : previous
+          ));
         }
       })
       .catch(error => {
@@ -119,10 +162,10 @@ const TeacherSchedulePage = () => {
 
   useEffect(() => {
     if (token && user) {
-      fetchCurrentSchoolYear();
+      fetchSchoolYears();
       fetchScheduleData();
     }
-  }, [token, user, fetchCurrentSchoolYear, fetchScheduleData]);
+  }, [token, user, fetchSchoolYears, fetchScheduleData]);
 
   const handleOpenModal = () => {
     setIsSubmitModalOpen(true);
@@ -175,9 +218,29 @@ const TeacherSchedulePage = () => {
         </button>
       </header>
 
+      <div className="teacher-schedule-page__year-filter">
+        <label htmlFor="teacher-schedule-year-filter">Ano letivo nos horários disponíveis</label>
+        <select
+          id="teacher-schedule-year-filter"
+          value={selectedSchoolYearId}
+          onChange={(event) => setSelectedSchoolYearId(event.target.value)}
+        >
+          <option value="current">Ano letivo atual</option>
+          <option value="all">Todos os anos letivos</option>
+          {schoolYears.map((schoolYear) => (
+            <option key={schoolYear.schoolYearId} value={String(schoolYear.schoolYearId)}>
+              {schoolYear.schoolYearName}
+            </option>
+          ))}
+        </select>
+        <span className="teacher-schedule-page__year-filter-hint">
+          A mostrar: {selectedSchoolYearName}
+        </span>
+      </div>
+
       <TeacherScheduleStatus currentStatus={currentStatus} />
       
-      <TeacherScheduleSlots availableSlots={availableSlots} />
+      <TeacherScheduleSlots availableSlots={availableSlots} selectedSchoolYearName={selectedSchoolYearName} />
       
       <TeacherScheduleHistory history={history} />
 
