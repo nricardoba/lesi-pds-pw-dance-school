@@ -44,6 +44,14 @@ const reviewScheduleSubmission = (submissionId, reviewData, token) => {
   });
 };
 
+const reviewScheduleVacancies = (vacancyIds, reviewData, token) => {
+  return apiClient('/schedule-vacancies/review', {
+    method: 'PUT',
+    body: { ...reviewData, vacancyIds },
+    token
+  });
+};
+
 export const scheduleService = {
   getScheduleVacanciesByUserId,
   getMyScheduleVacancies,
@@ -54,4 +62,5 @@ export const scheduleService = {
   getMyLatestSubmissionStatus,
   submitSchedule,
   reviewScheduleSubmission,
+  reviewScheduleVacancies,
 };

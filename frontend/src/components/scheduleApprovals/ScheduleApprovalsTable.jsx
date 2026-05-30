@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest, canReview }) => {
+const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, reviewVacancies, canReview }) => {
   return (
     <section className="table-container">
       <div className="table-header">
@@ -32,14 +32,14 @@ const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest
                   <button
                     type="button"
                     className="action-btn action-btn--approve"
-                    onClick={() => markRequest(request.id, 'Aprovado')}
+                    onClick={() => reviewVacancies(request.vacancyIds, 'Aprovado')}
                   >
-                    Aprovar
+                    Aprovar tudo
                   </button>
                   <button
                     type="button"
                     className="action-btn action-btn--reject"
-                    onClick={() => markRequest(request.id, 'Rejeitado')}
+                    onClick={() => reviewVacancies(request.vacancyIds, 'Rejeitado')}
                   >
                     Rejeitar
                   </button>

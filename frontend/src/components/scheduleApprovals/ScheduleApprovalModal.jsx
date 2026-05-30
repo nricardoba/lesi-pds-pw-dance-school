@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ScheduleApprovalModal = ({ selectedRequest, onClose, markRequest, canReview }) => {
+const ScheduleApprovalModal = ({ selectedRequest, onClose, reviewVacancies, canReview }) => {
   if (!selectedRequest) return null;
 
   return (
@@ -16,10 +16,30 @@ const ScheduleApprovalModal = ({ selectedRequest, onClose, markRequest, canRevie
         <p className="request-modal-note">{selectedRequest.note}</p>
 
         <div className="slots-list">
-          {selectedRequest.slots.map((slot) => (
-            <div key={`${selectedRequest.id}-${slot.day}-${slot.time}`} className="slot-item">
-              <span>{slot.day}</span>
-              <strong>{slot.time}</strong>
+          {selectedRequest.vacancies.map((vacancy) => (
+            <div key={vacancy.id} className="slot-item slot-item--reviewable">
+              <div>
+                <span>{vacancy.day}</span>
+                <strong>{vacancy.time}</strong>
+              </div>
+              {canReview && selectedRequest.status === 'Pendente' && (
+                <div className="slot-actions">
+                  <button
+                    type="button"
+                    className="slot-action-btn slot-action-btn--approve"
+                    onClick={() => reviewVacancies([vacancy.id], 'Aprovado')}
+                  >
+                    Aprovar
+                  </button>
+                  <button
+                    type="button"
+                    className="slot-action-btn slot-action-btn--reject"
+                    onClick={() => reviewVacancies([vacancy.id], 'Rejeitado')}
+                  >
+                    Rejeitar
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -38,16 +58,16 @@ const ScheduleApprovalModal = ({ selectedRequest, onClose, markRequest, canRevie
               <button
                 type="button"
                 className="modal-approve-btn"
-                onClick={() => markRequest(selectedRequest.id, 'Aprovado')}
+                onClick={() => reviewVacancies(selectedRequest.vacancyIds, 'Aprovado')}
               >
-                Aprovar Pedido
+                Aprovar tudo
               </button>
               <button
                 type="button"
                 className="modal-reject-btn"
-                onClick={() => markRequest(selectedRequest.id, 'Rejeitado')}
+                onClick={() => reviewVacancies(selectedRequest.vacancyIds, 'Rejeitado')}
               >
-                Rejeitar Pedido
+                Rejeitar tudo
               </button>
             </>
           )}

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { scheduleService } from '../services/scheduleService';
 import { useAuth } from '../context/useAuth';
 import '../pagesCss/ScheduleApprovalsPage.css';
@@ -15,33 +15,44 @@ const ScheduleApprovalsPage = () => {
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const canReview = role === 'admin';
 
-  useEffect(() => {
-    if (!token) return;
+  const loadRequests = useCallback(() => {
+    if (!token) return Promise.resolve();
+
     const requestLoader = role === 'teacher'
       ? scheduleService.getMyScheduleSubmissions(token)
       : scheduleService.getAllScheduleSubmissions(token);
 
-    requestLoader
-    .then(res => {
-      const allSubmissions = res;
-      const formattedRequests = allSubmissions.map(req => ({
-        id: req.scheduleSubmissionId,
-        reviewTargetUserId: req.user?.userId ?? null,
-        teacherName: req.user.userName,
-        submittedAt: new Date(req.submissionDate).toLocaleDateString(),
-        status: req.status.scheduleSubmissionStatusDesc,
-        note: req.rejectionReason || '',
-        vacancyIds: req.scheduleVacancies.map(v => v.scheduleVacancyId),
-        slots: req.scheduleVacancies.map(v => ({
-          day: v.day_of_week,
-          time: `${v.start_time} - ${v.end_time}`
-        })),
-        decisionDate: req.reviewDate ? new Date(req.reviewDate).toLocaleDateString() : null
-      }));
-      setRequests(formattedRequests);
-    })
-    .catch(error => console.error('Error fetching schedule requests:', error));
+    return requestLoader
+      .then(res => {
+        const allSubmissions = res;
+        const formattedRequests = allSubmissions.map(req => ({
+          id: req.scheduleSubmissionId,
+          reviewTargetUserId: req.user?.userId ?? null,
+          teacherName: req.user.userName,
+          submittedAt: new Date(req.submissionDate).toLocaleDateString(),
+          status: req.status.scheduleSubmissionStatusDesc,
+          note: req.rejectionReason || '',
+          vacancyIds: req.scheduleVacancies.map(v => v.scheduleVacancyId),
+          vacancies: req.scheduleVacancies.map(v => ({
+            id: v.scheduleVacancyId,
+            day: v.day_of_week,
+            time: `${v.start_time} - ${v.end_time}`,
+            status: v.scheduleVacancyApproved
+          })),
+          slots: req.scheduleVacancies.map(v => ({
+            day: v.day_of_week,
+            time: `${v.start_time} - ${v.end_time}`
+          })),
+          decisionDate: req.reviewDate ? new Date(req.reviewDate).toLocaleDateString() : null
+        }));
+        setRequests(formattedRequests);
+      })
+      .catch(error => console.error('Error fetching schedule requests:', error));
   }, [token, role]);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
 
   const selectedRequest = requests.find((request) => request.id === selectedRequestId) || null;
 
@@ -90,18 +101,14 @@ const ScheduleApprovalsPage = () => {
   const approvedCount = vacancyCounts.Aprovado;
   const rejectedCount = vacancyCounts.Rejeitado;
 
-  const markRequest = (requestId, nextStatus, rejectionReason = '') => {
+  const reviewVacancies = (vacancyIds, nextStatus, rejectionReason = '') => {
     if (!canReview) return;
 
-    scheduleService.reviewScheduleSubmission(requestId, { status: nextStatus, rejectionReason }, token)
+    scheduleService.reviewScheduleVacancies(vacancyIds, { status: nextStatus, rejectionReason }, token)
       .then(() => {
-        setRequests(prev =>
-          prev.map(req =>
-            req.id === requestId
-              ? { ...req, status: nextStatus, decisionDate: new Date().toLocaleDateString(), note: rejectionReason }
-              : req
-          )
-        );
+        return loadRequests();
+      })
+      .then(() => {
         setSelectedRequestId(null);
       })
       .catch(error => console.error(`Error ${nextStatus === 'Aprovado' ? 'approving' : 'rejecting'} schedule:`, error));
@@ -136,14 +143,14 @@ const ScheduleApprovalsPage = () => {
       <ScheduleApprovalsTable 
         filteredRequests={filteredRequests}
         onSelectRequest={setSelectedRequestId}
-        markRequest={markRequest}
+        reviewVacancies={reviewVacancies}
         canReview={canReview}
       />
 
       <ScheduleApprovalModal 
         selectedRequest={selectedRequest}
         onClose={() => setSelectedRequestId(null)}
-        markRequest={markRequest}
+        reviewVacancies={reviewVacancies}
         canReview={canReview}
       />
     </div>

@@ -321,6 +321,39 @@
   color: #334155;
 }
 
+.slot-item--reviewable {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.slot-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.slot-action-btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.slot-action-btn--approve {
+  background: #16A34A;
+  color: #FFFFFF;
+}
+
+.slot-action-btn--reject {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
 .request-meta-row {
   margin-top: 14px;
   display: flex;
