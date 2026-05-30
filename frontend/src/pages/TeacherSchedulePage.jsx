@@ -67,10 +67,6 @@ const TeacherSchedulePage = () => {
   const currentSchoolYearLabel = currentSchoolYear?.schoolYearName || schoolYearName || 'A carregar...';
 
   const selectedSchoolYearName = useMemo(() => {
-    if (selectedSchoolYearId === 'all') {
-      return 'Todos os anos letivos';
-    }
-
     if (!selectedSchoolYearId) {
       return schoolYearName || 'Ano letivo atual';
     }
@@ -79,18 +75,11 @@ const TeacherSchedulePage = () => {
   }, [selectedSchoolYearId, schoolYearName, schoolYearNameById]);
 
   const availableSlots = useMemo(() => {
-    const effectiveSchoolYearId =
-      selectedSchoolYearId === 'all'
-        ? null
-        : selectedSchoolYearId
-          ? Number(selectedSchoolYearId)
-          : schoolYearId;
+    const effectiveSchoolYearId = selectedSchoolYearId
+      ? Number(selectedSchoolYearId)
+      : schoolYearId;
 
     const currentYearVacancies = teacherVacancies.filter(slot => {
-      if (effectiveSchoolYearId == null) {
-        return slot.scheduleVacancyRecurrence === true;
-      }
-
       return slot.schoolYearId === effectiveSchoolYearId && slot.scheduleVacancyRecurrence === true;
     });
 
@@ -239,7 +228,6 @@ const TeacherSchedulePage = () => {
         <div>
           <h1 className="page-title">Meu Horário</h1>
           <p className="page-subtitle">Gerir e enviar disponibilidades para aprovação</p>
-          <p className="page-subtitle">Ano letivo associado: {currentSchoolYearLabel}</p>
         </div>
         <button type="button" className="submit-schedule-btn" onClick={handleOpenModal}>
           <span className="submit-schedule-btn__icon">＋</span>
@@ -254,16 +242,12 @@ const TeacherSchedulePage = () => {
           value={selectedSchoolYearId}
           onChange={(event) => setSelectedSchoolYearId(event.target.value)}
         >
-          <option value="all">Todos os anos letivos</option>
           {schoolYears.map((schoolYear) => (
             <option key={schoolYear.schoolYearId} value={String(schoolYear.schoolYearId)}>
               {schoolYear.schoolYearName}
             </option>
           ))}
         </select>
-        <span className="teacher-schedule-page__year-filter-hint">
-          A mostrar: {selectedSchoolYearName}
-        </span>
       </div>
 
       <TeacherScheduleStatus currentStatus={currentStatus} />
