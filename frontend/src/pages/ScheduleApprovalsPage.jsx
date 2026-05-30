@@ -25,11 +25,13 @@ const ScheduleApprovalsPage = () => {
     .then(res => {
       const allSubmissions = res;
       const formattedRequests = allSubmissions.map(req => ({
-        id: req.scheduleSubmissionId, // This is acting as userId underneath based on our mock logic
+        id: req.scheduleSubmissionId,
+        reviewTargetUserId: req.user?.userId ?? null,
         teacherName: req.user.userName,
         submittedAt: new Date(req.submissionDate).toLocaleDateString(),
         status: req.status.scheduleSubmissionStatusDesc,
         note: req.rejectionReason || '',
+        vacancyIds: req.scheduleVacancies.map(v => v.scheduleVacancyId),
         slots: req.scheduleVacancies.map(v => ({
           day: v.day_of_week,
           time: `${v.start_time} - ${v.end_time}`

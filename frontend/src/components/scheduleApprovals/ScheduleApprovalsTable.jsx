@@ -15,7 +15,7 @@ const ScheduleApprovalsTable = ({ filteredRequests, onSelectRequest, markRequest
           <div key={request.id} className="table-row">
             <div className="teacher-col">
               <strong>{request.teacherName}</strong>
-              <span className="request-id">Pedido #{request.id}</span>
+              <span className="request-id">Pedido #{request.vacancyIds.join(', ')}</span>
             </div>
             <span className="date-col">{request.submittedAt}</span>
             <span className={`status-badge ${request.status.toLowerCase()}`}>{request.status}</span>
