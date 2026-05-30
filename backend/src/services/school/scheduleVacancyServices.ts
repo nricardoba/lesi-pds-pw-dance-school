@@ -2,6 +2,33 @@ import { ScheduleVacancy } from '@prisma/client';
 import { prisma } from '../../config/db';
 import { AppError } from '../../utils/appError';
 
+type SchoolYearLite = {
+  schoolYearId: number;
+  schoolYearName: string;
+};
+
+type ScheduleSubmissionVacancy = ScheduleVacancy & {
+  day_of_week: string;
+  start_time: string;
+  end_time: string;
+};
+
+type ScheduleSubmissionRow = {
+  scheduleSubmissionId: string;
+  userId: number;
+  schoolYearId: number;
+  schoolYear: SchoolYearLite | null;
+  submissionDate: Date;
+  status: { scheduleSubmissionStatusDesc: string };
+  user: any;
+  scheduleVacancies: ScheduleSubmissionVacancy[];
+};
+
+type VacancyWithRelations = ScheduleVacancy & {
+  user: any;
+  schoolYear: SchoolYearLite | null;
+};
+
 export const getAllScheduleVacanciesService = async (): Promise<ScheduleVacancy[]> => {
   return await prisma.scheduleVacancy.findMany({
     include: {
@@ -157,138 +184,44 @@ export const deleteScheduleVacancyService = async (id: number): Promise<void> =>
 };
 
 
-export const getScheduleSubmissionsService = async (userId: number) => {
+export const getScheduleSubmissionsService = async (userId: number): Promise<ScheduleSubmissionRow[]> => {
 
-    const vacancies = await prisma.scheduleVacancy.findMany({
+  const vacancies = await prisma.scheduleVacancy.findMany({
         where: { userId },
-        include: { user: true }
-    });
+        include: {
+          user: true,
+          schoolYear: {
+            select: {
+              schoolYearId: true,
+              schoolYearName: true
+            }
+          }
+        }
+    }) as VacancyWithRelations[];
 
-    const pendingVacancies = vacancies.filter(v => v.scheduleVacancyApproved == null);
-    const approvedVacancies = vacancies.filter(v => v.scheduleVacancyApproved === true);
-    const rejectedVacancies = vacancies.filter(v => v.scheduleVacancyApproved === false);
-
-    const submissions = [];
-
-    if (pendingVacancies.length > 0) {
-        submissions.push({
-            scheduleSubmissionId: 1, // pseudo ID
-            userId: userId,
-            schoolYearId: pendingVacancies[0].schoolYearId,
-            submissionDate: new Date(),
-            status: { scheduleSubmissionStatusDesc: 'Pendente' },
-            user: pendingVacancies[0].user,
-            scheduleVacancies: pendingVacancies.map(v => ({
-                ...v,
-                day_of_week: getDayOfWeek(v.scheduleVacancyStart),
-                start_time: formatTime(v.scheduleVacancyStart),
-                end_time: formatTime(v.scheduleVacancyEnd)
-            }))
-        });
-    }
-
-    if (approvedVacancies.length > 0) {
-      submissions.push({
-        scheduleSubmissionId: 2, // pseudo ID
-        userId: userId,
-        schoolYearId: approvedVacancies[0].schoolYearId,
-        submissionDate: new Date(),
-        status: { scheduleSubmissionStatusDesc: 'Aprovado' },
-        user: approvedVacancies[0].user,
-        scheduleVacancies: approvedVacancies.map(v => ({
-          ...v,
-          day_of_week: getDayOfWeek(v.scheduleVacancyStart),
-          start_time: formatTime(v.scheduleVacancyStart),
-          end_time: formatTime(v.scheduleVacancyEnd)
-        }))
-      });
-    }
-
-    if (rejectedVacancies.length > 0) {
-      submissions.push({
-        scheduleSubmissionId: 3, // pseudo ID
-        userId: userId,
-        schoolYearId: rejectedVacancies[0].schoolYearId,
-        submissionDate: new Date(),
-        status: { scheduleSubmissionStatusDesc: 'Rejeitado' },
-        user: rejectedVacancies[0].user,
-        scheduleVacancies: rejectedVacancies.map(v => ({
-          ...v,
-          day_of_week: getDayOfWeek(v.scheduleVacancyStart),
-          start_time: formatTime(v.scheduleVacancyStart),
-          end_time: formatTime(v.scheduleVacancyEnd)
-        }))
-      });
-    }
-
-    return submissions;
+    return buildSubmissionRows(vacancies, userId);
 };
 
-export const getAllScheduleSubmissionsService = async ( ) => {
+export const getAllScheduleSubmissionsService = async ( ): Promise<ScheduleSubmissionRow[]> => {
     // Get all schedule vacancies grouped by user
     const vacancies = await prisma.scheduleVacancy.findMany({
-        include: { user: true }
-    });
+        include: {
+          user: true,
+          schoolYear: {
+            select: {
+              schoolYearId: true,
+              schoolYearName: true
+            }
+          }
+        }
+    }) as VacancyWithRelations[];
 
     const userIds = [...new Set(vacancies.map(v => v.userId))];
-    const submissions = [];
+    const submissions: ScheduleSubmissionRow[] = [];
 
     for (const userId of userIds) {
         const userVacancies = vacancies.filter(v => v.userId === userId);
-      const pendingVacancies = userVacancies.filter(v => v.scheduleVacancyApproved == null);
-      const approvedVacancies = userVacancies.filter(v => v.scheduleVacancyApproved === true);
-      const rejectedVacancies = userVacancies.filter(v => v.scheduleVacancyApproved === false);
-
-        if (pendingVacancies.length > 0) {
-            submissions.push({
-                scheduleSubmissionId: `${userId}_pending`, // Pseudo ID
-                userId: userId,
-                schoolYearId: pendingVacancies[0].schoolYearId,
-                submissionDate: new Date(),
-                status: { scheduleSubmissionStatusDesc: 'Pendente' },
-                user: pendingVacancies[0].user,
-                scheduleVacancies: pendingVacancies.map(v => ({
-                    ...v,
-                    day_of_week: getDayOfWeek(v.scheduleVacancyStart),
-                    start_time: formatTime(v.scheduleVacancyStart),
-                    end_time: formatTime(v.scheduleVacancyEnd)
-                }))
-            });
-        }
-
-        if (approvedVacancies.length > 0) {
-            submissions.push({
-                scheduleSubmissionId: `${userId}_approved`, // Pseudo ID
-                userId: userId,
-                schoolYearId: approvedVacancies[0].schoolYearId,
-                submissionDate: new Date(),
-                status: { scheduleSubmissionStatusDesc: 'Aprovado' },
-                user: approvedVacancies[0].user,
-                scheduleVacancies: approvedVacancies.map(v => ({
-                    ...v,
-                    day_of_week: getDayOfWeek(v.scheduleVacancyStart),
-                    start_time: formatTime(v.scheduleVacancyStart),
-                    end_time: formatTime(v.scheduleVacancyEnd)
-                }))
-            });
-        }
-
-            if (rejectedVacancies.length > 0) {
-              submissions.push({
-                scheduleSubmissionId: `${userId}_rejected`, // Pseudo ID
-                userId: userId,
-                schoolYearId: rejectedVacancies[0].schoolYearId,
-                submissionDate: new Date(),
-                status: { scheduleSubmissionStatusDesc: 'Rejeitado' },
-                user: rejectedVacancies[0].user,
-                scheduleVacancies: rejectedVacancies.map(v => ({
-                  ...v,
-                  day_of_week: getDayOfWeek(v.scheduleVacancyStart),
-                  start_time: formatTime(v.scheduleVacancyStart),
-                  end_time: formatTime(v.scheduleVacancyEnd)
-                }))
-              });
-            }
+        submissions.push(...buildSubmissionRows(userVacancies, userId));
     }
 
     return submissions;
@@ -425,6 +358,44 @@ function getDayOfWeek(date: Date): string {
 
 function formatTime(date: Date): string {
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+function buildSubmissionRows(vacancies: VacancyWithRelations[], userId: number): ScheduleSubmissionRow[] {
+  const rows: ScheduleSubmissionRow[] = [];
+
+  for (const status of [null, true, false] as const) {
+    const statusVacancies = vacancies.filter(v => v.scheduleVacancyApproved === status);
+    const schoolYearIds = [...new Set(statusVacancies.map(v => v.schoolYearId))];
+
+    for (const schoolYearId of schoolYearIds) {
+      const groupedVacancies = statusVacancies.filter(v => v.schoolYearId === schoolYearId);
+
+      if (groupedVacancies.length === 0) {
+        continue;
+      }
+
+      const firstVacancy = groupedVacancies[0];
+      const statusLabel = status === null ? 'Pendente' : status === true ? 'Aprovado' : 'Rejeitado';
+
+      rows.push({
+        scheduleSubmissionId: `${userId}_${schoolYearId}_${statusLabel.toLowerCase()}`,
+        userId,
+        schoolYearId: firstVacancy.schoolYearId,
+        schoolYear: firstVacancy.schoolYear,
+        submissionDate: new Date(),
+        status: { scheduleSubmissionStatusDesc: statusLabel },
+        user: firstVacancy.user,
+        scheduleVacancies: groupedVacancies.map(v => ({
+          ...v,
+          day_of_week: getDayOfWeek(v.scheduleVacancyStart),
+          start_time: formatTime(v.scheduleVacancyStart),
+          end_time: formatTime(v.scheduleVacancyEnd)
+        }))
+      });
+    }
+  }
+
+  return rows;
 }
 
 function getNextDayOfWeek(dayName: string, timeStr: string): Date {
