@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import '../pagesCss/CoachingsPage.css';
 import CoachingCard from '../components/coachingCard/CoachingCard';
 import CoachingModal from '../components/coachingModal/CoachingModal';
@@ -9,16 +9,38 @@ import { listClassesRequest, confirmCoachingRequest } from '../services/classes'
 const CoachingsPage = () => {
   const { role, user, token } = useAuth();
 
-  // Estrutura das colunas do Kanban
-  const columns = [
-    { id: 'agendada', title: 'Pendente', status: 'Agendada', dotColor: '#F59E0B' },
-    { id: 'aceite', title: 'Aceite', status: 'A Decorrer', dotColor: '#3B82F6' },
-    { id: 'confirmado', title: 'Concluída', status: 'Concluída', dotColor: '#10B981' },
-    { id: 'rejeitado', title: 'Cancelada', status: 'Cancelada', dotColor: '#EF4444' }
-  ];
+  // Detecta se o utilizador é aluno (aceita 'student' ou 'aluno')
+  const isStudent = role === 'student' || role === 'aluno';
+
 
   const [coachings, setCoachings] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Estrutura das colunas do Kanban (construída dinamicamente)
+  const columns = useMemo(() => {
+    if (isStudent) {
+      const base = [
+        { id: 'agendada', title: '🟡 Pedido Enviado', status: 'Agendada', dotColor: '#F59E0B' },
+        { id: 'aceite', title: '🔵 Confirmado', status: 'A Decorrer', dotColor: '#3B82F6' },
+        { id: 'confirmado', title: '✅ Realizado', status: 'Concluída', dotColor: '#10B981' }
+      ];
+
+      // Só adiciona a coluna 'Cancelada' se existir ao menos um coaching cancelado
+      if (coachings.some(c => c.status === 'Cancelada')) {
+        base.push({ id: 'rejeitado', title: '❌ Cancelado', status: 'Cancelada', dotColor: '#EF4444' });
+      }
+
+      return base;
+    }
+
+    // Comportamento original para professores/admin: manter títulos e ordem originais
+    return [
+      { id: 'agendada', title: 'Pendente', status: 'Agendada', dotColor: '#F59E0B' },
+      { id: 'aceite', title: 'Aceite', status: 'A Decorrer', dotColor: '#3B82F6' },
+      { id: 'confirmado', title: 'Concluída', status: 'Concluída', dotColor: '#10B981' },
+      { id: 'rejeitado', title: 'Cancelada', status: 'Cancelada', dotColor: '#EF4444' }
+    ];
+  }, [coachings]);
 
   // Função reutilizável para carregar coachings (usada inicialmente e após ações)
   const fetchCoachings = async () => {
@@ -157,7 +179,8 @@ const CoachingsPage = () => {
     <div className="coachings-page">
       <header className="coachings-page__header">
         <div>
-          <h1 className="coachings-page__title">Coachings</h1>
+          {isStudent && <h3 className="coachings-page__role">Aluno</h3>}
+          <h1 className="coachings-page__title">{isStudent ? 'Os Meus Coachings' : 'Coachings'}</h1>
           <p className="coachings-page__subtitle">Gestão de sessões individuais</p>
         </div>
         <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
@@ -168,7 +191,7 @@ const CoachingsPage = () => {
       <div className="kanban-board">
         {columns.map(col => {
           // Se for estudante só vê os seus próprios pedidos, caso contrário vê todos
-          const visibleCoachings = role === 'student'
+          const visibleCoachings = isStudent
             ? coachings.filter(c => c.student === user?.user_name)
             : coachings;
 
@@ -178,10 +201,6 @@ const CoachingsPage = () => {
           return (
             <div key={col.id} className="kanban-column">
               <div className="kanban-column__header">
-                <span
-                  className="status-dot"
-                  style={{ backgroundColor: col.dotColor }}
-                ></span>
                 <h3 className="kanban-column__title">
                   {col.title} ({colItems.length})
                 </h3>
@@ -195,7 +214,7 @@ const CoachingsPage = () => {
                       data={item}
                       onAccept={() => openActionModal('accept', item.id)}
                       onReject={() => openActionModal('reject', item.id)}
-                      hideActions={role === 'student'}
+                      hideActions={isStudent}
                     />
                   ))
                 ) : (
