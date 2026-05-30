@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { deleteSchoolYear, getSchoolYears } from '../../services/schoolYears';
+import DeleteConfirmModal from '../deleteConfirmModal/DeleteConfirmModal';
 import SchoolYearCreation from './SchoolYearCreation';
 
 const formatDate = (value) => {
@@ -12,6 +13,7 @@ const SchoolYearsManagement = ({ token }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [schoolYearToDelete, setSchoolYearToDelete] = useState(null);
 
   const loadSchoolYears = async () => {
     if (!token) return;
@@ -39,25 +41,25 @@ const SchoolYearsManagement = ({ token }) => {
   };
 
   const handleDelete = async (schoolYear) => {
-    if (!token) {
-      alert('Não foi possível autenticar o pedido.');
+    setSchoolYearToDelete(schoolYear);
+  };
+
+  const confirmDelete = async () => {
+    if (!token || !schoolYearToDelete) {
+      setSchoolYearToDelete(null);
       return;
     }
 
-    const confirmed = window.confirm(`Eliminar o ano letivo "${schoolYear.schoolYearName}"?`);
-    if (!confirmed) return;
-
-    setDeletingId(schoolYear.schoolYearId);
+    setDeletingId(schoolYearToDelete.schoolYearId);
 
     try {
-      await deleteSchoolYear(token, schoolYear.schoolYearId);
+      await deleteSchoolYear(token, schoolYearToDelete.schoolYearId);
       await loadSchoolYears();
-      alert('Ano letivo eliminado com sucesso.');
     } catch (deleteError) {
       console.error('Erro ao apagar ano letivo:', deleteError);
-      alert(deleteError?.message || 'Erro ao apagar ano letivo.');
     } finally {
       setDeletingId(null);
+      setSchoolYearToDelete(null);
     }
   };
 
@@ -74,7 +76,7 @@ const SchoolYearsManagement = ({ token }) => {
         </button>
       </div>
 
-      <SchoolYearCreation token={token} onCreated={handleCreated} />
+      <SchoolYearCreation token={token} onCreated={handleCreated} existingSchoolYears={schoolYears} />
 
       <div className="school-years-list-card">
         <div className="school-years-list-header">
@@ -112,6 +114,15 @@ const SchoolYearsManagement = ({ token }) => {
           </div>
         ))}
       </div>
+
+      <DeleteConfirmModal
+        isOpen={Boolean(schoolYearToDelete)}
+        title="Eliminar ano letivo"
+        message="Tens a certeza que queres eliminar"
+        itemName={schoolYearToDelete?.schoolYearName || ''}
+        onCancel={() => setSchoolYearToDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </section>
   );
 };

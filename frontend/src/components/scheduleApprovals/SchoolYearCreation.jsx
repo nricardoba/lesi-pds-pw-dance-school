@@ -1,9 +1,25 @@
 import React, { useState } from 'react';
 import { createSchoolYear } from '../../services/schoolYears';
+import SchoolYearNoticeModal from './SchoolYearNoticeModal';
 
-const SchoolYearCreation = ({ token, onCreated }) => {
+const parseDate = (value) => new Date(`${value}T00:00:00`);
+
+const findOverlappingSchoolYear = (schoolYears, schoolYearStart, schoolYearEnd) => {
+  const startDate = parseDate(schoolYearStart);
+  const endDate = parseDate(schoolYearEnd);
+
+  return schoolYears.find((schoolYear) => {
+    const existingStart = new Date(schoolYear.schoolYearStart);
+    const existingEnd = new Date(schoolYear.schoolYearEnd);
+
+    return startDate <= existingEnd && endDate >= existingStart;
+  });
+};
+
+const SchoolYearCreation = ({ token, onCreated, existingSchoolYears = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notice, setNotice] = useState(null);
   const [formData, setFormData] = useState({
     schoolYearName: '',
     schoolYearStart: '',
@@ -23,26 +39,49 @@ const SchoolYearCreation = ({ token, onCreated }) => {
     });
   };
 
+  const showNotice = (title, message) => {
+    setNotice({ title, message });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.schoolYearName.trim()) {
-      alert('Preencha o nome do ano letivo.');
+      showNotice('Dados em falta', 'Preencha o nome do ano letivo.');
       return;
     }
 
     if (!formData.schoolYearStart) {
-      alert('Preencha a data de início do ano letivo.');
+      showNotice('Dados em falta', 'Preencha a data de início do ano letivo.');
       return;
     }
 
     if (!formData.schoolYearEnd) {
-      alert('Preencha a data de fim do ano letivo.');
+      showNotice('Dados em falta', 'Preencha a data de fim do ano letivo.');
+      return;
+    }
+
+    if (parseDate(formData.schoolYearStart) > parseDate(formData.schoolYearEnd)) {
+      showNotice('Datas inválidas', 'A data de início deve ser anterior à data de fim.');
+      return;
+    }
+
+    const conflictingSchoolYear = findOverlappingSchoolYear(
+      existingSchoolYears,
+      formData.schoolYearStart,
+      formData.schoolYearEnd,
+    );
+
+    if (conflictingSchoolYear) {
+      showNotice(
+        'Sobreposição de datas',
+        `O intervalo selecionado coincide com o ano letivo "${conflictingSchoolYear.schoolYearName}".`,
+      );
       return;
     }
 
     if (!token) {
-      alert('Não foi possível autenticar o pedido.');
+      showNotice('Sessão indisponível', 'Não foi possível autenticar o pedido.');
       return;
     }
 
@@ -60,11 +99,15 @@ const SchoolYearCreation = ({ token, onCreated }) => {
       if (onCreated) {
         onCreated(created);
       }
-
-      alert('Ano letivo criado com sucesso.');
     } catch (error) {
       console.error('Erro ao criar ano letivo:', error);
-      alert(error?.message || 'Erro ao criar ano letivo.');
+
+      if (error?.message?.includes('coincide')) {
+        showNotice('Sobreposição de datas', error.message);
+        return;
+      }
+
+      showNotice('Erro ao criar ano letivo', error?.message || 'Erro ao criar ano letivo.');
     } finally {
       setIsSubmitting(false);
     }
@@ -76,16 +119,19 @@ const SchoolYearCreation = ({ token, onCreated }) => {
   };
 
   return (
-    <section style={{ margin: '20px 0', padding: '16px', border: '1px solid #d1d5db', borderRadius: '12px', background: '#fff' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.1rem' }}>Criar ano letivo</h2>
-          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '0.95rem' }}>Criar um novo período académico antes de abrir pedidos.</p>
+    <>
+      <section style={{ margin: '20px 0', padding: '16px', border: '1px solid #d1d5db', borderRadius: '12px', background: '#fff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.1rem' }}>Criar ano letivo</h2>
+            <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '0.95rem' }}>Criar um novo período académico antes de abrir pedidos.</p>
+          </div>
+          <button type="button" className="btn-submit" onClick={() => setIsOpen((prev) => !prev)}>
+            {isOpen ? 'Fechar' : 'Novo ano letivo'}
+          </button>
         </div>
-        <button type="button" className="btn-submit" onClick={() => setIsOpen((prev) => !prev)}>
-          {isOpen ? 'Fechar' : 'Novo ano letivo'}
-        </button>
-      </div>
+
+      </section>
 
       {isOpen && (
         <form onSubmit={handleSubmit} style={{ marginTop: '16px', display: 'grid', gap: '12px' }}>
@@ -135,7 +181,14 @@ const SchoolYearCreation = ({ token, onCreated }) => {
           </div>
         </form>
       )}
-    </section>
+
+      <SchoolYearNoticeModal
+        isOpen={Boolean(notice)}
+        title={notice?.title || ''}
+        message={notice?.message || ''}
+        onClose={() => setNotice(null)}
+      />
+    </>
   );
 };
 
