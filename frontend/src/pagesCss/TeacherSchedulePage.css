@@ -22,6 +22,41 @@
   color: #64748B;
 }
 
+.teacher-schedule-page__year-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 14px 16px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+}
+
+.teacher-schedule-page__year-filter label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.teacher-schedule-page__year-filter select {
+  min-width: 220px;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+}
+
+.teacher-schedule-page__year-filter-hint {
+  font-size: 13px;
+  color: #64748B;
+}
+
 .teacher-schedule-page .submit-schedule-btn {
   background: #176B87;
   color: #FFFFFF;
@@ -199,6 +234,12 @@
   gap: 14px;
 }
 
+.teacher-schedule-page .slots-context {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #64748B;
+}
+
 .teacher-schedule-page .slot-card {
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
@@ -220,6 +261,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.teacher-schedule-page .slot-school-year {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #E0F2FE;
+  color: #0369A1;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .teacher-schedule-page .slot-day {
@@ -390,13 +444,21 @@
   transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 
-.teacher-schedule-cell:hover {
+.teacher-schedule-cell:not(:disabled):hover {
   background: #E2E8F0;
 }
 
 .teacher-schedule-cell.selected {
   background: #DCFCE7;
   border-color: #86EFAC;
+}
+
+.teacher-schedule-cell.blocked,
+.teacher-schedule-cell:disabled {
+  background: #CBD5E1;
+  border-color: #94A3B8;
+  cursor: not-allowed;
+  opacity: 1;
 }
 
 .teacher-schedule-modal__footer {

@@ -165,6 +165,87 @@
   border-bottom: 1px solid #FECACA;
 }
 
+.schedule-approvals-page .school-year-notice-overlay,
+.schedule-approvals-page .delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.schedule-approvals-page .school-year-notice-card,
+.schedule-approvals-page .delete-confirm-card {
+  width: 100%;
+  max-width: 420px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  padding: 20px;
+}
+
+.schedule-approvals-page .school-year-notice-title,
+.schedule-approvals-page .delete-confirm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.schedule-approvals-page .school-year-notice-text,
+.schedule-approvals-page .delete-confirm-text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.schedule-approvals-page .school-year-notice-actions,
+.schedule-approvals-page .delete-confirm-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.schedule-approvals-page .school-year-notice-btn,
+.schedule-approvals-page .delete-cancel-btn,
+.schedule-approvals-page .delete-confirm-btn {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.schedule-approvals-page .school-year-notice-btn,
+.schedule-approvals-page .delete-cancel-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+}
+
+.schedule-approvals-page .school-year-notice-btn:hover,
+.schedule-approvals-page .delete-cancel-btn:hover {
+  background: #F8FAFC;
+}
+
+.schedule-approvals-page .delete-confirm-btn {
+  background: #DC2626;
+  border: 1px solid #DC2626;
+  color: #FFFFFF;
+}
+
+.schedule-approvals-page .delete-confirm-btn:hover {
+  background: #B91C1C;
+  border-color: #B91C1C;
+}
+
 .schedule-approvals-page .stats-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

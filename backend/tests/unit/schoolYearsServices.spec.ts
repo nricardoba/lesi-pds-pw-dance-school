@@ -7,6 +7,7 @@ vi.mock('../../src/config/db', () => ({
     schoolYear: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
@@ -21,6 +22,7 @@ const mockPrisma = prisma as any;
 describe('School Years Services', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.schoolYear.findFirst.mockResolvedValue(null);
   });
 
   describe('listSchoolYearsService', () => {
@@ -89,6 +91,24 @@ describe('School Years Services', () => {
       });
     });
 
+    it('deve lançar erro quando o intervalo coincide com outro ano letivo', async () => {
+      const inputData = {
+        schoolYearName: 'Ano Letivo 2026-2027',
+        schoolYearStart: '2026-01-01',
+        schoolYearEnd: '2026-12-31',
+      };
+
+      mockPrisma.schoolYear.findFirst.mockResolvedValue({
+        schoolYearName: 'Ano Letivo 2025-2026',
+      });
+
+      await expect(
+        schoolYearsServices.createSchoolYearService(inputData)
+      ).rejects.toThrow('O intervalo do ano letivo coincide com "Ano Letivo 2025-2026".');
+
+      expect(mockPrisma.schoolYear.create).not.toHaveBeenCalled();
+    });
+
     it('deve lançar erro quando dados obrigatórios estão faltando', async () => {
       const invalidData = {
         schoolYearName: '',
@@ -124,6 +144,9 @@ describe('School Years Services', () => {
 
       mockPrisma.schoolYear.findUnique.mockResolvedValue({
         schoolYearId: 1,
+        schoolYearName: 'Ano Letivo 2024-2025',
+        schoolYearStart: new Date('2024-09-01'),
+        schoolYearEnd: new Date('2025-06-30'),
       });
 
       const mockUpdatedYear = {
@@ -162,6 +185,9 @@ describe('School Years Services', () => {
 
       mockPrisma.schoolYear.findUnique.mockResolvedValue({
         schoolYearId: 1,
+        schoolYearName: 'Ano Letivo 2024-2025',
+        schoolYearStart: new Date('2024-09-01'),
+        schoolYearEnd: new Date('2025-06-30'),
       });
 
       const mockUpdatedYear = {
@@ -176,6 +202,31 @@ describe('School Years Services', () => {
       const result = await schoolYearsServices.updateSchoolYearService(params, updateData);
 
       expect(result).toEqual(mockUpdatedYear);
+    });
+
+    it('deve lançar erro quando a atualização cria sobreposição com outro ano letivo', async () => {
+      const params = { id: 1 };
+      const updateData = {
+        schoolYearStart: '2025-01-01',
+        schoolYearEnd: '2025-12-31',
+      };
+
+      mockPrisma.schoolYear.findUnique.mockResolvedValue({
+        schoolYearId: 1,
+        schoolYearName: 'Ano Letivo 2024-2025',
+        schoolYearStart: new Date('2024-09-01'),
+        schoolYearEnd: new Date('2025-06-30'),
+      });
+
+      mockPrisma.schoolYear.findFirst.mockResolvedValue({
+        schoolYearName: 'Ano Letivo 2025-2026',
+      });
+
+      await expect(
+        schoolYearsServices.updateSchoolYearService(params, updateData)
+      ).rejects.toThrow('O intervalo do ano letivo coincide com "Ano Letivo 2025-2026".');
+
+      expect(mockPrisma.schoolYear.update).not.toHaveBeenCalled();
     });
   });
 
