@@ -64,6 +64,18 @@ const TeacherSchedulePage = () => {
     return schoolYears[0] || null;
   }, [schoolYears, schoolYearId]);
 
+  const submissionSchoolYear = useMemo(() => {
+    if (selectedSchoolYearId) {
+      return schoolYears.find((schoolYear) => String(schoolYear.schoolYearId) === String(selectedSchoolYearId)) || null;
+    }
+
+    if (schoolYearId != null) {
+      return schoolYears.find((schoolYear) => schoolYear.schoolYearId === schoolYearId) || null;
+    }
+
+    return currentSchoolYear;
+  }, [currentSchoolYear, schoolYears, schoolYearId, selectedSchoolYearId]);
+
   const currentSchoolYearLabel = currentSchoolYear?.schoolYearName || schoolYearName || 'A carregar...';
 
   const selectedSchoolYearName = useMemo(() => {
@@ -176,12 +188,15 @@ const TeacherSchedulePage = () => {
   }, [token, user, fetchSchoolYears, fetchScheduleData]);
 
   const handleOpenModal = () => {
-    const currentSchoolYear = findCurrentSchoolYear(schoolYears);
+    const resolvedSchoolYear = submissionSchoolYear;
 
-    if (currentSchoolYear?.schoolYearId) {
-      setSchoolYearId(currentSchoolYear.schoolYearId);
-      setSchoolYearName(currentSchoolYear.schoolYearName || 'Ano letivo atual');
+    if (!resolvedSchoolYear?.schoolYearId) {
+      console.error('School year not loaded yet');
+      return;
     }
+
+    setSchoolYearId(resolvedSchoolYear.schoolYearId);
+    setSchoolYearName(resolvedSchoolYear.schoolYearName || 'Ano letivo atual');
 
     setIsSubmitModalOpen(true);
   };
@@ -191,8 +206,7 @@ const TeacherSchedulePage = () => {
   };
 
   const handleSubmitSchedule = (newSlots) => {
-    const currentSchoolYear = findCurrentSchoolYear(schoolYears);
-    const currentSchoolYearId = currentSchoolYear?.schoolYearId || schoolYearId;
+    const currentSchoolYearId = submissionSchoolYear?.schoolYearId || schoolYearId;
 
     if (!currentSchoolYearId) {
       console.error('School year not loaded yet');
@@ -261,9 +275,9 @@ const TeacherSchedulePage = () => {
         onClose={handleCloseModal} 
         onSubmit={handleSubmitSchedule} 
         teacherName={user?.userName || "Professor"}
-        schoolYearName={currentSchoolYearLabel}
+        schoolYearName={submissionSchoolYear?.schoolYearName || currentSchoolYearLabel}
         vacancies={teacherVacancies}
-        schoolYearId={schoolYearId}
+        schoolYearId={submissionSchoolYear?.schoolYearId || schoolYearId}
       />
     </div>
   );
