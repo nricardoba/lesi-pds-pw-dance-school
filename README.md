@@ -60,5 +60,3 @@ Generate the Prisma Client and run the migrations to create the database schema:
 npm run dev
 ```
 This will start the server using `nodemon`, which automatically restarts the server when file changes are detected.
-
----
