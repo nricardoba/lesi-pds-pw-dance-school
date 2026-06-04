@@ -231,7 +231,30 @@ async function main() {
     });
   }
 
-  console.log("✔ UserType, contact, address, and credentials seed complete.");
+  await prisma.schoolYear.createMany({
+    data: [
+      {
+        schoolYearName: "2025/2026",
+        schoolYearStart: new Date("2025-09-01"),
+        schoolYearEnd: new Date("2026-07-31"),
+      },
+      {
+        schoolYearName: "2026/2027",
+        schoolYearStart: new Date("2026-09-01"),
+        schoolYearEnd: new Date("2027-07-31"),
+      },
+      {
+        schoolYearName: "2027/2028",
+        schoolYearStart: new Date("2027-09-01"),
+        schoolYearEnd: new Date("2028-07-31"),
+      },
+    ],
+    skipDuplicates: true,
+  });
+
+  console.log(
+    "✔ UserType, contact, address, credentials, and school years seed complete.",
+  );
 }
 
 main()
