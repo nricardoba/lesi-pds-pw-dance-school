@@ -49,11 +49,15 @@ async function main() {
     contactTypeRows.map((row) => [row.contactTypeDesc, row.contactTypeId]),
   );
 
-  const locality = await prisma.locality.upsert({
-    where: { localityId: 1 },
-    update: { localityName: "Braga" },
-    create: { localityId: 1, localityName: "Braga" },
+  let locality = await prisma.locality.findFirst({
+    where: { localityName: "Braga" },
   });
+
+  if (!locality) {
+    locality = await prisma.locality.create({
+      data: { localityName: "Braga" },
+    });
+  }
 
   const postalCode = await prisma.postalCode.upsert({
     where: { postalCode: "4700-000" },
@@ -63,29 +67,23 @@ async function main() {
 
   const users = [
     {
-      userId: 1,
       name: "Beatriz Saraiva",
       type: "Admin",
       phone: "+351910000001",
-      streetId: 1,
       streetName: "Rua Beatriz Saraiva 1",
       password: "Admin123!",
     },
     {
-      userId: 2,
       name: "Rodrigo Sanches",
       type: "Professor",
       phone: "+351920000002",
-      streetId: 2,
       streetName: "Rua Rodrigo Sanches 2",
       password: "Prof123!",
     },
     {
-      userId: 3,
       name: "Afonso Antunes",
       type: "Aluno",
       phone: "+351930000003",
-      streetId: 3,
       streetName: "Rua Afonso Antunes 3",
       password: "Aluno123!",
     },
@@ -102,104 +100,117 @@ async function main() {
 
     const email = buildEmail(user.name);
 
-    const address = await prisma.address.upsert({
-      where: { streetId: user.streetId },
-      update: {
-        streetName: user.streetName,
-        postalCode: postalCode.postalCode,
-      },
-      create: {
-        streetId: user.streetId,
+    let address = await prisma.address.findFirst({
+      where: {
         streetName: user.streetName,
         postalCode: postalCode.postalCode,
       },
     });
 
-    await prisma.user.upsert({
-      where: { userId: user.userId },
-      update: {
+    if (!address) {
+      address = await prisma.address.create({
+        data: {
+          streetName: user.streetName,
+          postalCode: postalCode.postalCode,
+        },
+      });
+    }
+
+    let userRecord = await prisma.user.findFirst({
+      where: {
         userName: user.name,
         userTypeId,
-        userIsActive: true,
-      },
-      create: {
-        userId: user.userId,
-        userName: user.name,
-        userTypeId,
-        userIsActive: true,
       },
     });
+
+    if (!userRecord) {
+      userRecord = await prisma.user.create({
+        data: {
+          userName: user.name,
+          userTypeId,
+          userIsActive: true,
+        },
+      });
+    } else {
+      userRecord = await prisma.user.update({
+        where: { userId: userRecord.userId },
+        data: { userIsActive: true },
+      });
+    }
 
     await prisma.userAddress.upsert({
-      where: { userAddressId: user.userId },
-      update: {
-        userId: user.userId,
-        streetId: address.streetId,
-        isMainAddress: true,
+      where: {
+        userId_streetId: {
+          userId: userRecord.userId,
+          streetId: address.streetId,
+        },
       },
+      update: { isMainAddress: true },
       create: {
-        userAddressId: user.userId,
-        userId: user.userId,
+        userId: userRecord.userId,
         streetId: address.streetId,
         isMainAddress: true,
       },
     });
 
-    const emailContactId = user.userId;
-    const phoneContactId = users.length + user.userId;
-
-    await prisma.contact.upsert({
-      where: { contactId: emailContactId },
-      update: {
-        contactValue: email,
-        contactTypeId: emailContactTypeId,
-      },
-      create: {
-        contactId: emailContactId,
+    let emailContact = await prisma.contact.findFirst({
+      where: {
         contactValue: email,
         contactTypeId: emailContactTypeId,
       },
     });
 
-    await prisma.contact.upsert({
-      where: { contactId: phoneContactId },
-      update: {
-        contactValue: user.phone,
-        contactTypeId: phoneContactTypeId,
-      },
-      create: {
-        contactId: phoneContactId,
+    if (!emailContact) {
+      emailContact = await prisma.contact.create({
+        data: {
+          contactValue: email,
+          contactTypeId: emailContactTypeId,
+        },
+      });
+    }
+
+    let phoneContact = await prisma.contact.findFirst({
+      where: {
         contactValue: user.phone,
         contactTypeId: phoneContactTypeId,
       },
     });
 
-    await prisma.userContact.upsert({
-      where: { userContactId: emailContactId },
-      update: {
-        userId: user.userId,
-        contactId: emailContactId,
-        isMainContact: true,
+    if (!phoneContact) {
+      phoneContact = await prisma.contact.create({
+        data: {
+          contactValue: user.phone,
+          contactTypeId: phoneContactTypeId,
+        },
+      });
+    }
+
+    const emailUserContact = await prisma.userContact.upsert({
+      where: {
+        userId_contactId: {
+          userId: userRecord.userId,
+          contactId: emailContact.contactId,
+        },
       },
+      update: { isMainContact: true },
       create: {
-        userContactId: emailContactId,
-        userId: user.userId,
-        contactId: emailContactId,
+        userId: userRecord.userId,
+        contactId: emailContact.contactId,
         isMainContact: true,
       },
     });
 
     await prisma.userContact.upsert({
-      where: { userContactId: phoneContactId },
-      update: {
-        userId: user.userId,
-        contactId: phoneContactId,
-        isMainContact: false,
+      where: {
+        userId_contactId: {
+          userId: userRecord.userId,
+          contactId: phoneContact.contactId,
+        },
       },
+      update: { isMainContact: false },
       create: {
-        userContactId: phoneContactId,
-        userId: user.userId,
-        contactId: phoneContactId,
+        userId: userRecord.userId,
+        contactId: phoneContact.contactId,
         isMainContact: false,
       },
     });
@@ -207,14 +218,14 @@ async function main() {
     const passwordHash = await bcrypt.hash(user.password, 10);
 
     await prisma.userCredential.upsert({
-      where: { userId: user.userId },
+      where: { userId: userRecord.userId },
       update: {
-        userContactId: emailContactId,
+        userContactId: emailUserContact.userContactId,
         userCredentialPasswordHash: passwordHash,
       },
       create: {
-        userId: user.userId,
-        userContactId: emailContactId,
+        userId: userRecord.userId,
+        userContactId: emailUserContact.userContactId,
         userCredentialPasswordHash: passwordHash,
       },
     });
