@@ -263,8 +263,16 @@ async function main() {
     skipDuplicates: true,
   });
 
+  await prisma.studio.createMany({
+    data: Array.from({ length: 8 }, (_, index) => ({
+      studioName: `Estúdio ${index + 1}`,
+      studioMaxCapacity: 20,
+    })),
+    skipDuplicates: true,
+  });
+
   console.log(
-    "✔ UserType, contact, address, credentials, school years, and modalities seed complete.",
+    "✔ UserType, contact, address, credentials, school years, modalities, and studios seed complete.",
   );
 }
 
