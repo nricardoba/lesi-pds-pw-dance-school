@@ -8,7 +8,25 @@ import { getStudios } from "../services/studios";
 import {
   decimalToHourString,
   formatDateForInput,
+  toHourDecimal,
 } from "../utils/scheduleUtils";
+
+const HOURS = [
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+  "19:00",
+  "20:00",
+  "21:00",
+];
 
 const HomePage = () => {
   const { role, token } = useAuth();
@@ -93,6 +111,27 @@ const HomePage = () => {
     return Array.from(map.values());
   }, [studios, classesByStudio]);
 
+  const getClassBounds = (classItem) => {
+    const startHour = Number(
+      classItem.class_time_start
+        ? toHourDecimal(classItem.class_time_start)
+        : classItem.start,
+    );
+    const duration = Number(classItem.duration || 1);
+    const endHour = Number(
+      classItem.class_time_end
+        ? toHourDecimal(classItem.class_time_end)
+        : startHour + duration,
+    );
+
+    return { startHour, endHour };
+  };
+
+  const getClassTimeRange = (classItem) => {
+    const { startHour, endHour } = getClassBounds(classItem);
+    return `${decimalToHourString(startHour)} - ${decimalToHourString(endHour)}`;
+  };
+
   if (role === "teacher") {
     return <TeacherHomePage />;
   }
@@ -173,74 +212,90 @@ const HomePage = () => {
             </div>
 
             <div className="dashboard-schedule__table">
-              <table>
+              <table className="dashboard-schedule__matrix">
                 <thead>
                   <tr>
-                    <th>Estúdio</th>
-                    <th>Aulas marcadas</th>
+                    <th className="dashboard-schedule__hour-header">Hora</th>
+                    {studiosToRender.map((studio) => (
+                      <th key={studio.studioId}>{studio.studioName}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {studiosToRender.length > 0 ? (
-                    studiosToRender.map((studio) => {
-                      const studioId = String(
-                        studio.studioId || studio.id || studio.studioName,
-                      );
-                      const studioClasses =
-                        classesByStudio.get(String(studio.studioId)) || [];
+                    HOURS.map((hour) => {
+                      const slotStart = toHourDecimal(hour);
 
                       return (
-                        <tr key={studioId}>
-                          <td className="dashboard-schedule__studio">
-                            {studio.studioName}
-                          </td>
-                          <td>
-                            {studioClasses.length > 0 ? (
-                              <div className="dashboard-schedule__classes">
-                                {studioClasses.map((classItem) => {
-                                  const startTime = decimalToHourString(
-                                    classItem.start,
-                                  );
-                                  const endTime = decimalToHourString(
-                                    classItem.start + classItem.duration,
-                                  );
-                                  const instructorLabel =
-                                    classItem.instructorName ||
-                                    classItem.instructor;
+                        <tr key={hour}>
+                          <td className="dashboard-schedule__hour">{hour}</td>
+                          {studiosToRender.map((studio) => {
+                            const studioClasses =
+                              classesByStudio.get(String(studio.studioId)) ||
+                              [];
+                            const slotClasses = studioClasses.filter(
+                              (classItem) => {
+                                const { startHour, endHour } =
+                                  getClassBounds(classItem);
+                                return (
+                                  startHour < slotStart + 1 &&
+                                  endHour > slotStart
+                                );
+                              },
+                            );
 
-                                  return (
-                                    <div
-                                      key={classItem.id}
-                                      className="dashboard-schedule__class-item"
-                                    >
-                                      <span className="dashboard-schedule__time">
-                                        {startTime} - {endTime}
-                                      </span>
-                                      <span>
-                                        {classItem.categoryName ||
-                                          classItem.name}
-                                      </span>
-                                      {instructorLabel ? (
-                                        <span className="dashboard-schedule__muted">
-                                          • {instructorLabel}
-                                        </span>
-                                      ) : null}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <span className="dashboard-schedule__muted">
-                                Sem aulas
-                              </span>
-                            )}
-                          </td>
+                            return (
+                              <td
+                                key={`${hour}-${studio.studioId}`}
+                                className={
+                                  slotClasses.length
+                                    ? "dashboard-schedule__cell dashboard-schedule__cell--active"
+                                    : "dashboard-schedule__cell"
+                                }
+                              >
+                                {slotClasses.length > 0 ? (
+                                  <div className="dashboard-schedule__slot-classes">
+                                    {slotClasses.map((classItem) => {
+                                      const instructorLabel =
+                                        classItem.instructorName ||
+                                        classItem.instructor;
+
+                                      return (
+                                        <div
+                                          key={classItem.id}
+                                          className="dashboard-schedule__slot-class"
+                                        >
+                                          <div className="dashboard-schedule__slot-title">
+                                            {classItem.categoryName ||
+                                              classItem.name}
+                                          </div>
+                                          <div className="dashboard-schedule__slot-meta">
+                                            {getClassTimeRange(classItem)}
+                                            {instructorLabel
+                                              ? ` • ${instructorLabel}`
+                                              : ""}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <span className="dashboard-schedule__muted">
+                                    —
+                                  </span>
+                                )}
+                              </td>
+                            );
+                          })}
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan="2" className="dashboard-schedule__empty">
+                      <td
+                        colSpan={Math.max(1, studiosToRender.length + 1)}
+                        className="dashboard-schedule__empty"
+                      >
                         Sem estúdios registados.
                       </td>
                     </tr>
