@@ -72,6 +72,9 @@ async function main() {
       phone: "+351910000001",
       streetName: "Rua Beatriz Saraiva 1",
       password: "Admin123!",
+      birthDate: new Date("1985-02-14"),
+      startDate: new Date("2020-09-01"),
+      nif: "111111111",
     },
     {
       name: "Rodrigo Sanches",
@@ -79,6 +82,9 @@ async function main() {
       phone: "+351920000002",
       streetName: "Rua Rodrigo Sanches 2",
       password: "Prof123!",
+      birthDate: new Date("1990-06-22"),
+      startDate: new Date("2021-09-01"),
+      nif: "222222222",
     },
     {
       name: "Afonso Antunes",
@@ -86,6 +92,10 @@ async function main() {
       phone: "+351930000003",
       streetName: "Rua Afonso Antunes 3",
       password: "Aluno123!",
+      birthDate: new Date("2010-10-20"),
+      startDate: new Date("2023-09-01"),
+      nif: "333333333",
+      studentNumber: "a12345",
     },
   ];
 
@@ -129,12 +139,26 @@ async function main() {
           userName: user.name,
           userTypeId,
           userIsActive: true,
+          userBirthDate: user.birthDate,
+          userStartDate: user.startDate,
         },
       });
     } else {
       userRecord = await prisma.user.update({
         where: { userId: userRecord.userId },
-        data: { userIsActive: true },
+        data: {
+          userIsActive: true,
+          userBirthDate: user.birthDate,
+          userStartDate: user.startDate,
+        },
+      });
+    }
+
+    if (user.nif) {
+      await prisma.userNIF.upsert({
+        where: { userId: userRecord.userId },
+        update: { userNif: user.nif },
+        create: { userId: userRecord.userId, userNif: user.nif },
       });
     }
 
@@ -229,6 +253,17 @@ async function main() {
         userCredentialPasswordHash: passwordHash,
       },
     });
+
+    if (user.studentNumber) {
+      await prisma.studentNumber.upsert({
+        where: { userId: userRecord.userId },
+        update: { studentNumber: user.studentNumber },
+        create: {
+          userId: userRecord.userId,
+          studentNumber: user.studentNumber,
+        },
+      });
+    }
   }
 
   await prisma.schoolYear.createMany({
