@@ -29,10 +29,17 @@ const StudioCard = ({ studio , onEdit }) => {
         <span className="capacity-icon">👥</span> {studio.capacity} pessoas
       </div>
 
-      <div className="studio-card__equipment">
-        {studio.equipment.map((item, index) => (
-          <span key={index} className="equipment-tag">{item}</span>
-        ))}
+      <div className="studio-card__modalities">
+        <span className="studio-card__modalities-label">Modalidades</span>
+        <div className="studio-card__equipment">
+          {Array.isArray(studio.modalities) && studio.modalities.length > 0 ? (
+            studio.modalities.map((item, index) => (
+              <span key={index} className="equipment-tag">{item}</span>
+            ))
+          ) : (
+            <span className="studio-card__modalities-empty">Sem modalidades associadas</span>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -80,18 +80,52 @@ const StudiosPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [classesData, setClassesData] = useState(() => readScheduleClassesFromStorage());
 
+  const buildStudioModalitiesMap = (relations = []) => {
+    const map = new Map();
+
+    relations.forEach((relation) => {
+      const studioId = relation?.studioId ?? relation?.studio?.studioId;
+      const modalityName = relation?.modality?.modalityName;
+
+      if (!studioId || !modalityName) {
+        return;
+      }
+
+      if (!map.has(studioId)) {
+        map.set(studioId, []);
+      }
+
+      const current = map.get(studioId);
+      if (!current.includes(modalityName)) {
+        current.push(modalityName);
+      }
+    });
+
+    return map;
+  };
+
   const fetchStudios = async () => {
     try {
       setIsLoading(true);
-      const data = await getStudios(token);
+      const [studiosData, studioModalitiesData] = await Promise.all([
+        getStudios(token),
+        getStudioModalities(token),
+      ]);
+
+      const modalitiesByStudio = buildStudioModalitiesMap(Array.isArray(studioModalitiesData) ? studioModalitiesData : []);
       
-      const formattedStudios = data.map(s => ({
-        id: s.studioId,
-        name: s.studioName,
-        capacity: s.studioMaxCapacity,
-        size: s.studioMaxCapacity >= 20 ? 'Grande' : s.studioMaxCapacity >= 10 ? 'Média' : 'Pequena',
-        equipment: [],
-      }));
+      const formattedStudios = (Array.isArray(studiosData) ? studiosData : []).map((s) => {
+        const studioModalities = modalitiesByStudio.get(s.studioId) || [];
+
+        return {
+          id: s.studioId,
+          name: s.studioName,
+          capacity: s.studioMaxCapacity,
+          size: s.studioMaxCapacity >= 20 ? 'Grande' : s.studioMaxCapacity >= 10 ? 'Média' : 'Pequena',
+          equipment: studioModalities,
+          modalities: studioModalities,
+        };
+      });
 
       setStudios(formattedStudios);
     } catch (error) {
