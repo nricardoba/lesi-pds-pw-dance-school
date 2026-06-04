@@ -252,8 +252,19 @@ async function main() {
     skipDuplicates: true,
   });
 
+  await prisma.modality.createMany({
+    data: [
+      { modalityName: "Ballet Clássico", modalityHourlyFee: 15.0 },
+      { modalityName: "Dança Contemporânea", modalityHourlyFee: 12.5 },
+      { modalityName: "Hip Hop", modalityHourlyFee: 10.0 },
+      { modalityName: "Jazz", modalityHourlyFee: 12.0 },
+      { modalityName: "Dança Criativa", modalityHourlyFee: 9.0 },
+    ],
+    skipDuplicates: true,
+  });
+
   console.log(
-    "✔ UserType, contact, address, credentials, and school years seed complete.",
+    "✔ UserType, contact, address, credentials, school years, and modalities seed complete.",
   );
 }
 
