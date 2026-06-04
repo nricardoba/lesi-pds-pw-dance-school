@@ -306,8 +306,25 @@ async function main() {
     skipDuplicates: true,
   });
 
+  const studios = await prisma.studio.findMany();
+  const modalities = await prisma.modality.findMany();
+
+  if (studios.length && modalities.length) {
+    const studioModalitiesData = studios.flatMap((studio) =>
+      modalities.map((modality) => ({
+        studioId: studio.studioId,
+        modalityId: modality.modalityId,
+      })),
+    );
+
+    await prisma.studioModality.createMany({
+      data: studioModalitiesData,
+      skipDuplicates: true,
+    });
+  }
+
   console.log(
-    "✔ UserType, contact, address, credentials, school years, modalities, and studios seed complete.",
+    "✔ UserType, contact, address, credentials, school years, modalities, studios, and studio modalities seed complete.",
   );
 }
 
