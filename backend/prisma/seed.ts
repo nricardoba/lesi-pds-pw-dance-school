@@ -323,8 +323,59 @@ async function main() {
     });
   }
 
+  const modalityByName = new Map(
+    modalities.map((modality) => [modality.modalityName, modality.modalityId]),
+  );
+
+  const professorUser = await prisma.user.findFirst({
+    where: {
+      userName: "Rodrigo Sanches",
+      userTypeId: userTypeByDesc.get("Professor"),
+    },
+  });
+
+  const studentUser = await prisma.user.findFirst({
+    where: {
+      userName: "Afonso Antunes",
+      userTypeId: userTypeByDesc.get("Aluno"),
+    },
+  });
+
+  const userModalitiesData = [] as { userId: number; modalityId: number }[];
+
+  if (professorUser) {
+    ["Ballet Clássico", "Dança Contemporânea", "Jazz"].forEach((name) => {
+      const modalityId = modalityByName.get(name);
+      if (modalityId) {
+        userModalitiesData.push({
+          userId: professorUser.userId,
+          modalityId,
+        });
+      }
+    });
+  }
+
+  if (studentUser) {
+    ["Dança Criativa", "Hip Hop"].forEach((name) => {
+      const modalityId = modalityByName.get(name);
+      if (modalityId) {
+        userModalitiesData.push({
+          userId: studentUser.userId,
+          modalityId,
+        });
+      }
+    });
+  }
+
+  if (userModalitiesData.length) {
+    await prisma.userModality.createMany({
+      data: userModalitiesData,
+      skipDuplicates: true,
+    });
+  }
+
   console.log(
-    "✔ UserType, contact, address, credentials, school years, modalities, studios, and studio modalities seed complete.",
+    "✔ UserType, contact, address, credentials, school years, modalities, studios, studio modalities, and user modalities seed complete.",
   );
 }
 
