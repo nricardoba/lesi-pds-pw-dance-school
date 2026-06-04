@@ -13,6 +13,7 @@ backend/uploads/
 .cache/
 .temp/
 .tmp/
+seed*
 
 # ================================
 # Dependencies
